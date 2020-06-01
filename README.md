@@ -25,7 +25,15 @@
 | `npm run serve` | Run the dev server |
 | `npm run build` | Build for production |
 | `npm run lint` | Run linter |
-| `npm run lint --fix` | Run linter and autofix errors |
+| `npm run lint-autofix` | Run linter and autofix errors |
+
+### Recommended process
+
+1. Open the project dir in VSCode
+1. Run `npm run serve` in a terminal
+1. Go to [localhost:8080](localhost:8080)
+1. Change code, see it change
+1. When committing, the system will run a lint check and ask you to fix any issues
 
 ## Coding convention
 
