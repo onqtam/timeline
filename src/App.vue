@@ -13,7 +13,6 @@
 
 * {
     color: @theme-text-color;
-    background: @theme-background;
 }
 
 html, body, #app {
@@ -21,6 +20,8 @@ html, body, #app {
     height: 100vh;
     padding: 0;
     margin: 0;
+    background: @theme-background;
+
     font-family: Avenir, Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
