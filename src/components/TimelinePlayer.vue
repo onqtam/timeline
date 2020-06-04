@@ -1,8 +1,8 @@
 <template>
   <div class="timeline-player">
     <audio nocontrols></audio>
-    <Timeline :look=topTimelineLook :numberOfMarks=10 :rangeStart=0 :rangeEnd=60></Timeline>
-    <Timeline :look=bottomZoomlineLook :numberOfMarks=10 :rangeStart=0 :rangeEnd=60></Timeline>
+    <Timeline :look=topTimelineLook :numberOfMarks=10 :rangeStart=0 :rangeEnd=600 :currentPlayerPosition=20></Timeline>
+    <Timeline :look=bottomZoomlineLook :numberOfMarks=10 :rangeStart=0 :rangeEnd=60 :currentPlayerPosition=40></Timeline>
   </div>
 </template>
 
@@ -11,7 +11,7 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 import { default as Timeline, TimelineLook } from "./Timeline.vue";
 
 @Component({
-  components: { Timeline }
+    components: { Timeline }
 })
 export default class TimelinePlayer extends Vue {
     @Prop() private msg!: string;
