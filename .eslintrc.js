@@ -22,6 +22,7 @@ module.exports = {
         "named": "never",
         "asyncArrow": "always"
     }],
+    "lines-between-class-members": "off",
     "@typescript-eslint/no-inferrable-types": "off",
     "import/no-named-default": "off",
   },
