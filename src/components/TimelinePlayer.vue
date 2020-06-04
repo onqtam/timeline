@@ -1,8 +1,17 @@
 <template>
   <div class="timeline-player">
     <audio nocontrols></audio>
-    <Timeline :look=topTimelineLook :numberOfMarks=10 :rangeStart=0 :rangeEnd=600 :currentPlayerPosition=20></Timeline>
-    <Timeline :look=bottomZoomlineLook :numberOfMarks=10 :rangeStart=0 :rangeEnd=60 :currentPlayerPosition=40></Timeline>
+    <Timeline
+        :look=topTimelineLook :numberOfMarks=10
+        :rangeStart=0 :rangeEnd=600
+    >
+    </Timeline>
+    <Timeline
+        ref="zoomline"
+        :look=bottomZoomlineLook :numberOfMarks=10
+        :rangeStart=zoomlineRangeStart() :rangeEnd=zoomlineRangeEnd()
+    >
+    </Timeline>
   </div>
 </template>
 
@@ -14,7 +23,15 @@ import { default as Timeline, TimelineLook } from "./Timeline.vue";
     components: { Timeline }
 })
 export default class TimelinePlayer extends Vue {
+    // Props
     @Prop() private msg!: string;
+    private zoomlineRangeStart(): number {
+        return Math.floor(this.currentAudioPosition / 60) * 60;
+    }
+    private zoomlineRangeEnd(): number {
+        return Math.floor(this.currentAudioPosition / 60 + 1) * 60;
+    }
+    private currentAudioPosition: number = 0;
     // These constants are necessary as we can't use the TimelineLook enum in the template above since
     // it's an external object and Vue doesn't let you access external objects in templates
     private topTimelineLook: TimelineLook = TimelineLook.Line;
