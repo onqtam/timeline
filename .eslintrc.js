@@ -16,6 +16,13 @@ module.exports = {
     "no-debugger": process.env.NODE_ENV === "production" ? "warn" : "off",
     "semi": ["error", "always"],
     "quotes": ["error", "double"],
-    "import/no-named-default": "off"
+    "indent": ["error", 4],
+    "space-before-function-paren": ["error", {
+        "anonymous": "always",
+        "named": "never",
+        "asyncArrow": "always"
+    }],
+    "@typescript-eslint/no-inferrable-types": "off",
+    "import/no-named-default": "off",
   },
 };
