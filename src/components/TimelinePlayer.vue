@@ -1,8 +1,8 @@
 <template>
   <div class="timeline-player">
     <audio nocontrols></audio>
-    <Timeline look={TimelineLook.Line} numberOfMarks=10 rangeStart=0 rangeEnd=60></Timeline>
-    <Timeline look={TimelineLook.Audiowave} numberOfMarks=10 rangeStart=0 rangeEnd=60></Timeline>
+    <Timeline :look=topTimelineLook :numberOfMarks=10 :rangeStart=0 :rangeEnd=60></Timeline>
+    <Timeline :look=bottomZoomlineLook :numberOfMarks=10 :rangeStart=0 :rangeEnd=60></Timeline>
   </div>
 </template>
 
@@ -15,6 +15,10 @@ import { default as Timeline, TimelineLook } from "./Timeline.vue";
 })
 export default class TimelinePlayer extends Vue {
     @Prop() private msg!: string;
+    // These constants are necessary as we can't use the TimelineLook enum in the template above since
+    // it's an external object and Vue doesn't let you access external objects in templates
+    private topTimelineLook: TimelineLook = TimelineLook.Line;
+    private bottomZoomlineLook: TimelineLook = TimelineLook.Audiowave;
 };
 
 </script>

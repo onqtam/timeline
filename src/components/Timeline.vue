@@ -1,7 +1,7 @@
 <template>
   <div class="timeline-container">
-      <div class="mark" v-for="markTime in ~~numberOfMarks + 1" :key="markTime">
-            {{ ((~~markTime-1)/~~numberOfMarks) * (~~rangeEnd - ~~rangeStart) }}
+      <div class="mark" v-for="markTime in numberOfMarks + 1" :key="markTime">
+            {{ ((markTime-1)/numberOfMarks) * (rangeEnd - rangeStart) }}
             <div class="vertical-line"></div>
       </div>
   </div>
@@ -20,13 +20,13 @@ export default class Timeline extends Vue {
     @Prop()
     private look!: TimelineLook;
 
-    @Prop()
+    @Prop({ type: Number })
     private rangeStart!: number;
 
-    @Prop()
+    @Prop({ type: Number })
     private rangeEnd!: number;
 
-    @Prop()
+    @Prop({ type: Number })
     private numberOfMarks!: number;
 
     public functionToSilenceWarnings (): void {
