@@ -3,12 +3,13 @@
     ref="timeline-container"
     class="timeline-container"
     @mousemove="onDragPlayPosition"
+    @mouseleave="onStopDraggingPlayPosition"
   >
         <div class="mark-container">
-            <div class="mark" v-for="markTime in numberOfMarks + 1" :key="markTime">
+            <div class="mark" v-for="mark in computedMarks" :key="mark.timepoint">
                 <div class="vertical-line"></div>
                 <div class="vertical-line-label">
-                    {{ formatTimepoint(((markTime-1)/numberOfMarks) * (rangeEnd - rangeStart)) }}
+                    {{ formatTimepoint(mark.timepoint) }}
                 </div>
             </div>
         </div>
@@ -16,10 +17,10 @@
             class="current-play-position"
             @mousedown.left="onStartDraggingPlayPosition"
             @mouseup.left="onStopDraggingPlayPosition"
-            :style="{ left: 100 * (currentPlayerPosition-rangeStart)/rangeEnd + '%' }"
+            :style="{ left: 100 * (currentAudioPosition - rangeStart)/(rangeEnd-rangeStart) + '%' }"
         >
             <div class="current-play-position-label">
-                {{ formatTimepoint(currentPlayerPosition) }}
+                {{ formatTimepoint(currentAudioPosition) }}
             </div>
         </div>
   </div>
@@ -33,26 +34,51 @@ export enum TimelineLook {
     Audiowave
 };
 
+class TimepointMarkInfo {
+    public timepoint: number;
+
+    constructor(timepointInSeconds: number) {
+        this.timepoint = timepointInSeconds;
+    }
+}
+
 @Component
 export default class Timeline extends Vue {
     // Props
     @Prop()
     private look!: TimelineLook;
-
     @Prop({ type: Number })
-    private rangeStart!: number;
-
+    public rangeStart!: number;
     @Prop({ type: Number })
-    private rangeEnd!: number;
-
+    public rangeEnd!: number;
     @Prop({ type: Number })
-    private numberOfMarks!: number;
+    public numberOfMarks!: number;
 
-    @Prop({ type: Number })
-    private currentPlayerPosition!: number;
+    private get currentAudioPosition(): number {
+        return this.$parent.$data.currentAudioPosition;
+    }
+
+    private set currentAudioPosition(value: number) {
+        this.$parent.$data.currentAudioPosition = value;
+    }
+
+    public get computedMarks(): TimepointMarkInfo[] {
+        if (!this._timepointMarks) {
+            this._timepointMarks = [];
+        }
+        for (let i = 0; i < this.numberOfMarks + 1; i++) {
+            const seconds = this.rangeStart + (i / this.numberOfMarks) * (this.rangeEnd - this.rangeStart);
+            if (!this._timepointMarks[i]) {
+                this._timepointMarks[i] = new TimepointMarkInfo(0);
+            }
+            this._timepointMarks[i].timepoint = seconds;
+        }
+        return this._timepointMarks;
+    }
 
     // Internal data members
-    private isDraggingPlayPosition: boolean = false;
+    private _isDraggingPlayPosition: boolean = false;
+    private _timepointMarks: TimepointMarkInfo[] = [];
 
     // Public API
     public formatTimepoint(seconds: number): string {
@@ -61,7 +87,6 @@ export default class Timeline extends Vue {
         const minutes = Math.floor(seconds / 60);
         seconds -= minutes * 60;
         const leftOverSeconds = seconds;
-        console.log(seconds, minutes, leftOverSeconds);
         const tc = (val: number) => this.formatTimeComponent(val);
 
         if (hours > 0) {
@@ -80,19 +105,19 @@ export default class Timeline extends Vue {
     }
 
     private onStartDraggingPlayPosition(): void {
-        this.isDraggingPlayPosition = true;
+        this._isDraggingPlayPosition = true;
     }
 
     private onDragPlayPosition(event: DragEvent): void {
-        if (this.isDraggingPlayPosition) {
+        if (this._isDraggingPlayPosition) {
             const rect = (this.$refs["timeline-container"] as HTMLElement).getBoundingClientRect();
             const offsetXAsPercentage = (event.clientX - rect.left) / rect.width;
-            this.currentPlayerPosition = offsetXAsPercentage * (this.rangeEnd - this.rangeStart);
+            this.currentAudioPosition = this.rangeStart + offsetXAsPercentage * (this.rangeEnd - this.rangeStart);
         }
     }
 
     private onStopDraggingPlayPosition(): void {
-        this.isDraggingPlayPosition = false;
+        this._isDraggingPlayPosition = false;
     }
 };
 </script>
@@ -142,6 +167,7 @@ export default class Timeline extends Vue {
     width: 0.5%;
     min-width: 3px;
     background: @theme-player-position-line-color;
+    cursor: ew-resize;
 }
 .current-play-position-label {
     padding-left: 0.5em;
