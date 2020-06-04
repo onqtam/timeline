@@ -1,9 +1,11 @@
 <template>
   <div class="timeline-container">
       <div class="mark" v-for="markTime in numberOfMarks + 1" :key="markTime">
-            {{ ((markTime-1)/numberOfMarks) * (rangeEnd - rangeStart) }}
             <div class="vertical-line"></div>
-      </div>
+            <div class="vertical-line-label">
+                {{((markTime-1)/numberOfMarks) * (rangeEnd - rangeStart) }}
+            </div>
+        </div>
   </div>
 </template>
 
@@ -50,12 +52,23 @@ export default class Timeline extends Vue {
 }
 
 .mark {
-    display: fle;
+    position: relative;
 }
 
+/* Design intention: position the line and the label next to each other with some spacing.
+ * Have them have the same height
+ */
 .vertical-line {
-    height: 30%;
-    width: 10px;
+    position: absolute;
+    bottom: 0px;
+    height: 1em;
+    width: 2%;
+    min-width: 3px;
     background: @theme-background;
+}
+.vertical-line-label {
+    position: absolute;
+    bottom: 0px;
+    left: 0.25em;
 }
 </style>
