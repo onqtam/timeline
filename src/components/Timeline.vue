@@ -53,14 +53,8 @@ export default class Timeline extends Vue {
     public rangeEnd!: number;
     @Prop({ type: Number })
     public numberOfMarks!: number;
-
-    private get currentAudioPosition(): number {
-        return this.$parent.$data.currentAudioPosition;
-    }
-
-    private set currentAudioPosition(value: number) {
-        this.$parent.$data.currentAudioPosition = value;
-    }
+    @Prop({ type: Number })
+    private currentAudioPosition!: number;
 
     public get computedMarks(): TimepointMarkInfo[] {
         if (!this._timepointMarks) {
@@ -112,7 +106,8 @@ export default class Timeline extends Vue {
         if (this._isDraggingPlayPosition) {
             const rect = (this.$refs["timeline-container"] as HTMLElement).getBoundingClientRect();
             const offsetXAsPercentage = (event.clientX - rect.left) / rect.width;
-            this.currentAudioPosition = this.rangeStart + offsetXAsPercentage * (this.rangeEnd - this.rangeStart);
+            const newPosition = this.rangeStart + offsetXAsPercentage * (this.rangeEnd - this.rangeStart);
+            this.$emit("update:currentAudioPosition", newPosition);
         }
     }
 
