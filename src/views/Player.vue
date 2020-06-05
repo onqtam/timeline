@@ -6,9 +6,9 @@
 import TimelinePlayer from "@/components/TimelinePlayer.vue";
 
 export default {
-  name: "player",
-  components: {
-    TimelinePlayer
-  }
+    name: "player",
+    components: {
+        TimelinePlayer
+    }
 };
 </script>
