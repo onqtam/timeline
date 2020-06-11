@@ -11,7 +11,7 @@
         <Timeline
             :look=topTimelineLook :numberOfMarks=10
             :rangeStart=0 :rangeEnd=audio.duration
-            :currentAudioPosition=currentAudioPosition
+            :currentAudioPosition=audioPos
             @update:currentAudioPosition=onTimelinePositionMoved
         >
         </Timeline>
@@ -19,7 +19,7 @@
             ref="zoomline"
             :look=bottomZoomlineLook :numberOfMarks=5
             :rangeStart=zoomlineRangeStart :rangeEnd=zoomlineRangeEnd
-            :currentAudioPosition=currentAudioPosition
+            :currentAudioPosition=audioPos
             @update:currentAudioPosition=onTimelinePositionMoved
         >
         </Timeline>
@@ -30,6 +30,7 @@
 import { Component, Prop, Vue } from "vue-property-decorator";
 import { default as Timeline, TimelineLook } from "./Timeline.vue";
 import { default as AudioFile } from "@/logic/AudioFile";
+import Timepoint from "@/logic/Timepoint";
 
 @Component({
     components: { Timeline }
@@ -42,13 +43,13 @@ export default class TimelinePlayer extends Vue {
     public volume!: number;
 
     private get zoomlineRangeStart(): number {
-        return Math.floor(this.currentAudioPosition / 60) * 60;
+        return Math.floor(this.audioPos.seconds / 60) * 60;
     }
     private get zoomlineRangeEnd(): number {
-        const minuteEnd = Math.floor(this.currentAudioPosition / 60 + 1) * 60;
+        const minuteEnd = Math.floor(this.audioPos.seconds / 60 + 1) * 60;
         return Math.min(minuteEnd, this.audio.duration);
     }
-    private currentAudioPosition: number = 0;
+    private audioPos: Timepoint = new Timepoint();
 
     // These constants are necessary as we can't use the TimelineLook enum in the template above since
     // it's an external object and Vue doesn't let you access external objects in templates
@@ -80,14 +81,14 @@ export default class TimelinePlayer extends Vue {
 
     // Private API
     private updateAudioPos(): void{
-        this.currentAudioPosition = this.audioElement.currentTime;
-        if (this.currentAudioPosition >= this.audio.duration) {
+        this.audioPos.seconds = this.audioElement.currentTime;
+        if (this.audioPos.seconds >= this.audio.duration) {
             this.pause();
         }
     }
     private onTimelinePositionMoved(newValue: number): void {
-        this.currentAudioPosition = newValue;
-        this.audioElement.currentTime = this.currentAudioPosition;
+        this.audioPos.seconds = newValue;
+        this.audioElement.currentTime = this.audioPos.seconds;
     }
 };
 
