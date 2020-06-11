@@ -1,24 +1,24 @@
 <template>
     <div class="comment-thread-container">
         <button @click=toggleExpandCollapse>
-            <span v-if=!isExpanded>-</span>
-            <span v-if=isExpanded>+</span>
+            <span v-if=!$data.isExpanded>-</span>
+            <span v-if=$data.isExpanded>+</span>
         </button>
         <CommentComponent
             :key=thread.threadHead.id
             :comment=thread.threadHead
-            v-if=isExpanded
+            v-if=$data.isExpanded
         />
         <template v-for="commentPrimitive in thread.threadTail">
             <CommentComponent
                 class="nested-comment-thread-element"
-                v-if="!commentPrimitive.threadTail && isExpanded"
+                v-if="!commentPrimitive.threadTail && $data.isExpanded"
                 :key=commentPrimitive.id
                 :comment=commentPrimitive
             />
             <CommentThreadComponent
                 class="nested-comment-thread-element"
-                v-if="commentPrimitive.threadTail && isExpanded"
+                v-if="commentPrimitive.threadTail && $data.isExpanded"
                 :key=commentPrimitive.id
                 :thread=commentPrimitive
             />
@@ -42,7 +42,7 @@ import CommentComponent from "./Comment.vue";
 export default class CommentThreadComponent extends Vue {
     // Props
     @Prop({ type: CommentThread })
-    private thread!: CommentThread;
+    public thread!: CommentThread;
 
     private isExpanded: boolean = true;
 

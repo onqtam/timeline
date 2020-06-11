@@ -21,7 +21,7 @@ import CommentThreadComponent from "./CommentThread.vue";
 })
 export default class CommentSection extends Vue {
     // Props
-    private allThreads: CommentThread[];
+    public allThreads: CommentThread[];
 
     constructor() {
         super();
