@@ -54,6 +54,18 @@
 | Constants       | SCREAM_CASE |
 
 1. Do NOT use `_` for private fields. Vue has a variety of issues with members prefixed with `$` or `_` which make development much harder.
+2. Order class members in this order:
+
+    * public data members
+    * protected data members
+    * private data members
+    * public function members
+    * protected function members
+    * private function members
+
+3. When a data class and a component class need to use similar names, add the `Component` suffix to the component. Example:
+`Comment` is the data class, `CommentComponent` is the Component which renders a single comment.
+4. Add the suffix `View` to any complete view. Always place them in the *Views* directory.
 
 [vue-devtools]: https://chrome.google.com/webstore/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd?hl=en
 [vue-cli]: https://cli.vuejs.org/guide/
