@@ -1,6 +1,8 @@
 ## Initial Dev Setup
 
-1. Install VSCode with extensions with the [Vetur Extension][vscode-vetur]
+1. Install VSCode and these extensions:
+    * Vetur (syntax highlighting for .vue files)
+    * Debugger for Chrome (enables VSCode to connect with Chrome over the debug protocol, only if you want to use VSCode for debugging)
 1. Install the [Vue DevTools for Chrome][vue-devtools] (and Chrome if you don't have it)
 1. Install latest NodeJS LTS version
 1. Install the [Vue-CLI][vue-cli] tools (only really necessary if you want to modify the project's setup):
@@ -32,7 +34,9 @@
 1. Open the project dir in VSCode
 1. Run `npm run serve` in a terminal
 1. Go to [localhost:8080](localhost:8080)
-1. Change code, see it change
+1. Change code, see the change applied in the browser immediately
+    * You can debug in Chrome or you can debug in VS Code by clicking *Run* (on the left top-level menu in VSCode) and then hit the *Debug* button.
+    This will launch a separate Chrome window.
 1. When committing, the system will run a lint check and ask you to fix any issues
 
 ## Coding convention
@@ -44,10 +48,12 @@
 | Classes         | PascalCase  |
 | Local Variables | camelCase   |
 | Function args   | camelCase   |
-| Members         | camelCase   |
+| Public Members  | camelCase   |
+| Private Members | camelCase   |
 | Functions       | camelCase   |
 | Constants       | SCREAM_CASE |
 
-[vscode-vetur]: https://marketplace.visualstudio.com/items?itemName=octref.vetur
+1. Do NOT use `_` for private fields. Vue has a variety of issues with members prefixed with `$` or `_` which make development much harder.
+
 [vue-devtools]: https://chrome.google.com/webstore/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd?hl=en
 [vue-cli]: https://cli.vuejs.org/guide/

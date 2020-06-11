@@ -46,7 +46,7 @@ class TimepointMarkInfo {
 export default class Timeline extends Vue {
     // Props
     @Prop()
-    private look!: TimelineLook;
+    public look!: TimelineLook;
     @Prop({ type: Number })
     public rangeStart!: number;
     @Prop({ type: Number })
@@ -54,25 +54,25 @@ export default class Timeline extends Vue {
     @Prop({ type: Number })
     public numberOfMarks!: number;
     @Prop({ type: Number })
-    private currentAudioPosition!: number;
+    public currentAudioPosition!: number;
 
     public get computedMarks(): TimepointMarkInfo[] {
-        if (!this._timepointMarks) {
-            this._timepointMarks = [];
+        if (!this.timepointMarks) {
+            this.timepointMarks = [];
         }
         for (let i = 0; i < this.numberOfMarks + 1; i++) {
             const seconds = this.rangeStart + (i / this.numberOfMarks) * (this.rangeEnd - this.rangeStart);
-            if (!this._timepointMarks[i]) {
-                this._timepointMarks[i] = new TimepointMarkInfo(0);
+            if (!this.timepointMarks[i]) {
+                this.timepointMarks[i] = new TimepointMarkInfo(0);
             }
-            this._timepointMarks[i].timepoint = seconds;
+            this.timepointMarks[i].timepoint = seconds;
         }
-        return this._timepointMarks;
+        return this.timepointMarks;
     }
 
     // Internal data members
-    private _isDraggingPlayPosition: boolean = false;
-    private _timepointMarks: TimepointMarkInfo[] = [];
+    private isDraggingPlayPosition: boolean = false;
+    private timepointMarks: TimepointMarkInfo[] = [];
 
     // Public API
     public formatTimepoint(seconds: number): string {
@@ -99,11 +99,11 @@ export default class Timeline extends Vue {
     }
 
     private onStartDraggingPlayPosition(): void {
-        this._isDraggingPlayPosition = true;
+        this.isDraggingPlayPosition = true;
     }
 
     private onDragPlayPosition(event: DragEvent): void {
-        if (this._isDraggingPlayPosition) {
+        if (this.isDraggingPlayPosition) {
             const rect = (this.$refs["timeline-container"] as HTMLElement).getBoundingClientRect();
             const offsetXAsPercentage = (event.clientX - rect.left) / rect.width;
             const newPosition = this.rangeStart + offsetXAsPercentage * (this.rangeEnd - this.rangeStart);
@@ -112,7 +112,7 @@ export default class Timeline extends Vue {
     }
 
     private onStopDraggingPlayPosition(): void {
-        this._isDraggingPlayPosition = false;
+        this.isDraggingPlayPosition = false;
     }
 };
 </script>

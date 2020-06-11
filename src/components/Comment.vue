@@ -19,7 +19,7 @@ import { Comment } from "@/logic/Comments";
 export default class CommentComponent extends Vue {
     // Props
     @Prop({ type: Comment })
-    private comment!: Comment;
+    public comment!: Comment;
 }
 
 </script>

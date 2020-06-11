@@ -5,20 +5,22 @@
         </button>
         <audio nocontrols
             ref="audio-element"
-            :src=audioFilePath
+            :src=audio.filepath
         >
         </audio>
         <Timeline
             :look=topTimelineLook :numberOfMarks=10
-            :rangeStart=0 :rangeEnd=audioDuration
-            :currentAudioPosition=currentAudioPosition @update:currentAudioPosition=onTimelinePositionMoved
+            :rangeStart=0 :rangeEnd=audio.duration
+            :currentAudioPosition=currentAudioPosition
+            @update:currentAudioPosition=onTimelinePositionMoved
         >
         </Timeline>
         <Timeline
             ref="zoomline"
-            :look=bottomZoomlineLook :numberOfMarks=10
+            :look=bottomZoomlineLook :numberOfMarks=5
             :rangeStart=zoomlineRangeStart :rangeEnd=zoomlineRangeEnd
-            :currentAudioPosition=currentAudioPosition @update:currentAudioPosition=onTimelinePositionMoved
+            :currentAudioPosition=currentAudioPosition
+            @update:currentAudioPosition=onTimelinePositionMoved
         >
         </Timeline>
     </div>
@@ -27,24 +29,26 @@
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
 import { default as Timeline, TimelineLook } from "./Timeline.vue";
+import { default as AudioFile } from "@/logic/AudioFile";
 
 @Component({
     components: { Timeline }
 })
 export default class TimelinePlayer extends Vue {
     // Props
-    @Prop() private msg!: string;
+    @Prop({ type: AudioFile })
+    public audio!: AudioFile;
+    @Prop({ type: Number })
+    public volume!: number;
+
     private get zoomlineRangeStart(): number {
         return Math.floor(this.currentAudioPosition / 60) * 60;
     }
     private get zoomlineRangeEnd(): number {
         const minuteEnd = Math.floor(this.currentAudioPosition / 60 + 1) * 60;
-        return Math.min(minuteEnd, this.audioDuration);
+        return Math.min(minuteEnd, this.audio.duration);
     }
     private currentAudioPosition: number = 0;
-    private audioFilePath: string = "/assets/ShumiMarica.mp3";
-    private audioDuration: number = 153; // seconds
-    private volume: number = 0.15;
 
     // These constants are necessary as we can't use the TimelineLook enum in the template above since
     // it's an external object and Vue doesn't let you access external objects in templates
@@ -67,7 +71,7 @@ export default class TimelinePlayer extends Vue {
     public play(): void {
         this.audioElement.volume = this.volume;
         this.audioElement.play();
-        this.audioPlayTimeIntervalId = setInterval(() => this._updateAudioPos(), 16);
+        this.audioPlayTimeIntervalId = setInterval(() => this.updateAudioPos(), 16);
     }
     public pause(): void {
         this.audioElement.pause();
@@ -75,9 +79,9 @@ export default class TimelinePlayer extends Vue {
     }
 
     // Private API
-    private _updateAudioPos(): void{
+    private updateAudioPos(): void{
         this.currentAudioPosition = this.audioElement.currentTime;
-        if (this.currentAudioPosition >= this.audioDuration) {
+        if (this.currentAudioPosition >= this.audio.duration) {
             this.pause();
         }
     }

@@ -1,7 +1,7 @@
 import Vue from "vue";
 import VueRouter, { RouteConfig } from "vue-router";
 import Home from "../views/Home.vue";
-import Player from "../views/Player.vue";
+import PlayerView from "../views/Player.vue";
 
 Vue.use(VueRouter);
 
@@ -22,7 +22,7 @@ const routes: Array<RouteConfig> = [
     {
         path: "/",
         name: "Player",
-        component: Player
+        component: PlayerView
     }
 ];
 
