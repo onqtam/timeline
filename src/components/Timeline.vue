@@ -6,10 +6,10 @@
     @mouseleave="onStopDraggingPlayPosition"
   >
         <div class="mark-container">
-            <div class="mark" v-for="mark in computedMarks" :key="mark.timepoint">
+            <div class="mark" v-for="(timepoint, index) in computedMarks" :key="index">
                 <div class="vertical-line"></div>
                 <div class="vertical-line-label">
-                    {{ formatTimepoint(mark.timepoint) }}
+                    {{ timepoint.format() }}
                 </div>
             </div>
         </div>
@@ -17,10 +17,10 @@
             class="current-play-position"
             @mousedown.left="onStartDraggingPlayPosition"
             @mouseup.left="onStopDraggingPlayPosition"
-            :style="{ left: 100 * (currentAudioPosition - rangeStart)/(rangeEnd-rangeStart) + '%' }"
+            :style="{ left: 100 * (currentAudioPosition.seconds - rangeStart)/(rangeEnd-rangeStart) + '%' }"
         >
             <div class="current-play-position-label">
-                {{ formatTimepoint(currentAudioPosition) }}
+                {{ currentAudioPosition.format() }}
             </div>
         </div>
   </div>
@@ -28,19 +28,12 @@
 
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
+import Timepoint from "@/logic/Timepoint";
 
 export enum TimelineLook {
     Line,
     Audiowave
 };
-
-class TimepointMarkInfo {
-    public timepoint: number;
-
-    constructor(timepointInSeconds: number) {
-        this.timepoint = timepointInSeconds;
-    }
-}
 
 @Component
 export default class Timeline extends Vue {
@@ -48,46 +41,33 @@ export default class Timeline extends Vue {
     @Prop()
     public look!: TimelineLook;
     @Prop({ type: Number })
+    // In seconds
     public rangeStart!: number;
     @Prop({ type: Number })
+    // In seconds
     public rangeEnd!: number;
     @Prop({ type: Number })
     public numberOfMarks!: number;
-    @Prop({ type: Number })
-    public currentAudioPosition!: number;
+    @Prop({ type: Timepoint })
+    public currentAudioPosition!: Timepoint;
 
-    public get computedMarks(): TimepointMarkInfo[] {
+    public get computedMarks(): Timepoint[] {
         if (!this.timepointMarks) {
             this.timepointMarks = [];
         }
         for (let i = 0; i < this.numberOfMarks + 1; i++) {
             const seconds = this.rangeStart + (i / this.numberOfMarks) * (this.rangeEnd - this.rangeStart);
             if (!this.timepointMarks[i]) {
-                this.timepointMarks[i] = new TimepointMarkInfo(0);
+                this.timepointMarks[i] = new Timepoint(0);
             }
-            this.timepointMarks[i].timepoint = seconds;
+            this.timepointMarks[i].seconds = seconds;
         }
         return this.timepointMarks;
     }
 
     // Internal data members
     private isDraggingPlayPosition: boolean = false;
-    private timepointMarks: TimepointMarkInfo[] = [];
-
-    // Public API
-    public formatTimepoint(seconds: number): string {
-        const hours = Math.floor(seconds / 3600);
-        seconds -= hours * 3600;
-        const minutes = Math.floor(seconds / 60);
-        seconds -= minutes * 60;
-        const leftOverSeconds = seconds;
-        const tc = (val: number) => this.formatTimeComponent(val);
-
-        if (hours > 0) {
-            return `${tc(hours)}:${tc(minutes)}:${tc(leftOverSeconds)}`;
-        }
-        return `${tc(minutes)}:${tc(leftOverSeconds)}`;
-    }
+    private timepointMarks: Timepoint[] = [];
 
     public functionToSilenceWarnings(): void {
         console.log(this.look === TimelineLook.Line);
