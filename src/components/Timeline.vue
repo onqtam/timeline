@@ -116,7 +116,9 @@ export default class Timeline extends Vue {
     // Internal API
     // Converts the given value in a percentage between the current rangeStart and rangeEnd
     private normalize(value: number): number {
-        return 100 * (value - this.rangeStart)/(this.rangeEnd-this.rangeStart);
+        const percentage = 100 * (value - this.rangeStart)/(this.rangeEnd-this.rangeStart);
+        const normalized = Math.min(Math.max(percentage, 0), 100);
+        return normalized;
     }
 
     private onStartDraggingPlayPosition(event: MouseEvent): void {
