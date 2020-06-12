@@ -2,8 +2,9 @@
     <div
         ref="timeline-container"
         class="timeline-container"
-        @mousemove="onDrag"
-        @mouseleave="onStopDragging"
+        @click=onJumpToPosition
+        @mousemove=onDrag
+        @mouseleave=onStopDragging
     >
         <!-- Highlights the part of the audio which has already been played, only in Zoomline -->
         <div class="zoomline-played-until-now-cover"
@@ -15,7 +16,7 @@
         <!-- Highlights the part of the audio that should be zoomed, only in Standard -->
         <div class="standard-zoom-window"
             v-if="mode === TimelineMode.Standard"
-            @mousedown.left=onStartDraggingWindow
+            @mousedown.left=onStartDragging
             @mouseup.left=onStopDragging
             :style="{
                 left: normalize(standardModeParams.windowStart.seconds) + '%',
@@ -41,7 +42,7 @@
         <div
             class="current-play-position"
             v-if="currentAudioPosition.seconds >= rangeStart && currentAudioPosition.seconds <= rangeEnd"
-            v-on="mode === TimelineMode.Zoomline ? { 'mousedown': onStartDraggingPlayPosition, 'mouseup': onStopDragging } : {}"
+            v-on="mode === TimelineMode.Zoomline ? { 'mousedown': onStartDragging, 'mouseup': onStopDragging } : {}"
             :class="{ 'standard-play-position': mode === TimelineMode.Timeline, 'zoomline-play-position': mode === TimelineMode.Zoomline }"
             :style="{ left: normalize(currentAudioPosition.seconds) + '%' }"
         >
@@ -107,8 +108,10 @@ export default class Timeline extends Vue {
     }
 
     // Internal data members
-    private isDraggingPlayPosition: boolean = false;
-    private isDraggingZoomWindow_standard: boolean = false;
+    // Whether the user is currently dragging the corresponding element
+    // In Zoomline mode, this is the play cursor
+    // In Standard mode, this is the play window
+    private isDraggingPlayElement: boolean = false;
     private timepointMarks: Timepoint[] = [];
     // Store the enum as a member to access it in the template
     private TimelineMode = TimelineMode;
@@ -121,34 +124,51 @@ export default class Timeline extends Vue {
         return normalized;
     }
 
-    private onStartDraggingPlayPosition(event: MouseEvent): void {
+    // Moves the corresponding play element (cursor or window) to the given mouse pos
+    private setPlayElementPositionFromMouse(mouseX: number): void {
+        const rect = (this.$refs["timeline-container"] as HTMLElement).getBoundingClientRect();
+        const offsetXAsPercentage = (mouseX - rect.left) / rect.width;
+        const newPosition = this.rangeStart + offsetXAsPercentage * (this.rangeEnd - this.rangeStart);
+
+        switch (this.mode) {
+        case TimelineMode.Standard:
+            this.$emit("update:windowStart", newPosition);
+            break;
+        case TimelineMode.Zoomline:
+            this.$emit("update:currentAudioPosition", newPosition);
+            break;
+        default:
+            console.assert(false);
+        }
+    }
+
+    private onJumpToPosition(event: MouseEvent): void {
+        this.setPlayElementPositionFromMouse(event.clientX);
+    }
+
+    private onStartDragging(event: MouseEvent): void {
         const leftMouseButton: number = 0;
         if (event.button === leftMouseButton) {
-            this.isDraggingPlayPosition = true;
+            this.isDraggingPlayElement = true;
         }
     }
     private onStartDraggingWindow(event: MouseEvent): void {
         const leftMouseButton: number = 0;
         if (event.button === leftMouseButton) {
-            this.isDraggingZoomWindow_standard = true;
+            this.isDraggingPlayElement = true;
         }
     }
 
     private onDrag(event: DragEvent): void {
-        const rect = (this.$refs["timeline-container"] as HTMLElement).getBoundingClientRect();
-        const offsetXAsPercentage = (event.clientX - rect.left) / rect.width;
-        const newPosition = this.rangeStart + offsetXAsPercentage * (this.rangeEnd - this.rangeStart);
-
-        if (this.isDraggingPlayPosition) {
-            this.$emit("update:currentAudioPosition", newPosition);
-        } else if (this.isDraggingZoomWindow_standard) {
-            this.$emit("update:windowStart", newPosition);
+        if (!this.isDraggingPlayElement) {
+            return;
         }
+        this.setPlayElementPositionFromMouse(event.clientX);
     }
 
     private onStopDragging(): void {
-        this.isDraggingPlayPosition = false;
-        this.isDraggingZoomWindow_standard = false;
+        this.isDraggingPlayElement = false;
+        this.isDraggingPlayElement = false;
     }
 };
 </script>
