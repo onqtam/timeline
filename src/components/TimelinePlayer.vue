@@ -9,18 +9,20 @@
         >
         </audio>
         <Timeline
-            :look=topTimelineLook :numberOfMarks=10
+            :mode=TimelineMode.Standard :standardModeParams=standardTimelineParams
+            :numberOfMarks=10
             :rangeStart=0 :rangeEnd=audio.duration
             :currentAudioPosition=audioPos
-            @update:currentAudioPosition=onTimelinePositionMoved
+            @update:windowStart=onTimelineWindowMoved
         >
         </Timeline>
         <Timeline
             ref="zoomline"
-            :look=bottomZoomlineLook :numberOfMarks=5
+            :mode=TimelineMode.Zoomline
+            :numberOfMarks=5
             :rangeStart=zoomlineRangeStart :rangeEnd=zoomlineRangeEnd
             :currentAudioPosition=audioPos
-            @update:currentAudioPosition=onTimelinePositionMoved
+            @update:currentAudioPosition=onZoomlinePositionMoved
         >
         </Timeline>
     </div>
@@ -28,7 +30,7 @@
 
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
-import { default as Timeline, TimelineLook } from "./Timeline.vue";
+import { default as Timeline, TimelineMode, StandardModeParams } from "./Timeline.vue";
 import { default as AudioFile } from "@/logic/AudioFile";
 import Timepoint from "@/logic/Timepoint";
 
@@ -42,19 +44,21 @@ export default class TimelinePlayer extends Vue {
     @Prop({ type: Number })
     public volume!: number;
 
+    // Make the window start from 0 with a width of 1 minute
+    private standardTimelineParams: StandardModeParams = new StandardModeParams(new Timepoint(0), 60);
+
     private get zoomlineRangeStart(): number {
-        return Math.floor(this.audioPos.seconds / 60) * 60;
+        return this.standardTimelineParams.windowStart.seconds;
     }
     private get zoomlineRangeEnd(): number {
-        const minuteEnd = Math.floor(this.audioPos.seconds / 60 + 1) * 60;
-        return Math.min(minuteEnd, this.audio.duration);
+        const seconds: number = this.standardTimelineParams.windowStart.seconds + this.standardTimelineParams.windowDuration;
+        return Math.min(seconds, this.audio.duration);
     }
     private audioPos: Timepoint = new Timepoint();
 
-    // These constants are necessary as we can't use the TimelineLook enum in the template above since
-    // it's an external object and Vue doesn't let you access external objects in templates
-    private topTimelineLook: TimelineLook = TimelineLook.Line;
-    private bottomZoomlineLook: TimelineLook = TimelineLook.Audiowave;
+    // Store the enum as a member to access it in the template
+    private TimelineMode = TimelineMode;
+
     // Internal Data members
     private get audioElement(): HTMLAudioElement {
         return this.$refs["audio-element"] as HTMLAudioElement;
@@ -80,15 +84,29 @@ export default class TimelinePlayer extends Vue {
     }
 
     // Private API
-    private updateAudioPos(): void{
+    private isTimelineWindowSynced(): boolean {
+        const windowStart: number = this.standardTimelineParams.windowStart.seconds;
+        return this.audioPos.seconds >= this.standardTimelineParams.windowStart.seconds &&
+            this.audioPos.seconds <= windowStart + this.standardTimelineParams.windowDuration;
+    }
+    private updateAudioPos(): void {
+        const wasInSync: boolean = this.isTimelineWindowSynced();
         this.audioPos.seconds = this.audioElement.currentTime;
+        const isInSync: boolean = this.isTimelineWindowSynced();
+        if (wasInSync && !isInSync) {
+            this.standardTimelineParams.windowStart.seconds += this.standardTimelineParams.windowDuration;
+        }
+
         if (this.audioPos.seconds >= this.audio.duration) {
             this.pause();
         }
     }
-    private onTimelinePositionMoved(newValue: number): void {
+    private onZoomlinePositionMoved(newValue: number): void {
         this.audioPos.seconds = newValue;
         this.audioElement.currentTime = this.audioPos.seconds;
+    }
+    private onTimelineWindowMoved(newValue: number): void {
+        this.standardTimelineParams.windowStart.seconds = newValue;
     }
 };
 

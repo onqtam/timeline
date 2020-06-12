@@ -23,8 +23,8 @@ export default class PlayerView extends Vue {
     constructor() {
         super();
         this.audioFile = new AudioFile();
-        this.audioFile.filepath = "../assets/ShumiMarica.mp3";
-        this.audioFile.duration = 153;
+        this.audioFile.filepath = "../assets/Making_Sense_206_Frum.mp3";
+        this.audioFile.duration = 5403;
     }
 }
 </script>
