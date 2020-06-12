@@ -22,8 +22,12 @@ module.exports = {
         "named": "never",
         "asyncArrow": "always"
     }],
+    "space-infix-ops": "off",
     "lines-between-class-members": "off",
     "@typescript-eslint/no-inferrable-types": "off",
+    '@typescript-eslint/no-non-null-assertion': 'off',
+    // Can't enable this rule since we want to use patterns like myVarName_ImportantNote
+    "@typescript-eslint/camelcase": "off",
     "import/no-named-default": "off",
   },
 };

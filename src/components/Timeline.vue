@@ -2,12 +2,25 @@
     <div
         ref="timeline-container"
         class="timeline-container"
-        @mousemove="onDragPlayPosition"
-        @mouseleave="onStopDraggingPlayPosition"
+        @mousemove="onDrag"
+        @mouseleave="onStopDragging"
     >
-        <!-- Highlights the part of the audio which has already been played -->
-        <div class="played-until-now-cover"
-            :style="{ width: 100 * (currentAudioPosition.seconds - rangeStart)/(rangeEnd-rangeStart) + '%'  }"
+        <!-- Highlights the part of the audio which has already been played, only in Zoomline -->
+        <div class="zoomline-played-until-now-cover"
+            v-if="mode === TimelineMode.Zoomline"
+            :style="{ width: normalize(currentAudioPosition.seconds) + '%'  }"
+        >
+        </div>
+
+        <!-- Highlights the part of the audio that should be zoomed, only in Standard -->
+        <div class="standard-zoom-window"
+            v-if="mode === TimelineMode.Standard"
+            @mousedown.left=onStartDraggingWindow
+            @mouseup.left=onStopDragging
+            :style="{
+                left: normalize(standardModeParams.windowStart.seconds) + '%',
+                width: normalize(standardModeParams.windowDuration) + '%',
+            }"
         >
         </div>
 
@@ -21,12 +34,16 @@
             </div>
         </div>
 
-        <!-- Displays a vertical line denoting the current audio position -->
+        <!-- Displays a vertical line denoting the current audio position;
+            Only bind handlers if this is a zoomline; Use the ugly v-on syntax as the other one doesn't support conditional binding
+            + make sure this isn't visible in the zoomline where the audioPos might now be in range
+        -->
         <div
             class="current-play-position"
-            @mousedown.left="onStartDraggingPlayPosition"
-            @mouseup.left="onStopDraggingPlayPosition"
-            :style="{ left: 100 * (currentAudioPosition.seconds - rangeStart)/(rangeEnd-rangeStart) + '%' }"
+            v-if="currentAudioPosition.seconds >= rangeStart && currentAudioPosition.seconds <= rangeEnd"
+            v-on="mode === TimelineMode.Zoomline ? { 'mousedown': onStartDraggingPlayPosition, 'mouseup': onStopDragging } : {}"
+            :class="{ 'standard-play-position': mode === TimelineMode.Timeline, 'zoomline-play-position': mode === TimelineMode.Zoomline }"
+            :style="{ left: normalize(currentAudioPosition.seconds) + '%' }"
         >
             <div class="current-play-position-label">
                 {{ currentAudioPosition.format() }}
@@ -39,26 +56,41 @@
 import { Component, Prop, Vue } from "vue-property-decorator";
 import Timepoint from "@/logic/Timepoint";
 
-export enum TimelineLook {
-    Line,
-    Audiowave
+export enum TimelineMode {
+    Standard,
+    Zoomline
 };
 
+export class StandardModeParams {
+    public windowStart!: Timepoint;
+    public windowDuration!: number;
+
+    constructor(start?: Timepoint, duration?: number) {
+        this.windowStart = start!;
+        this.windowDuration = duration!;
+    }
+}
+
+// This class operates in 2 distinct modes - as a standard timeline and as a zoomline
+// Any members/functions which are solely used in one the modes must be suffixed with _<mode>
 @Component
 export default class Timeline extends Vue {
     // Props
-    @Prop()
-    public look!: TimelineLook;
     @Prop({ type: Number })
+    public mode!: TimelineMode;
     // In seconds
+    @Prop({ type: Number })
     public rangeStart!: number;
-    @Prop({ type: Number })
     // In seconds
+    @Prop({ type: Number })
     public rangeEnd!: number;
     @Prop({ type: Number })
     public numberOfMarks!: number;
     @Prop({ type: Timepoint })
     public currentAudioPosition!: Timepoint;
+    // Only used in standard mode
+    @Prop()
+    public standardModeParams?: StandardModeParams;
 
     public get computedMarks(): Timepoint[] {
         if (!this.timepointMarks) {
@@ -76,32 +108,45 @@ export default class Timeline extends Vue {
 
     // Internal data members
     private isDraggingPlayPosition: boolean = false;
+    private isDraggingZoomWindow_standard: boolean = false;
     private timepointMarks: Timepoint[] = [];
-
-    public functionToSilenceWarnings(): void {
-        console.log(this.look === TimelineLook.Line);
-    }
+    // Store the enum as a member to access it in the template
+    private TimelineMode = TimelineMode;
 
     // Internal API
-    private formatTimeComponent(value: number): string {
-        return value.toFixed(0).padStart(2, "0");
+    // Converts the given value in a percentage between the current rangeStart and rangeEnd
+    private normalize(value: number): number {
+        return 100 * (value - this.rangeStart)/(this.rangeEnd-this.rangeStart);
     }
 
-    private onStartDraggingPlayPosition(): void {
-        this.isDraggingPlayPosition = true;
+    private onStartDraggingPlayPosition(event: MouseEvent): void {
+        const leftMouseButton: number = 0;
+        if (event.button === leftMouseButton) {
+            this.isDraggingPlayPosition = true;
+        }
     }
-
-    private onDragPlayPosition(event: DragEvent): void {
-        if (this.isDraggingPlayPosition) {
-            const rect = (this.$refs["timeline-container"] as HTMLElement).getBoundingClientRect();
-            const offsetXAsPercentage = (event.clientX - rect.left) / rect.width;
-            const newPosition = this.rangeStart + offsetXAsPercentage * (this.rangeEnd - this.rangeStart);
-            this.$emit("update:currentAudioPosition", newPosition);
+    private onStartDraggingWindow(event: MouseEvent): void {
+        const leftMouseButton: number = 0;
+        if (event.button === leftMouseButton) {
+            this.isDraggingZoomWindow_standard = true;
         }
     }
 
-    private onStopDraggingPlayPosition(): void {
+    private onDrag(event: DragEvent): void {
+        const rect = (this.$refs["timeline-container"] as HTMLElement).getBoundingClientRect();
+        const offsetXAsPercentage = (event.clientX - rect.left) / rect.width;
+        const newPosition = this.rangeStart + offsetXAsPercentage * (this.rangeEnd - this.rangeStart);
+
+        if (this.isDraggingPlayPosition) {
+            this.$emit("update:currentAudioPosition", newPosition);
+        } else if (this.isDraggingZoomWindow_standard) {
+            this.$emit("update:windowStart", newPosition);
+        }
+    }
+
+    private onStopDragging(): void {
         this.isDraggingPlayPosition = false;
+        this.isDraggingZoomWindow_standard = false;
     }
 };
 </script>
@@ -118,6 +163,7 @@ export default class Timeline extends Vue {
     margin-bottom: 2%;
     position: relative;
     box-sizing: border-box;
+    user-select: none;
 }
 
 .mark-container {
@@ -154,12 +200,22 @@ export default class Timeline extends Vue {
         transform: translate(-115%, 0%);
     }
 }
-.played-until-now-cover {
+.zoomline-played-until-now-cover {
     position: absolute;
     left: 0;
     top: 0;
     height: 100%;
     background: @theme-focus-color-2;
+}
+.standard-zoom-window {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    background: @theme-focus-color-2;
+    @border: 0.1em double white;
+    border-left: @border;
+    border-right: @border;
+    cursor: ew-resize;
 }
 .current-play-position {
     position: relative;
@@ -168,6 +224,8 @@ export default class Timeline extends Vue {
     width: 0.5%;
     min-width: 3px;
     background: @theme-player-position-line-color;
+}
+.zoomline-play-position {
     cursor: ew-resize;
 }
 .current-play-position-label {
