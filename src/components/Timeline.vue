@@ -1,10 +1,17 @@
 <template>
-  <div
-    ref="timeline-container"
-    class="timeline-container"
-    @mousemove="onDragPlayPosition"
-    @mouseleave="onStopDraggingPlayPosition"
-  >
+    <div
+        ref="timeline-container"
+        class="timeline-container"
+        @mousemove="onDragPlayPosition"
+        @mouseleave="onStopDraggingPlayPosition"
+    >
+        <!-- Highlights the part of the audio which has already been played -->
+        <div class="played-until-now-cover"
+            :style="{ width: 100 * (currentAudioPosition.seconds - rangeStart)/(rangeEnd-rangeStart) + '%'  }"
+        >
+        </div>
+
+        <!-- Displays the small vertical lines that break down the timeline into small sections -->
         <div class="mark-container">
             <div class="mark" v-for="(timepoint, index) in computedMarks" :key="index">
                 <div class="vertical-line"></div>
@@ -13,6 +20,8 @@
                 </div>
             </div>
         </div>
+
+        <!-- Displays a vertical line denoting the current audio position -->
         <div
             class="current-play-position"
             @mousedown.left="onStartDraggingPlayPosition"
@@ -107,6 +116,8 @@ export default class Timeline extends Vue {
     background: @theme-focus-color;
     border: 2px solid @theme-border-color;
     margin-bottom: 2%;
+    position: relative;
+    box-sizing: border-box;
 }
 
 .mark-container {
@@ -134,6 +145,21 @@ export default class Timeline extends Vue {
     position: absolute;
     bottom: 0px;
     left: 0.25em;
+}
+.mark:last-child {
+    & .vertical-line {
+        right: 0;
+    }
+    & .vertical-line-label {
+        transform: translate(-115%, 0%);
+    }
+}
+.played-until-now-cover {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    background: @theme-focus-color-2;
 }
 .current-play-position {
     position: relative;
