@@ -31,6 +31,9 @@ export default class CommentSection extends Vue {
         const nestedness = 2;
         this.allThreads.push(CommentThread.generateRandomThread(commentsPerThread));
         this.allThreads.push(CommentThread.generateRandomThreadWithChildren(commentsPerThread, nestedness));
+        this.allThreads.push(CommentThread.generateRandomThread(commentsPerThread));
+        this.allThreads.push(CommentThread.generateRandomThread(commentsPerThread));
+        this.allThreads.push(CommentThread.generateRandomThread(commentsPerThread));
     }
 }
 
@@ -40,6 +43,17 @@ export default class CommentSection extends Vue {
 @import "../cssresources/theme.less";
 
 .comment-section-root {
-    padding-left: 2.5em;
+    padding-left: 1em;
+    padding-right: 1em;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    // This limits the size of all threads; TODO revisit and pick a better number at a later stage
+    max-height: 53vh;
+}
+.comment-thread-container { // Enhance the standard style of the comment-thread
+    width: 18.5%; // 5 per row (almost 20%) but leave some negative space for margins
+    max-height: 100%;
+    overflow-y: auto;
 }
 </style>
