@@ -28,10 +28,13 @@ export default class CommentThread {
 
     public static generateComment(): Comment {
         // Random generate comments
-        const maxAudioDuration = 120;
+        const maxAudioDuration = 5403;
         const authors = ["Nikola", "Viktor", "Dimitroff", "Kirilov", "onqtam", "podcastfan99"];
         const loremIpsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam ac velit neque. Pellentesque mattis velit arcu, eget pharetra arcu finibus sed. Suspendisse luctus leo sapien. Fusce pulvinar congue ante, eu efficitur massa blandit sit amet. Duis luctus nibh vel leo consequat volutpat. Suspendisse ac lacus eu lorem mattis malesuada semper vel justo. Vivamus fringilla fringilla turpis eu porttitor. Ut ullamcorper nec purus at semper. Donec at mi blandit, sollicitudin purus quis, pellentesque quam. Suspendisse potenti.";
-        const loremIpsumMaxCutout = 20;
+        const differentCommentLengths = [
+            5, 5, 5, 15, 15, 30, 30, 150, 300
+        ];
+        const commentLength = differentCommentLengths[~~(Math.random() * differentCommentLengths.length)];
 
         const comment = new Comment();
         comment.author = authors[Math.floor(Math.random() * authors.length)];
@@ -39,7 +42,7 @@ export default class CommentThread {
         // Pick a random date in 2020
         comment.date = new Date(2020, Math.random() * 12, Math.random() * 28);
         // Pick a somewhat random section of lorem ipsum;
-        comment.content = loremIpsum.substring(Math.random() * loremIpsumMaxCutout, loremIpsum.length - Math.random() * loremIpsumMaxCutout);
+        comment.content = loremIpsum.substr(Math.random() * loremIpsum.length, commentLength);
         return comment;
     }
 
