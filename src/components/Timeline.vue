@@ -19,8 +19,8 @@
             @mousedown.left=onStartDragging
             @mouseup.left=onStopDragging
             :style="{
-                left: normalize(standardModeParams.windowStart.seconds) + '%',
-                width: normalize(standardModeParams.windowDuration) + '%',
+                left: normalize(audioWindow.start.seconds) + '%',
+                width: normalize(audioWindow.duration) + '%',
             }"
         >
         </div>
@@ -56,21 +56,12 @@
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
 import Timepoint from "@/logic/Timepoint";
+import { AudioWindow } from "@/logic/AudioFile";
 
 export enum TimelineMode {
     Standard,
     Zoomline
 };
-
-export class StandardModeParams {
-    public windowStart!: Timepoint;
-    public windowDuration!: number;
-
-    constructor(start?: Timepoint, duration?: number) {
-        this.windowStart = start!;
-        this.windowDuration = duration!;
-    }
-}
 
 // This class operates in 2 distinct modes - as a standard timeline and as a zoomline
 // Any members/functions which are solely used in one the modes must be suffixed with _<mode>
@@ -91,7 +82,7 @@ export default class Timeline extends Vue {
     public currentAudioPosition!: Timepoint;
     // Only used in standard mode
     @Prop()
-    public standardModeParams?: StandardModeParams;
+    public audioWindow?: AudioWindow;
 
     public get computedMarks(): Timepoint[] {
         if (!this.timepointMarks) {
@@ -132,7 +123,7 @@ export default class Timeline extends Vue {
 
         switch (this.mode) {
         case TimelineMode.Standard:
-            this.$emit("update:windowStart", newPosition);
+            this.$emit("update:start", newPosition);
             break;
         case TimelineMode.Zoomline:
             this.$emit("update:currentAudioPosition", newPosition);

@@ -1,7 +1,7 @@
 <template>
     <div class="comment-section-root">
         <CommentThreadComponent
-            v-for="thread in allThreads" :key="thread.id"
+            v-for="thread in threadsInRange" :key="thread.id"
             :thread=thread
         />
     </div>
@@ -9,10 +9,11 @@
 
 <script lang="ts">
 
-import { Component, Vue } from "vue-property-decorator";
+import { Component, Vue, Prop } from "vue-property-decorator";
 import { default as CommentThread } from "@/logic/Comments";
 
 import CommentThreadComponent from "./CommentThread.vue";
+import { AudioWindow } from "@/logic/AudioFile";
 
 @Component({
     components: {
@@ -22,6 +23,13 @@ import CommentThreadComponent from "./CommentThread.vue";
 export default class CommentSection extends Vue {
     // Props
     public allThreads: CommentThread[];
+    @Prop({ type: AudioWindow })
+    public audioWindow!: AudioWindow;
+
+    public get threadsInRange(): CommentThread[] {
+        const THREADS_IN_VIEW = 5; // TODO: Move this to a better place
+        return this.allThreads.filter(thread => this.audioWindow.containsTimepoint(thread.timepoint)).slice(0, THREADS_IN_VIEW);
+    }
 
     constructor() {
         super();
@@ -29,12 +37,28 @@ export default class CommentSection extends Vue {
         this.allThreads = [];
         const commentsPerThread = 2;
         const nestedness = 2;
-        this.allThreads.push(CommentThread.generateRandomThread(commentsPerThread));
-        this.allThreads.push(CommentThread.generateRandomThreadWithChildren(commentsPerThread, nestedness));
-        this.allThreads.push(CommentThread.generateRandomThread(commentsPerThread));
-        this.allThreads.push(CommentThread.generateRandomThread(commentsPerThread));
-        this.allThreads.push(CommentThread.generateRandomThread(commentsPerThread));
-        this.allThreads.sort(CommentThread.compareTimepoints);
+        const secondsBetweenThreads = 15;
+        const varianceBetweenSeconds = 5;
+        const maxAudioDuration = 5403;
+        const chanceForNested = 0.15;
+        // Use this func to randomize comment sections
+        const nextCommentThreadRand = (t: number) => t + (Math.random() - 0.5) * varianceBetweenSeconds + secondsBetweenThreads;
+        // Use this func to always generate comments at numbers divisible by 12
+        const nextCommentThread12 = (t: number) => t + 12;
+        // Use this func to always generate comments divisible by 12, but sometimes skip some
+        const nextCommentThread12Skip = (t: number) => t + 12 * [1, 1, 1, 2, 3][~~(Math.random() * 5)];
+        console.log(nextCommentThreadRand, nextCommentThread12, nextCommentThread12Skip); // log all to silence warnings
+        const nextCommentThread = nextCommentThread12;
+        for (let i = nextCommentThread(0); i < maxAudioDuration; i = nextCommentThread(i)) {
+            let newThread: CommentThread;
+            if (Math.random() <= chanceForNested) {
+                newThread = CommentThread.generateRandomThreadWithChildren(commentsPerThread, nestedness);
+            } else {
+                newThread = CommentThread.generateRandomThread(commentsPerThread);
+            }
+            newThread.timepoint.seconds = i;
+            this.allThreads.push(newThread);
+        }
     }
 }
 
@@ -44,13 +68,9 @@ export default class CommentSection extends Vue {
 @import "../cssresources/theme.less";
 
 .comment-section-root {
-    padding-left: 1em;
-    padding-right: 1em;
     display: flex;
     flex-direction: row;
     justify-content: space-evenly;
-    // This limits the size of all threads; TODO revisit and pick a better number at a later stage
-    max-height: 53vh;
 }
 .comment-thread-container { // Enhance the standard style of the comment-thread
     width: 18.5%; // 5 per row (almost 20%) but leave some negative space for margins
