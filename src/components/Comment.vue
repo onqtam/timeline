@@ -2,7 +2,10 @@
     <div class="comment-container">
         <span class="author">{{ comment.author }}</span>
         <span class="separator"> · </span>
-        <span class="points">{{ comment.points }} points</span>
+        <span class="votes">
+            {{comment.upVotes }}&#8593; /
+            {{ (100*comment.upVotes / (comment.upVotes+comment.downVotes)).toFixed(0) }}%
+        </span>
         <br/>
         <router-link
             class="timepoint"
@@ -40,7 +43,7 @@ export default class CommentComponent extends Vue {
     text-align: left;
     padding-left: 1em;
 }
-.points, .date, .timepoint, .separator {
+.votes, .date, .timepoint, .separator {
     color: @theme-neutral-color;
 }
 .timepoint:hover {
