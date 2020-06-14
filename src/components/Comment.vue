@@ -1,7 +1,16 @@
 <template>
     <div class="comment-container">
         <span class="author">{{ comment.author }}</span>
-        <span class="timepoint">{{ comment.timepoint.format() }}</span>
+        <span class="separator"> · </span>
+        <span class="points">{{ comment.points }} points</span>
+        <br/>
+        <router-link
+            class="timepoint"
+            :to="'/listen?t=' + comment.timepoint.seconds"
+        >
+            {{ comment.timepoint.format() }}
+        </router-link>
+        <span class="separator"> · </span>
         <span class="date">{{ comment.date.toLocaleDateString() }}</span>
         <hr>
         <p class="comment-section">
@@ -31,8 +40,11 @@ export default class CommentComponent extends Vue {
     text-align: left;
     padding-left: 1em;
 }
-
-.author:after, .timepoint:after {
-    content: ' --- ';
+.points, .date, .timepoint, .separator {
+    color: @theme-neutral-color;
+}
+.timepoint:hover {
+    cursor: pointer;
+    text-decoration: underline;
 }
 </style>

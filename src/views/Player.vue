@@ -1,24 +1,40 @@
 <template>
     <div>
-        <TimelinePlayer :audio=audioFile :volume=0.15 />
+        <TimelinePlayer
+            ref="timeline-player"
+            :audio=audioFile :volume=0.15 :initialAudioPos=initialTimepoint
+        />
         <CommentSection />
     </div>
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import { Component, Vue, Prop } from "vue-property-decorator";
+import { Route, NavigationGuardNext } from "vue-router";
 import TimelinePlayer from "@/components/TimelinePlayer.vue";
 import CommentSection from "@/components/CommentSection.vue";
 import { default as AudioFile } from "@/logic/AudioFile";
+import Timepoint from "@/logic/Timepoint";
 
 @Component({
     components: {
         TimelinePlayer,
         CommentSection
+    },
+    beforeRouteUpdate(to: Route, from: Route, next: NavigationGuardNext<PlayerView>) {
+        // There's no "afterRouteUpdate"... so we can't directly use the prop initialTimepoint
+        // Fetch the timepoint from the query
+        const secondToSeekTo: number = ~~to.query.t;
+        if (!isNaN(secondToSeekTo)) {
+            (this.$refs["timeline-player"] as TimelinePlayer).syncTo(secondToSeekTo);
+        }
+        next();
     }
 })
 export default class PlayerView extends Vue {
     public audioFile!: AudioFile;
+    @Prop({ type: Timepoint })
+    public initialTimepoint?: Timepoint;
 
     constructor() {
         super();
