@@ -34,6 +34,7 @@ export default class CommentSection extends Vue {
         this.allThreads.push(CommentThread.generateRandomThread(commentsPerThread));
         this.allThreads.push(CommentThread.generateRandomThread(commentsPerThread));
         this.allThreads.push(CommentThread.generateRandomThread(commentsPerThread));
+        this.allThreads.sort(CommentThread.compareTimepoints);
     }
 }
 

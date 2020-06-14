@@ -4,6 +4,12 @@
             <span v-if=!$data.isExpanded>-</span>
             <span v-if=$data.isExpanded>+</span>
         </button>
+        <router-link
+            class="timepoint"
+            :to="'/listen?t=' + thread.timepoint.seconds"
+        >
+            {{ thread.timepoint.format() }}
+        </router-link>
         <CommentComponent
             :key=thread.threadHead.id
             :comment=thread.threadHead

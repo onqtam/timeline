@@ -8,7 +8,6 @@ export class Comment {
     public id!: number;
     public author!: string;
     public content!: string;
-    public timepoint!: Timepoint;
     public date!: Date;
     public upVotes!: number;
     public downVotes!: number;
@@ -21,6 +20,7 @@ export class Comment {
 export type CommentPrimitive = CommentThread | Comment;
 export default class CommentThread {
     public id: number;
+    public timepoint!: Timepoint;
     public threadHead!: Comment;
     public threadTail!: CommentPrimitive[];
 
@@ -28,9 +28,12 @@ export default class CommentThread {
         this.id = (CommentThreadIdCounter += 2);
     }
 
+    public static compareTimepoints(lhs: CommentThread, rhs: CommentThread) {
+        return lhs.timepoint.seconds - rhs.timepoint.seconds;
+    }
+
     public static generateComment(): Comment {
         const maxPoints = 25;
-        const maxAudioDuration = 5403;
         const authors = ["Nikola", "Viktor", "Dimitroff", "Kirilov", "onqtam", "podcastfan99"];
         const loremIpsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam ac velit neque. Pellentesque mattis velit arcu, eget pharetra arcu finibus sed. Suspendisse luctus leo sapien. Fusce pulvinar congue ante, eu efficitur massa blandit sit amet. Duis luctus nibh vel leo consequat volutpat. Suspendisse ac lacus eu lorem mattis malesuada semper vel justo. Vivamus fringilla fringilla turpis eu porttitor. Ut ullamcorper nec purus at semper. Donec at mi blandit, sollicitudin purus quis, pellentesque quam. Suspendisse potenti.";
         const differentCommentLengths = [
@@ -40,7 +43,6 @@ export default class CommentThread {
 
         const comment = new Comment();
         comment.author = authors[Math.floor(Math.random() * authors.length)];
-        comment.timepoint = new Timepoint(~~(Math.random() * maxAudioDuration));
         // Pick a random date in 2020
         comment.date = new Date(2020, Math.random() * 12, Math.random() * 28);
         // Pick a somewhat random section of lorem ipsum;
@@ -50,6 +52,7 @@ export default class CommentThread {
         return comment;
     }
 
+    private static maxAudioDuration = 5403;
     public static generateRandomThread(commentsToGenerate: number): CommentThread {
         const thread = new CommentThread();
         thread.threadTail = [];
@@ -57,6 +60,7 @@ export default class CommentThread {
             thread.threadTail.push(CommentThread.generateComment());
         }
         thread.threadHead = CommentThread.generateComment();
+        thread.timepoint = new Timepoint(~~(Math.random() * CommentThread.maxAudioDuration));
 
         return thread;
     }
@@ -74,6 +78,7 @@ export default class CommentThread {
             thread.threadTail.push(generatePrimitive());
         }
         thread.threadHead = CommentThread.generateComment();
+        thread.timepoint = new Timepoint(~~(Math.random() * CommentThread.maxAudioDuration));
 
         return thread;
     }
