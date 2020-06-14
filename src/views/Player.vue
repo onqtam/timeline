@@ -2,9 +2,12 @@
     <div>
         <TimelinePlayer
             ref="timeline-player"
+            class="timeline-player"
             :audio=audioFile :volume=0.15 :initialAudioPos=initialTimepoint
+            :audioWindow=audioWindow
+            @update:onAudioWindowMoved=onAudioWindowMoved
         />
-        <CommentSection />
+        <CommentSection :audioWindow=audioWindow />
     </div>
 </template>
 
@@ -13,7 +16,7 @@ import { Component, Vue, Prop } from "vue-property-decorator";
 import { Route, NavigationGuardNext } from "vue-router";
 import TimelinePlayer from "@/components/TimelinePlayer.vue";
 import CommentSection from "@/components/CommentSection.vue";
-import { default as AudioFile } from "@/logic/AudioFile";
+import { default as AudioFile, AudioWindow } from "@/logic/AudioFile";
 import Timepoint from "@/logic/Timepoint";
 
 @Component({
@@ -33,6 +36,7 @@ import Timepoint from "@/logic/Timepoint";
 })
 export default class PlayerView extends Vue {
     public audioFile!: AudioFile;
+    public audioWindow: AudioWindow = new AudioWindow(new Timepoint(0), 60); // 1 minute
     @Prop({ type: Timepoint })
     public initialTimepoint?: Timepoint;
 
@@ -42,5 +46,23 @@ export default class PlayerView extends Vue {
         this.audioFile.filepath = "../assets/Making_Sense_206_Frum.mp3";
         this.audioFile.duration = 5403;
     }
+
+    public onAudioWindowMoved(newStart: number): void {
+        this.audioWindow.start.seconds = newStart;
+    }
 }
 </script>
+
+<style scoped lang="less">
+
+.timeline-player, .comment-section-root {
+    margin: 0 1em;
+}
+
+.comment-section-root {
+    // This limits the size of all threads; TODO revisit and pick a better number at a later stage
+    max-height: 50vh;
+    box-sizing: border-box;
+    padding-bottom: 5vh;
+}
+</style>

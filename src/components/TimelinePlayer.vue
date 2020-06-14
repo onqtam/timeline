@@ -9,11 +9,11 @@
         >
         </audio>
         <Timeline
-            :mode=TimelineMode.Standard :standardModeParams=standardTimelineParams
+            :mode=TimelineMode.Standard :audioWindow=audioWindow
             :numberOfMarks=10
             :rangeStart=0 :rangeEnd=audio.duration
             :currentAudioPosition=audioPos
-            @update:windowStart=onTimelineWindowMoved
+            @update:start=onTimelineWindowMoved
         >
         </Timeline>
         <Timeline
@@ -30,8 +30,8 @@
 
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
-import { default as Timeline, TimelineMode, StandardModeParams } from "./Timeline.vue";
-import { default as AudioFile } from "@/logic/AudioFile";
+import { default as Timeline, TimelineMode } from "./Timeline.vue";
+import { default as AudioFile, AudioWindow } from "@/logic/AudioFile";
 import Timepoint from "@/logic/Timepoint";
 
 @Component({
@@ -45,15 +45,14 @@ export default class TimelinePlayer extends Vue {
     public volume!: number;
     @Prop({ type: Timepoint })
     public initialAudioPos!: Timepoint;
-
-    // Make the window start from 0 with a width of 1 minute
-    private standardTimelineParams: StandardModeParams = new StandardModeParams(new Timepoint(0), 60);
+    @Prop({ type: AudioWindow })
+    private audioWindow!: AudioWindow;
 
     private get zoomlineRangeStart(): number {
-        return this.standardTimelineParams.windowStart.seconds;
+        return this.audioWindow.start.seconds;
     }
     private get zoomlineRangeEnd(): number {
-        const seconds: number = this.standardTimelineParams.windowStart.seconds + this.standardTimelineParams.windowDuration;
+        const seconds: number = this.audioWindow.start.seconds + this.audioWindow.duration;
         return Math.min(seconds, this.audio.duration);
     }
     private audioPos: Timepoint = new Timepoint();
@@ -75,7 +74,7 @@ export default class TimelinePlayer extends Vue {
         }
         console.assert(this.initialAudioPos.seconds >= 0 && this.initialAudioPos.seconds <= this.audio.duration);
         this.audioPos.seconds = this.initialAudioPos.seconds;
-        this.standardTimelineParams.windowStart.seconds = this.audioPos.seconds;
+        this.onTimelineWindowMoved(this.audioPos.seconds);
     }
     public syncTo(secondToSyncTo: number): void {
         this.audioPos.seconds = secondToSyncTo;
@@ -100,16 +99,17 @@ export default class TimelinePlayer extends Vue {
 
     // Private API
     private isTimelineWindowSynced(): boolean {
-        const windowStart: number = this.standardTimelineParams.windowStart.seconds;
-        return this.audioPos.seconds >= this.standardTimelineParams.windowStart.seconds &&
-            this.audioPos.seconds <= windowStart + this.standardTimelineParams.windowDuration;
+        const start: number = this.audioWindow.start.seconds;
+        return this.audioPos.seconds >= this.audioWindow.start.seconds &&
+            this.audioPos.seconds <= start + this.audioWindow.duration;
     }
     private updateAudioPos(): void {
         const wasInSync: boolean = this.isTimelineWindowSynced();
         this.audioPos.seconds = this.audioElement.currentTime;
         const isInSync: boolean = this.isTimelineWindowSynced();
         if (wasInSync && !isInSync) {
-            this.standardTimelineParams.windowStart.seconds += this.standardTimelineParams.windowDuration;
+            const newWindowPos = this.audioWindow.start.seconds + this.audioWindow.duration;
+            this.onTimelineWindowMoved(newWindowPos);
         }
 
         if (this.audioPos.seconds >= this.audio.duration) {
@@ -120,7 +120,7 @@ export default class TimelinePlayer extends Vue {
         this.syncTo(newValue);
     }
     private onTimelineWindowMoved(newValue: number): void {
-        this.standardTimelineParams.windowStart.seconds = newValue;
+        this.$emit("update:onAudioWindowMoved", newValue);
     }
 };
 
