@@ -186,6 +186,7 @@ export default class Timeline extends Vue {
     position: relative;
     box-sizing: border-box;
     user-select: none;
+    cursor: pointer; /* Show we are clickable */
 }
 
 .mark-container {
