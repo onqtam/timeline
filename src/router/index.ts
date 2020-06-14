@@ -2,6 +2,7 @@ import Vue from "vue";
 import VueRouter, { RouteConfig } from "vue-router";
 import Home from "../views/Home.vue";
 import PlayerView from "../views/Player.vue";
+import Timepoint from "@/logic/Timepoint";
 
 Vue.use(VueRouter);
 
@@ -20,9 +21,14 @@ const routes: Array<RouteConfig> = [
         component: () => import(/* webpackChunkName: "about" */ "../views/About.vue")
     },
     {
+        path: "/listen",
+        name: "Listen",
+        component: PlayerView,
+        props: (route) => ({ initialTimepoint: new Timepoint(~~route.query.t) })
+    },
+    {
         path: "/",
-        name: "Player",
-        component: PlayerView
+        redirect: { name: "Listen" }
     }
 ];
 

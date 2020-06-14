@@ -43,6 +43,8 @@ export default class TimelinePlayer extends Vue {
     public audio!: AudioFile;
     @Prop({ type: Number })
     public volume!: number;
+    @Prop({ type: Timepoint })
+    public initialAudioPos!: Timepoint;
 
     // Make the window start from 0 with a width of 1 minute
     private standardTimelineParams: StandardModeParams = new StandardModeParams(new Timepoint(0), 60);
@@ -66,6 +68,19 @@ export default class TimelinePlayer extends Vue {
     private audioPlayTimeIntervalId: number = -1;
 
     // Public API
+    public mounted(): void {
+        // Move both the window and the audio pos during the initial render
+        if (!this.initialAudioPos) {
+            return;
+        }
+        console.assert(this.initialAudioPos.seconds >= 0 && this.initialAudioPos.seconds <= this.audio.duration);
+        this.audioPos.seconds = this.initialAudioPos.seconds;
+        this.standardTimelineParams.windowStart.seconds = this.audioPos.seconds;
+    }
+    public syncTo(secondToSyncTo: number): void {
+        this.audioPos.seconds = secondToSyncTo;
+        this.audioElement.currentTime = this.audioPos.seconds;
+    }
     public togglePlay(): void {
         if (this.audioElement.paused) {
             this.play();
@@ -102,8 +117,7 @@ export default class TimelinePlayer extends Vue {
         }
     }
     private onZoomlinePositionMoved(newValue: number): void {
-        this.audioPos.seconds = newValue;
-        this.audioElement.currentTime = this.audioPos.seconds;
+        this.syncTo(newValue);
     }
     private onTimelineWindowMoved(newValue: number): void {
         this.standardTimelineParams.windowStart.seconds = newValue;

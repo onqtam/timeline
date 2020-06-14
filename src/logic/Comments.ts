@@ -10,6 +10,7 @@ export class Comment {
     public content!: string;
     public timepoint!: Timepoint;
     public date!: Date;
+    public points!: number;
 
     constructor() {
         this.id = (CommentIdCounter += 2);
@@ -27,7 +28,7 @@ export default class CommentThread {
     }
 
     public static generateComment(): Comment {
-        // Random generate comments
+        const maxPoints = 50;
         const maxAudioDuration = 5403;
         const authors = ["Nikola", "Viktor", "Dimitroff", "Kirilov", "onqtam", "podcastfan99"];
         const loremIpsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam ac velit neque. Pellentesque mattis velit arcu, eget pharetra arcu finibus sed. Suspendisse luctus leo sapien. Fusce pulvinar congue ante, eu efficitur massa blandit sit amet. Duis luctus nibh vel leo consequat volutpat. Suspendisse ac lacus eu lorem mattis malesuada semper vel justo. Vivamus fringilla fringilla turpis eu porttitor. Ut ullamcorper nec purus at semper. Donec at mi blandit, sollicitudin purus quis, pellentesque quam. Suspendisse potenti.";
@@ -38,11 +39,12 @@ export default class CommentThread {
 
         const comment = new Comment();
         comment.author = authors[Math.floor(Math.random() * authors.length)];
-        comment.timepoint = new Timepoint(Math.random() * maxAudioDuration);
+        comment.timepoint = new Timepoint(~~(Math.random() * maxAudioDuration));
         // Pick a random date in 2020
         comment.date = new Date(2020, Math.random() * 12, Math.random() * 28);
         // Pick a somewhat random section of lorem ipsum;
         comment.content = loremIpsum.substr(Math.random() * loremIpsum.length, commentLength);
+        comment.points = ~~((Math.random() - 0.5) * maxPoints);
         return comment;
     }
 
