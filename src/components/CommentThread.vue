@@ -60,14 +60,15 @@ export default class CommentThreadComponent extends Vue {
 .comment-thread-container {
     border-left: 4px solid @theme-border-color;
     text-align: left;
+    box-sizing: border-box;
 }
 
-@indent-size: 1em;
+@indent-size: 0.75em;
 .nested-comment-thread-element {
     margin-left: @indent-size;
-    &.nested-comment-thread-element {
+    & .nested-comment-thread-element {
         margin-left: 2 * @indent-size;
-        &.nested-comment-thread-element {
+        & .nested-comment-thread-element {
             margin-left: 3 * @indent-size;
         }
     }
