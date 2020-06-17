@@ -57,6 +57,7 @@
 import { Component, Prop, Vue } from "vue-property-decorator";
 import Timepoint from "@/logic/Timepoint";
 import { AudioWindow } from "@/logic/AudioFile";
+import MathHelpers from "@/logic/MathHelpers";
 
 export enum TimelineMode {
     Standard,
@@ -119,13 +120,15 @@ export default class Timeline extends Vue {
     private setPlayElementPositionFromMouse(mouseX: number): void {
         const rect = (this.$refs["timeline-container"] as HTMLElement).getBoundingClientRect();
         const offsetXAsPercentage = (mouseX - rect.left) / rect.width;
-        const newPosition = this.rangeStart + offsetXAsPercentage * (this.rangeEnd - this.rangeStart);
+        let newPosition = this.rangeStart + offsetXAsPercentage * (this.rangeEnd - this.rangeStart);
 
         switch (this.mode) {
         case TimelineMode.Standard:
-            this.$emit("update:start", newPosition);
+            newPosition = MathHelpers.clamp(newPosition, this.rangeStart, this.rangeEnd - this.audioWindow!.duration);
+            this.$emit("update:audioWindowStart", newPosition);
             break;
         case TimelineMode.Zoomline:
+            newPosition = MathHelpers.clamp(newPosition, this.rangeStart, this.rangeEnd);
             this.$emit("update:currentAudioPosition", newPosition);
             break;
         default:
