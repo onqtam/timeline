@@ -13,7 +13,7 @@
             :numberOfMarks=10
             :rangeStart=0 :rangeEnd=audio.duration
             :currentAudioPosition=audioPos
-            @update:start=onTimelineWindowMoved
+            @update:audioWindowStart=onTimelineWindowMoved
         >
         </Timeline>
         <Timeline
