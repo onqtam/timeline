@@ -61,9 +61,9 @@ export default class CommentSection extends Vue {
 
         this.allThreads = [];
         const commentsPerThread = 2;
-        const nestedness = 2;
-        const secondsBetweenThreads = 15;
-        const varianceBetweenSeconds = 5;
+        const nestedness = 1;
+        const secondsBetweenThreads = 6;
+        const varianceBetweenSeconds = 6;
         const maxAudioDuration = 5403;
         const chanceForNested = 0.15;
         // Use this func to randomize comment sections
@@ -73,7 +73,7 @@ export default class CommentSection extends Vue {
         // Use this func to always generate comments divisible by 12, but sometimes skip some
         const nextCommentThread12Skip = (t: number) => t + 12 * [1, 1, 1, 2, 3][~~(Math.random() * 5)];
         console.log(nextCommentThreadRand, nextCommentThread12, nextCommentThread12Skip); // log all to silence warnings
-        const nextCommentThread = nextCommentThread12;
+        const nextCommentThread = nextCommentThreadRand;
         for (let i = nextCommentThread(0); i < maxAudioDuration; i = nextCommentThread(i)) {
             let newThread: CommentThread;
             if (Math.random() <= chanceForNested) {
