@@ -10,7 +10,7 @@
         <span class="date">{{ comment.date.toLocaleDateString() }}</span>
         <hr>
         <p class="comment-section">
-            {{ comment.content }}
+            {{ contentToDisplay }}
         </p>
     </div>
 </template>
@@ -25,6 +25,16 @@ export default class CommentComponent extends Vue {
     // Props
     @Prop({ type: Comment })
     public comment!: Comment;
+    @Prop({ type: Boolean })
+    public shouldShowOnlyPreview!: boolean;
+
+    public get contentToDisplay(): string {
+        const MAX_PREVIEW_CHAR_LIMIT = 47;
+        if (this.shouldShowOnlyPreview && this.comment.content.length > MAX_PREVIEW_CHAR_LIMIT) {
+            return this.comment.content.substr(0, MAX_PREVIEW_CHAR_LIMIT) + "...";
+        }
+        return this.comment.content;
+    }
 }
 
 </script>
