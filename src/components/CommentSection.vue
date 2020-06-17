@@ -1,9 +1,13 @@
 <template>
     <div class="comment-section-root">
-        <CommentThreadComponent
-            v-for="thread in threadsInRange" :key="thread.id"
-            :thread=thread
-        />
+        <div class="timeslot"
+            v-for="slot in activeTimeslots" :key="slot.timepoint.seconds"
+        >
+            <CommentThreadComponent
+                v-for="thread in slot.threads" :key="thread.id"
+                :thread=thread
+            />
+        </div>
     </div>
 </template>
 
@@ -14,6 +18,13 @@ import { default as CommentThread } from "@/logic/Comments";
 
 import CommentThreadComponent from "./CommentThread.vue";
 import { AudioWindow } from "@/logic/AudioFile";
+import Timepoint from "@/logic/Timepoint";
+import MathHelpers from "@/logic/MathHelpers";
+
+class Timeslot {
+    public timepoint!: Timepoint;
+    public threads!: CommentThread[];
+}
 
 @Component({
     components: {
@@ -26,9 +37,23 @@ export default class CommentSection extends Vue {
     @Prop({ type: AudioWindow })
     public audioWindow!: AudioWindow;
 
-    public get threadsInRange(): CommentThread[] {
-        const THREADS_IN_VIEW = 5; // TODO: Move this to a better place
-        return this.allThreads.filter(thread => this.audioWindow.containsTimepoint(thread.timepoint)).slice(0, THREADS_IN_VIEW);
+    public get activeTimeslots(): Timeslot[] {
+        const visibleThreads = this.allThreads.filter(thread => this.audioWindow.containsTimepoint(thread.timepoint));
+        const TIMESLOT_COUNT = 5; // TODO: Move this to a better place
+        const timeslotDuration = this.audioWindow.duration / TIMESLOT_COUNT;
+        const firstTimeslotStart = this.audioWindow.start.seconds;
+
+        const mapSlotTimeToThreads = (time: number) => {
+            return visibleThreads.filter(thread => MathHelpers.isBetween(thread.timepoint.seconds, time, time + timeslotDuration));
+        };
+        const timeslots: Timeslot[] = [];
+        for (let i = 0; i < TIMESLOT_COUNT; i++) {
+            const newTimeslot: Timeslot = new Timeslot();
+            newTimeslot.timepoint = new Timepoint(firstTimeslotStart + i * timeslotDuration);
+            newTimeslot.threads = mapSlotTimeToThreads(newTimeslot.timepoint.seconds);
+            timeslots.push(newTimeslot);
+        }
+        return timeslots;
     }
 
     constructor() {
@@ -72,7 +97,7 @@ export default class CommentSection extends Vue {
     flex-direction: row;
     justify-content: space-evenly;
 }
-.comment-thread-container { // Enhance the standard style of the comment-thread
+.timeslot {
     width: 18.5%; // 5 per row (almost 20%) but leave some negative space for margins
     max-height: 100%;
     overflow-y: auto;
