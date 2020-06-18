@@ -1,5 +1,8 @@
 <template>
     <div>
+        <button @click=regenerateComments>
+            Regenerate Comments
+        </button>
         <TimelinePlayer
             ref="timeline-player"
             class="timeline-player"
@@ -7,17 +10,20 @@
             :audioWindow=audioWindow
             @update:onAudioWindowMoved=onAudioWindowMoved
         />
-        <CommentSection :audioWindow=audioWindow />
+        <CommentSection :audioWindow=audioWindow :commentThreads=allThreads />
     </div>
 </template>
 
 <script lang="ts">
 import { Component, Vue, Prop } from "vue-property-decorator";
 import { Route, NavigationGuardNext } from "vue-router";
+
+import Timepoint from "@/logic/Timepoint";
+import { default as AudioFile, AudioWindow } from "@/logic/AudioFile";
+import { Comment, default as CommentThread } from "@/logic/Comments";
+
 import TimelinePlayer from "@/components/TimelinePlayer.vue";
 import CommentSection from "@/components/CommentSection.vue";
-import { default as AudioFile, AudioWindow } from "@/logic/AudioFile";
-import Timepoint from "@/logic/Timepoint";
 
 @Component({
     components: {
@@ -37,6 +43,8 @@ import Timepoint from "@/logic/Timepoint";
 export default class PlayerView extends Vue {
     public audioFile!: AudioFile;
     public audioWindow: AudioWindow = new AudioWindow(new Timepoint(0), 60); // 1 minute
+    public allThreads!: CommentThread[];
+
     @Prop({ type: Timepoint })
     public initialTimepoint?: Timepoint;
 
@@ -45,18 +53,106 @@ export default class PlayerView extends Vue {
         this.audioFile = new AudioFile();
         this.audioFile.filepath = "../assets/Making_Sense_206_Frum.mp3";
         this.audioFile.duration = 5403;
+
+        this.createComments();
     }
 
     public onAudioWindowMoved(newStart: number): void {
         this.audioWindow.start.seconds = newStart;
     }
+
+    public regenerateComments(): void {
+        this.allThreads = [];
+
+        const commentsPerThread = 2;
+        const nestedness = 1;
+        const secondsBetweenThreads = 6;
+        const varianceBetweenSeconds = 6;
+        const maxAudioDuration = 5403;
+        const chanceForNested = 0.15;
+        // Use this func to randomize comment sections
+        const nextCommentThreadRand = (t: number) => t + (Math.random() - 0.5) * varianceBetweenSeconds + secondsBetweenThreads;
+        // Use this func to always generate comments at numbers divisible by 12
+        const nextCommentThread12 = (t: number) => t + 12;
+        // Use this func to always generate comments divisible by 12, but sometimes skip some
+        const nextCommentThread12Skip = (t: number) => t + 12 * [1, 1, 1, 2, 3][~~(Math.random() * 5)];
+        console.log(nextCommentThreadRand, nextCommentThread12, nextCommentThread12Skip); // log all to silence warnings
+        const nextCommentThread = nextCommentThreadRand;
+        for (let i = nextCommentThread(0); i < maxAudioDuration; i = nextCommentThread(i)) {
+            let newThread: CommentThread;
+            if (Math.random() <= chanceForNested) {
+                newThread = CommentThread.generateRandomThreadWithChildren(commentsPerThread, nestedness);
+            } else {
+                newThread = CommentThread.generateRandomThread(commentsPerThread);
+            }
+            newThread.timepoint.seconds = i;
+            this.allThreads.push(newThread);
+        }
+        this.saveCommentsToLocalStorage();
+        this.$forceUpdate();
+    }
+
+    private createComments(): void {
+        const commentData: string | null = localStorage.getItem("comment-data");
+        console.log(commentData);
+        if (commentData !== null) {
+            this.loadCommentsFromJSON(commentData);
+        } else {
+            this.regenerateComments();
+        }
+    }
+
+    private loadCommentsFromJSON(commentData: string): void {
+        // Declare JSON-equivalent types for type checking
+        type RawComment = { id: string; author: string; content: string; date: string; upVotes: string; downVotes: string };
+        type RawThread = { id: string; timepoint: {seconds: string}; threadHead: RawComment; threadTail: (RawComment | RawThread)[] };
+
+        const rawCommentThreads: [] = JSON.parse(commentData);
+        const loadComment = (rawComment: RawComment) => {
+            const comment = new Comment();
+            comment.id = ~~rawComment.id;
+            comment.author = rawComment.author;
+            comment.content = rawComment.content;
+            comment.date = new Date(~~rawComment.date);
+            comment.upVotes = ~~rawComment.upVotes;
+            comment.downVotes = ~~rawComment.downVotes;
+            return comment;
+        };
+        const loadThread = (rawThread: RawThread) => {
+            const newThread = new CommentThread();
+            newThread.timepoint = new Timepoint(~~rawThread.timepoint.seconds);
+            newThread.id = ~~rawThread.id;
+            newThread.threadHead = loadComment(rawThread.threadHead);
+            newThread.threadTail = [];
+            for (let i = 0; i < rawThread.threadTail.length; i++) {
+                const rawCommentPrimitive: RawComment | RawThread = rawThread.threadTail[i];
+                if ("author" in rawCommentPrimitive) {
+                    newThread.threadTail.push(loadComment(rawCommentPrimitive));
+                } else {
+                    newThread.threadTail.push(loadThread(rawCommentPrimitive));
+                }
+            }
+            return newThread;
+        };
+
+        this.allThreads = rawCommentThreads.map(loadThread);
+    }
+
+    private saveCommentsToLocalStorage(): void {
+        localStorage.setItem("comment-data", JSON.stringify(this.allThreads));
+    }
 }
 </script>
 
 <style scoped lang="less">
+@import "../cssresources/theme.less";
 
 .timeline-player, .comment-section-root {
     margin: 0 1em;
+}
+
+button {
+    color: @theme-background;
 }
 
 .comment-section-root {
