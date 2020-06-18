@@ -42,7 +42,7 @@ import CommentSection from "@/components/CommentSection.vue";
 })
 export default class PlayerView extends Vue {
     public audioFile!: AudioFile;
-    public audioWindow: AudioWindow = new AudioWindow(new Timepoint(0), 60); // 1 minute
+    public audioWindow: AudioWindow = new AudioWindow(new Timepoint(0), 60, 12); // 1 minute, timeslots of 12 seconds
     public allThreads!: CommentThread[];
 
     @Prop({ type: Timepoint })
@@ -94,7 +94,6 @@ export default class PlayerView extends Vue {
 
     private createComments(): void {
         const commentData: string | null = localStorage.getItem("comment-data");
-        console.log(commentData);
         if (commentData !== null) {
             this.loadCommentsFromJSON(commentData);
         } else {
