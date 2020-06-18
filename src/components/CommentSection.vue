@@ -33,12 +33,13 @@ class Timeslot {
 })
 export default class CommentSection extends Vue {
     // Props
-    public allThreads: CommentThread[];
+    @Prop({ type: Array })
+    public commentThreads!: CommentThread[];
     @Prop({ type: AudioWindow })
     public audioWindow!: AudioWindow;
 
     public get activeTimeslots(): Timeslot[] {
-        const visibleThreads = this.allThreads.filter(thread => this.audioWindow.containsTimepoint(thread.timepoint));
+        const visibleThreads = this.commentThreads.filter(thread => this.audioWindow.containsTimepoint(thread.timepoint));
         const TIMESLOT_COUNT = 5; // TODO: Move this to a better place
         const timeslotDuration = this.audioWindow.duration / TIMESLOT_COUNT;
         const firstTimeslotStart = this.audioWindow.start.seconds;
@@ -54,36 +55,6 @@ export default class CommentSection extends Vue {
             timeslots.push(newTimeslot);
         }
         return timeslots;
-    }
-
-    constructor() {
-        super();
-
-        this.allThreads = [];
-        const commentsPerThread = 2;
-        const nestedness = 1;
-        const secondsBetweenThreads = 6;
-        const varianceBetweenSeconds = 6;
-        const maxAudioDuration = 5403;
-        const chanceForNested = 0.15;
-        // Use this func to randomize comment sections
-        const nextCommentThreadRand = (t: number) => t + (Math.random() - 0.5) * varianceBetweenSeconds + secondsBetweenThreads;
-        // Use this func to always generate comments at numbers divisible by 12
-        const nextCommentThread12 = (t: number) => t + 12;
-        // Use this func to always generate comments divisible by 12, but sometimes skip some
-        const nextCommentThread12Skip = (t: number) => t + 12 * [1, 1, 1, 2, 3][~~(Math.random() * 5)];
-        console.log(nextCommentThreadRand, nextCommentThread12, nextCommentThread12Skip); // log all to silence warnings
-        const nextCommentThread = nextCommentThreadRand;
-        for (let i = nextCommentThread(0); i < maxAudioDuration; i = nextCommentThread(i)) {
-            let newThread: CommentThread;
-            if (Math.random() <= chanceForNested) {
-                newThread = CommentThread.generateRandomThreadWithChildren(commentsPerThread, nestedness);
-            } else {
-                newThread = CommentThread.generateRandomThread(commentsPerThread);
-            }
-            newThread.timepoint.seconds = i;
-            this.allThreads.push(newThread);
-        }
     }
 }
 
