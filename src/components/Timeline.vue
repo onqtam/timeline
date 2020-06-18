@@ -109,10 +109,10 @@ export default class Timeline extends Vue {
     private TimelineMode = TimelineMode;
 
     // Internal API
-    // Converts the given value in a percentage between the current rangeStart and rangeEnd
+    // Converts the given value in a percentage between the current rangeStart and rangeEnd, clamped in [0;100]
     private normalize(value: number): number {
         const percentage = 100 * (value - this.rangeStart)/(this.rangeEnd-this.rangeStart);
-        const normalized = Math.min(Math.max(percentage, 0), 100);
+        const normalized = MathHelpers.clamp(percentage, 0, 100);
         return normalized;
     }
 
@@ -122,9 +122,12 @@ export default class Timeline extends Vue {
         const offsetXAsPercentage = (mouseX - rect.left) / rect.width;
         let newPosition = this.rangeStart + offsetXAsPercentage * (this.rangeEnd - this.rangeStart);
 
+        // Clamp the new position within boundaries
+        // In Standard mode, also snap to the nearest timeslot
         switch (this.mode) {
         case TimelineMode.Standard:
             newPosition = MathHelpers.clamp(newPosition, this.rangeStart, this.rangeEnd - this.audioWindow!.duration);
+            newPosition = Math.floor(newPosition / this.audioWindow!.timeslotDuration) * this.audioWindow!.timeslotDuration;
             this.$emit("update:audioWindowStart", newPosition);
             break;
         case TimelineMode.Zoomline:

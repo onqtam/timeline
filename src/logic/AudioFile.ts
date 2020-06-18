@@ -9,10 +9,16 @@ export default class AudioFile {
 export class AudioWindow {
     public start!: Timepoint;
     public duration!: number;
+    public timeslotDuration!: number;
 
-    constructor(start?: Timepoint, duration?: number) {
+    public get timeslotCount(): number {
+        return ~~(this.duration / this.timeslotDuration);
+    }
+
+    constructor(start?: Timepoint, duration?: number, timeslotDuration?: number) {
         this.start = start!;
         this.duration = duration!;
+        this.timeslotDuration = timeslotDuration!;
     }
 
     public containsTimepoint(timepoint: Timepoint): boolean {

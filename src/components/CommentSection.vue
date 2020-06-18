@@ -40,15 +40,14 @@ export default class CommentSection extends Vue {
 
     public get activeTimeslots(): Timeslot[] {
         const visibleThreads = this.commentThreads.filter(thread => this.audioWindow.containsTimepoint(thread.timepoint));
-        const TIMESLOT_COUNT = 5; // TODO: Move this to a better place
-        const timeslotDuration = this.audioWindow.duration / TIMESLOT_COUNT;
+        const timeslotDuration = this.audioWindow.timeslotDuration;
         const firstTimeslotStart = this.audioWindow.start.seconds;
 
         const mapSlotTimeToThreads = (time: number) => {
             return visibleThreads.filter(thread => MathHelpers.isBetween(thread.timepoint.seconds, time, time + timeslotDuration));
         };
         const timeslots: Timeslot[] = [];
-        for (let i = 0; i < TIMESLOT_COUNT; i++) {
+        for (let i = 0; i < this.audioWindow.timeslotCount; i++) {
             const newTimeslot: Timeslot = new Timeslot();
             newTimeslot.timepoint = new Timepoint(firstTimeslotStart + i * timeslotDuration);
             newTimeslot.threads = mapSlotTimeToThreads(newTimeslot.timepoint.seconds);
