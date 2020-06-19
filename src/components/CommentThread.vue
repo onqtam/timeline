@@ -64,7 +64,7 @@ export default class CommentThreadComponent extends Vue {
 @import "../cssresources/theme.less";
 
 .comment-thread-container {
-    border-left: 4px solid @theme-border-color;
+    border-left: 4px solid @theme-focus-color-3;
     text-align: left;
     box-sizing: border-box;
 }
