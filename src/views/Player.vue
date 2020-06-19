@@ -8,9 +8,13 @@
             class="timeline-player"
             :audio=audioFile :volume=0.15 :initialAudioPos=initialTimepoint
             :audioWindow=audioWindow
-            @update:onAudioWindowMoved=onAudioWindowMoved
+            @onAudioWindowMoved=onAudioWindowMoved
         />
-        <CommentSection :audioWindow=audioWindow :commentThreads=allThreads />
+        <CommentSection
+            :audioWindow=audioWindow :commentThreads=allThreads
+            @postNewCommentThread=postNewCommentThread
+            @postReply=postReply
+        />
     </div>
 </template>
 
@@ -41,19 +45,24 @@ import CommentSection from "@/components/CommentSection.vue";
     }
 })
 export default class PlayerView extends Vue {
-    public audioFile!: AudioFile;
+    public audioFile: AudioFile = new AudioFile();
     public audioWindow: AudioWindow = new AudioWindow(new Timepoint(0), 60, 12); // 1 minute, timeslots of 12 seconds
-    public allThreads!: CommentThread[];
+    public allThreads: CommentThread[] = [];
 
     @Prop({ type: Timepoint })
     public initialTimepoint?: Timepoint;
 
+    public get currentAudioPos(): Timepoint {
+        const playerComponent: TimelinePlayer = this.$refs["timeline-player"] as TimelinePlayer;
+        return playerComponent.getCurrentAudioPos();
+    }
+
     constructor() {
         super();
-        this.audioFile = new AudioFile();
         this.audioFile.filepath = "../assets/Making_Sense_206_Frum.mp3";
         this.audioFile.duration = 5403;
-
+    }
+    public mounted(): void {
         this.createComments();
     }
 
@@ -61,8 +70,34 @@ export default class PlayerView extends Vue {
         this.audioWindow.start.seconds = newStart;
     }
 
+    public postNewCommentThread(content: string): void {
+        const thread = new CommentThread();
+        thread.timepoint = new Timepoint(this.currentAudioPos.seconds);
+        thread.threadHead = this.makeComment(content);
+        thread.threadTail = [];
+        this.allThreads.push(thread); // TODO: Binary insert to keep all threads ordered?
+        this.saveCommentsToLocalStorage();
+    }
+
+    public postReply(parentThread: CommentThread, commentToReplyTo: Comment, content: string): void {
+        const newComment = this.makeComment(content);
+        if (parentThread.threadHead === commentToReplyTo) {
+            // Replying to the head, just append
+            parentThread.threadTail.push(newComment);
+        } else {
+            // Gotta start a new subthread
+            const commentIndex = parentThread.threadTail.indexOf(commentToReplyTo);
+            const subThread = new CommentThread();
+            subThread.timepoint = parentThread.timepoint;
+            subThread.threadHead = commentToReplyTo;
+            subThread.threadTail = [newComment];
+            parentThread.threadTail[commentIndex] = subThread;
+        }
+        this.saveCommentsToLocalStorage();
+    }
+
     public regenerateComments(): void {
-        this.allThreads = [];
+        this.allThreads.splice(0, this.allThreads.length);
 
         const commentsPerThread = 2;
         const nestedness = 1;
@@ -89,7 +124,15 @@ export default class PlayerView extends Vue {
             this.allThreads.push(newThread);
         }
         this.saveCommentsToLocalStorage();
-        this.$forceUpdate();
+    }
+
+    // Internal API
+    private makeComment(content: string): Comment {
+        const comment = new Comment();
+        comment.author = "DEFAULT"; // TODO
+        comment.content = content;
+        comment.date = new Date();
+        return comment;
     }
 
     private createComments(): void {
@@ -134,7 +177,10 @@ export default class PlayerView extends Vue {
             return newThread;
         };
 
-        this.allThreads = rawCommentThreads.map(loadThread);
+        this.allThreads.splice(0, this.allThreads.length);
+        for (let i = 0; i < rawCommentThreads.length; i++) {
+            this.allThreads.push(loadThread(rawCommentThreads[i]));
+        }
     }
 
     private saveCommentsToLocalStorage(): void {
@@ -156,7 +202,7 @@ button {
 
 .comment-section-root {
     // This limits the size of all threads; TODO revisit and pick a better number at a later stage
-    max-height: 50vh;
+    height: 50vh;
     box-sizing: border-box;
     padding-bottom: 5vh;
 }

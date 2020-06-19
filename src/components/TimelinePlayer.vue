@@ -46,8 +46,11 @@ export default class TimelinePlayer extends Vue {
     @Prop({ type: Timepoint })
     public initialAudioPos!: Timepoint;
     @Prop({ type: AudioWindow })
-    private audioWindow!: AudioWindow;
+    public audioWindow!: AudioWindow;
 
+    public getCurrentAudioPos(): Timepoint {
+        return this.audioPos;
+    }
     private get zoomlineRangeStart(): number {
         return this.audioWindow.start.seconds;
     }
@@ -120,7 +123,7 @@ export default class TimelinePlayer extends Vue {
         this.syncTo(newValue);
     }
     private onTimelineWindowMoved(newValue: number): void {
-        this.$emit("update:onAudioWindowMoved", newValue);
+        this.$emit("onAudioWindowMoved", newValue);
     }
 };
 
