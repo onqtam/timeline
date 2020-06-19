@@ -25,7 +25,10 @@ module.exports = {
     "space-infix-ops": "off",
     "lines-between-class-members": "off",
     "@typescript-eslint/no-inferrable-types": "off",
-    '@typescript-eslint/no-non-null-assertion': 'off',
+    "@typescript-eslint/no-non-null-assertion": "off",
+    "@typescript-eslint/interface-name-prefix": ["error", {
+        "prefixWithI": "always"
+    }],
     // Can't enable this rule since we want to use patterns like myVarName_ImportantNote
     "@typescript-eslint/camelcase": "off",
     "import/no-named-default": "off",
