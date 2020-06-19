@@ -104,5 +104,23 @@ input, button {
     width: 18.5%; // 5 per row (almost 20%) but leave some negative space for margins
     max-height: 100%;
     overflow-y: auto;
+    padding-right: 0.25em;
+    &::-webkit-scrollbar {
+        width: 0.75em;
+        border-radius: 10px;
+        border: 1px solid @theme-text-color;
+    }
+
+    &::-webkit-scrollbar-track {
+        border-radius: 10px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background-color: @theme-neutral-color;
+        border-radius: 10px;
+    }
+}
+.comment-thread-container {
+    margin-bottom: 1em;
 }
 </style>

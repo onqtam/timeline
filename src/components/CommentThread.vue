@@ -1,9 +1,5 @@
 <template>
     <div class="comment-thread-container">
-        <button @click=toggleExpandCollapse>
-            <span v-if=isExpanded>-</span>
-            <span v-if=!isExpanded>+</span>
-        </button>
         <router-link
             class="timepoint"
             :to="'/listen?t=' + thread.timepoint.seconds"
@@ -14,6 +10,7 @@
             :key=thread.threadHead.id
             :comment=thread.threadHead
             :shouldShowOnlyPreview=!isExpanded
+            @update:isExpanded=setIsExpanded
         />
         <template v-for="commentPrimitive in thread.threadTail">
             <CommentComponent
@@ -50,11 +47,12 @@ export default class CommentThreadComponent extends Vue {
     @Prop({ type: CommentThread })
     public thread!: CommentThread;
 
-    private isExpanded: boolean = false;
+    // Should equal the value of isExpanded on the component for the head at all times
+    private isExpanded: boolean = true;
 
     // Public API
-    public toggleExpandCollapse(): void {
-        this.isExpanded = !this.isExpanded;
+    public setIsExpanded(isExpanded: boolean): void {
+        this.isExpanded = isExpanded;
     }
 }
 
@@ -64,12 +62,13 @@ export default class CommentThreadComponent extends Vue {
 @import "../cssresources/theme.less";
 
 .comment-thread-container {
-    border-left: 4px solid @theme-focus-color-3;
     text-align: left;
     box-sizing: border-box;
+    border-radius: 0 0 5% 5%;
+    border: 2px solid @theme-neutral-color;
+    background: @theme-background;
 }
-
-@indent-size: 0.75em;
+@indent-size: 0.5em;
 .nested-comment-thread-element {
     margin-left: @indent-size;
     & .nested-comment-thread-element {
