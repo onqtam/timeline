@@ -155,7 +155,7 @@ export default class PlayerView extends Vue {
             comment.id = ~~rawComment.id;
             comment.author = rawComment.author;
             comment.content = rawComment.content;
-            comment.date = new Date(~~rawComment.date);
+            comment.date = new Date(rawComment.date);
             comment.upVotes = ~~rawComment.upVotes;
             comment.downVotes = ~~rawComment.downVotes;
             return comment;
