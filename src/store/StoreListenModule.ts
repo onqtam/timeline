@@ -1,4 +1,4 @@
-
+import store from "@/store";
 import Timepoint from "@/logic/Timepoint";
 import { default as AudioFile, AudioWindow } from "@/logic/AudioFile";
 import { Comment, default as CommentThread } from "@/logic/Comments";
@@ -95,7 +95,7 @@ class StoreListenViewModel implements IStoreListenModule {
     // Internal API
     private makeComment(content: string): Comment {
         const comment = new Comment();
-        comment.author = "DEFAULT"; // TODO
+        comment.author = store.state.user.info.shortName;
         comment.content = content;
         comment.date = new Date();
         return comment;
