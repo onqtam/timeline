@@ -9,8 +9,8 @@ export class Comment {
     public author!: string;
     public content!: string;
     public date!: Date;
-    public upVotes!: number;
-    public downVotes!: number;
+    public upVotes: number = 0;
+    public downVotes: number = 0;
 
     constructor() {
         this.id = (CommentIdCounter += 2);
@@ -19,6 +19,8 @@ export class Comment {
 
 export type CommentPrimitive = CommentThread | Comment;
 export default class CommentThread {
+    // Important: Never explicitly assigned outside of this class;
+    // Its setter should be private but TS currently does not support private setters!
     public id: number;
     public timepoint!: Timepoint;
     public threadHead!: Comment;

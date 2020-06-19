@@ -1,5 +1,15 @@
 <template>
     <div class="comment-section-root">
+        <div class="new-thread-container">
+            <label>Start a new thread at current time: </label>
+            <input type="text" minlength="3" ref="new-comment-thread-content">
+            <button @click=startNewCommentThread>Submit</button>
+        </div>
+        <div class="comment-management-panel">
+            <button>Hot</button>
+            <button>New</button>
+            <button>Top</button>
+        </div>
         <div class="timeslot"
             v-for="slot in activeTimeslots" :key="slot.timepoint.seconds"
         >
@@ -55,6 +65,11 @@ export default class CommentSection extends Vue {
         }
         return timeslots;
     }
+
+    public startNewCommentThread(): void {
+        const inputElement = this.$refs["new-comment-thread-content"] as HTMLInputElement;
+        this.$emit("postNewCommentThread", inputElement.value);
+    }
 }
 
 </script>
@@ -65,7 +80,25 @@ export default class CommentSection extends Vue {
 .comment-section-root {
     display: flex;
     flex-direction: row;
+    flex-wrap: wrap;
     justify-content: space-evenly;
+}
+input, button {
+    background: @theme-text-color;
+    color: @theme-background;
+}
+.new-thread-container, .comment-management-panel {
+    width: 48%;
+    margin-bottom: 1em;
+    box-sizing: border-box;
+}
+
+@top-row-shared-border: 2px solid @theme-focus-color-3;
+.new-thread-container {
+    border-right: @top-row-shared-border;
+}
+.comment-management-panel {
+    border-left: @top-row-shared-border;
 }
 .timeslot {
     width: 18.5%; // 5 per row (almost 20%) but leave some negative space for margins
