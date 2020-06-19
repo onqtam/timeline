@@ -3,8 +3,8 @@
         <span class="author">{{ comment.author }}</span>
         <span class="separator"> · </span>
         <span class="votes">
-            {{comment.upVotes }}&#8593; /
-            {{ (100*comment.upVotes / (comment.upVotes+comment.downVotes)).toFixed(0) }}%
+            {{ comment.upVotes }}&#8593; /
+            {{ comment.formatApprovalRating() }}
         </span>
         <br/>
         <span class="date">{{ comment.date.toLocaleDateString() }}</span>
