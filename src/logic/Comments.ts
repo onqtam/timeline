@@ -15,6 +15,15 @@ export class Comment {
     constructor() {
         this.id = (CommentIdCounter += 2);
     }
+
+    public formatApprovalRating(): string {
+        const voteCount = this.upVotes + this.downVotes;
+        if (voteCount === 0) {
+            return "100%";
+        }
+        const approvalPercentage = 100 * this.upVotes / voteCount;
+        return approvalPercentage.toFixed(0);
+    }
 }
 
 export type CommentPrimitive = CommentThread | Comment;
