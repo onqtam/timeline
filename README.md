@@ -66,6 +66,9 @@
 3. When a data class and a component class need to use similar names, add the `Component` suffix to the component. Example:
 `Comment` is the data class, `CommentComponent` is the Component which renders a single comment.
 4. Add the suffix `View` to any complete view. Always place them in the *Views* directory.
+5. When working with store (Vuex) data:
+    * Do NOT access directly store state. Create computed properties in your component which refer to it
+    * Do call directly store mutations/actions.
 
 [vue-devtools]: https://chrome.google.com/webstore/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd?hl=en
 [vue-cli]: https://cli.vuejs.org/guide/
