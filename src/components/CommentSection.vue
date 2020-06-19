@@ -23,7 +23,8 @@
 
 <script lang="ts">
 
-import { Component, Vue, Prop } from "vue-property-decorator";
+import { Component, Vue } from "vue-property-decorator";
+import store from "@/store";
 import { default as CommentThread } from "@/logic/Comments";
 
 import CommentThreadComponent from "./CommentThread.vue";
@@ -43,10 +44,12 @@ class Timeslot {
 })
 export default class CommentSection extends Vue {
     // Props
-    @Prop({ type: Array })
-    public commentThreads!: CommentThread[];
-    @Prop({ type: AudioWindow })
-    public audioWindow!: AudioWindow;
+    public get commentThreads(): CommentThread[] {
+        return store.state.listen.allThreads;
+    }
+    public get audioWindow(): AudioWindow {
+        return store.state.listen.audioWindow;
+    }
 
     public get activeTimeslots(): Timeslot[] {
         const visibleThreads = this.commentThreads.filter(thread => this.audioWindow.containsTimepoint(thread.timepoint));
@@ -68,7 +71,7 @@ export default class CommentSection extends Vue {
 
     public startNewCommentThread(): void {
         const inputElement = this.$refs["new-comment-thread-content"] as HTMLInputElement;
-        this.$emit("postNewCommentThread", inputElement.value);
+        store.commit.listen.postNewCommentThread(inputElement.value);
     }
 }
 
