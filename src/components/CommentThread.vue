@@ -68,7 +68,9 @@ export default class CommentThreadComponent extends Vue {
     box-sizing: border-box;
     border-radius: 0 0 5% 5%;
     border: 2px solid @theme-neutral-color;
+    border-top-width: 8px;
     background: @theme-background;
+    padding-top: 0.25em;
 }
 @indent-size: 0.5em;
 .nested-comment-thread-element {
