@@ -47,11 +47,11 @@
                     <i class="fa fa-reply" aria-hidden="true"></i> Submit reply
                 </a>
             </div>
-            <hr v-if=isExpanded>
             <p class="comment-section" v-if=isExpanded>
                 {{ contentToDisplay }}
             </p>
         </div>
+        <hr v-if=shouldShowDelimiter>
     </div>
 </template>
 
@@ -59,7 +59,7 @@
 
 import { Component, Prop, Vue } from "vue-property-decorator";
 import store from "@/store";
-import { default as CommentThread, Comment } from "@/logic/Comments";
+import { default as CommentThread, Comment, CommentPrimitive } from "@/logic/Comments";
 
 @Component
 export default class CommentComponent extends Vue {
@@ -92,6 +92,12 @@ export default class CommentComponent extends Vue {
 
     private isExpanded: boolean = true;
     private isReplyingTo: boolean = false;
+
+    private get shouldShowDelimiter(): boolean {
+        const parentTail: CommentPrimitive[] = this.parentThread.threadTail;
+        const isLast = this.comment === parentTail[parentTail.length - 1];
+        return this.isExpanded && !isLast;
+    }
 
     private toggleIsReplyingTo(): void {
         this.isReplyingTo = !this.isReplyingTo;
@@ -190,9 +196,13 @@ export default class CommentComponent extends Vue {
 input {
     color: @theme-background;
 }
+hr {
+    margin-right: @expansion-controls-padding;
+    background: @theme-neutral-color;
+}
 
 .expanded-controls {
-    height: 95%;
+    height: 90%;
     // Absolute as otherwise can't have height: 100% on a parent with height: auto
     position: absolute;
     width: @expansion-controls-width;
