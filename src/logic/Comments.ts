@@ -54,8 +54,9 @@ export default class CommentThread {
 
         const comment = new Comment();
         comment.author = authors[Math.floor(Math.random() * authors.length)];
-        // Pick a random date in 2020
-        comment.date = new Date(2020, Math.random() * 12, Math.random() * 28);
+        // Pick a random date earlier in 2020
+        const now = new Date();
+        comment.date = new Date(2020, Math.random() * (now.getMonth() - 1), Math.random() * 28);
         // Pick a somewhat random section of lorem ipsum;
         comment.content = loremIpsum.substr(Math.random() * loremIpsum.length, commentLength);
         comment.upVotes = ~~(Math.random() * maxPoints);

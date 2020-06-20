@@ -9,6 +9,7 @@
         <CommentComponent
             :key=thread.threadHead.id
             :comment=thread.threadHead
+            :parentThread=thread
             :shouldShowOnlyPreview=!isExpanded
             @update:isExpanded=setIsExpanded
         />
@@ -18,6 +19,7 @@
                 v-if="!commentPrimitive.threadTail && isExpanded"
                 :key=commentPrimitive.id
                 :comment=commentPrimitive
+                :parentThread=thread
             />
             <CommentThreadComponent
                 class="nested-comment-thread-element"
