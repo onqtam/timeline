@@ -73,15 +73,16 @@ export default class CommentThreadComponent extends Vue {
     padding-top: 0.25em;
     overflow: hidden;
 }
-@indent-size: 0.75em;
+
 .nested-comment-thread-element {
-    margin-left: @indent-size;
-    & .nested-comment-thread-element {
-        margin-left: 2 * @indent-size;
-        & .nested-comment-thread-element {
-            margin-left: 3 * @indent-size;
+    // Negate things which shouldn't be available in a subthread
+    &.comment-thread-container {
+        border: 0px;
+        .timepoint {
+            display: none;
         }
     }
+    margin-left: 0.75em;
 }
 
 button {
