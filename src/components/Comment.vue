@@ -31,11 +31,22 @@
             <span class="author">{{ comment.author }}</span>
             <span class="separator"> · </span>
             <span class="votes">
-                {{ comment.upVotes - comment.downVotes }}&#8593; /
-                {{ comment.formatApprovalRating() }}
+                {{ comment.upVotes - comment.downVotes }} points
             </span>
-            <br/>
-            <span class="date">{{ comment.date.toLocaleDateString() }}</span>
+            <span class="separator"> · </span>
+            <span class="date">{{ formatCommentDate() }}</span>
+            <span class="separator"> · </span>
+            <!-- TODO Create a button component -->
+            <a class="start-reply-button" @click=toggleIsReplyingTo>
+                <i class="fa fa-reply" aria-hidden="true"></i> Reply
+            </a>
+            <div v-if=isReplyingTo>
+                <br/>
+                <input type="text" ref="reply-content">
+                <a class="submit-reply-button" @click=submitReply>
+                    <i class="fa fa-reply" aria-hidden="true"></i> Submit reply
+                </a>
+            </div>
             <hr v-if=isExpanded>
             <p class="comment-section" v-if=isExpanded>
                 {{ contentToDisplay }}
@@ -48,13 +59,15 @@
 
 import { Component, Prop, Vue } from "vue-property-decorator";
 import store from "@/store";
-import { Comment } from "@/logic/Comments";
+import { default as CommentThread, Comment } from "@/logic/Comments";
 
 @Component
 export default class CommentComponent extends Vue {
     // Props
     @Prop({ type: Comment })
-    public comment!: Comment;
+    public readonly comment!: Comment;
+    @Prop({ type: CommentThread })
+    public readonly parentThread!: CommentThread;
     @Prop({ type: Boolean })
     public shouldShowOnlyPreview!: boolean;
 
@@ -78,6 +91,11 @@ export default class CommentComponent extends Vue {
     }
 
     private isExpanded: boolean = true;
+    private isReplyingTo: boolean = false;
+
+    private toggleIsReplyingTo(): void {
+        this.isReplyingTo = !this.isReplyingTo;
+    }
 
     private toggleExpandCollapse(): void {
         this.isExpanded = !this.isExpanded;
@@ -99,6 +117,47 @@ export default class CommentComponent extends Vue {
             store.commit.listen.vote({ comment: this.comment, isVotePositive: false });
         }
     }
+
+    private submitReply(): void {
+        const postContent: string = (this.$refs["reply-content"] as HTMLInputElement).value;
+        const payload = { parentThread: this.parentThread, commentToReplyTo: this.comment, content: postContent };
+        store.commit.listen.postReply(payload);
+    }
+
+    private formatCommentDate(): string {
+        const timeSinceComment = new Date().valueOf() - this.comment.date.valueOf();
+        const MS_TO_SECONDS: number = 1/1000;
+        const MS_TO_MINUTES: number = MS_TO_SECONDS / 60;
+        const MS_TO_HOURS: number = MS_TO_MINUTES / 60;
+        const MS_TO_DAYS: number = MS_TO_HOURS / 24;
+
+        const days = timeSinceComment * MS_TO_DAYS;
+        const hours = timeSinceComment * MS_TO_HOURS;
+        const minutes = timeSinceComment * MS_TO_MINUTES;
+        const seconds = timeSinceComment * MS_TO_SECONDS;
+
+        // TODO: This code is incredibly basic and stupidly un-localizable
+        let timePeriod: string;
+        let value: number;
+        if (days >= 7) {
+            return this.comment.date.toLocaleDateString();
+        } else if (days >= 1) {
+            timePeriod = "day";
+            value = days;
+        } else if (hours >= 1) {
+            timePeriod = "hour";
+            value = hours;
+        } else if (minutes >= 1) {
+            timePeriod = "minute";
+            value = minutes;
+        } else {
+            timePeriod = "second";
+            value = seconds;
+        }
+        const isPlural: boolean = value !== 1;
+        const pluralSuffix: string = isPlural ? "s" : "";
+        return `${value.toFixed(0)} ${timePeriod}${pluralSuffix} ago`;
+    }
 }
 
 </script>
@@ -116,6 +175,20 @@ export default class CommentComponent extends Vue {
 }
 .votes, .date, .separator {
     color: @theme-neutral-color;
+}
+.start-reply-button, .submit-reply-button {
+    font-weight: bold;
+    cursor: pointer;
+
+    &, & i {
+        color: @theme-neutral-color;
+    }
+    &:hover, &:hover i {
+        color: @theme-neutral-color-hover;
+    }
+}
+input {
+    color: @theme-background;
 }
 
 .expanded-controls {
