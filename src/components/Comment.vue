@@ -4,11 +4,13 @@
             v-if=isExpanded
         >
             <a class="vote-button"
+                :class="{ 'active-vote': hasVotedUp }"
                 @click=voteUp
             >
                 <i class="fa fa-arrow-up"></i>
             </a>
             <a class="vote-button"
+                :class="{ 'active-vote': hasVotedDown }"
                 @click=voteDown
             >
                 <i class="fa fa-arrow-down"></i>
@@ -29,7 +31,7 @@
             <span class="author">{{ comment.author }}</span>
             <span class="separator"> · </span>
             <span class="votes">
-                {{ comment.upVotes }}&#8593; /
+                {{ comment.upVotes - comment.downVotes }}&#8593; /
                 {{ comment.formatApprovalRating() }}
             </span>
             <br/>
@@ -45,6 +47,7 @@
 <script lang="ts">
 
 import { Component, Prop, Vue } from "vue-property-decorator";
+import store from "@/store";
 import { Comment } from "@/logic/Comments";
 
 @Component
@@ -54,6 +57,13 @@ export default class CommentComponent extends Vue {
     public comment!: Comment;
     @Prop({ type: Boolean })
     public shouldShowOnlyPreview!: boolean;
+
+    public get hasVotedUp(): boolean {
+        return store.state.user.info.activity.getVoteOnComment(this.comment.id) === true;
+    }
+    public get hasVotedDown(): boolean {
+        return store.state.user.info.activity.getVoteOnComment(this.comment.id) === false;
+    }
 
     public get contentToDisplay(): string {
         const MAX_PREVIEW_CHAR_LIMIT = 47;
@@ -75,11 +85,19 @@ export default class CommentComponent extends Vue {
     }
 
     private voteUp(): void {
-        this.$emit("vote", this.comment, 1);
+        if (this.hasVotedUp) {
+            store.commit.listen.revertVote(this.comment);
+        } else {
+            store.commit.listen.vote({ comment: this.comment, isVotePositive: true });
+        }
     }
 
     private voteDown(): void {
-        this.$emit("vote", this.comment, -1);
+        if (this.hasVotedDown) {
+            store.commit.listen.revertVote(this.comment);
+        } else {
+            store.commit.listen.vote({ comment: this.comment, isVotePositive: false });
+        }
     }
 }
 
@@ -123,6 +141,12 @@ export default class CommentComponent extends Vue {
         }
         & i:hover {
             color: @theme-neutral-color-hover;
+        }
+        &.active-vote i {
+            color: @theme-focus-color-4;
+        }
+        &.active-vote i:hover {
+            color: @theme-focus-color-4-hover;
         }
     }
     .collapsible-border {

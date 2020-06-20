@@ -62,6 +62,29 @@ class StoreListenViewModel implements IStoreListenModule {
         this.saveCommentsToLocalStorage();
     }
 
+    public vote(comment: Comment, isVotePositive: boolean): void {
+        const existingVoteRecord = store.state.user.info.activity.getVoteOnComment(comment.id);
+        if (existingVoteRecord !== undefined) {
+            // Already voted, revert the previous vote
+            comment.upVotes -= ~~existingVoteRecord;
+            comment.downVotes -= ~~!existingVoteRecord;
+        }
+        comment.upVotes += ~~isVotePositive;
+        comment.downVotes += ~~!isVotePositive;
+        store.commit.user.recordVote({ commentId: comment.id, wasVotePositive: isVotePositive });
+        this.saveCommentsToLocalStorage();
+    }
+
+    public revertVote(comment: Comment): void {
+        const existingVoteRecord = store.state.user.info.activity.getVoteOnComment(comment.id);
+        console.assert(existingVoteRecord !== undefined);
+        // revert the previous vote
+        comment.upVotes -= ~~existingVoteRecord!;
+        comment.downVotes -= ~~!existingVoteRecord!;
+        store.commit.user.revertVote(comment.id);
+        this.saveCommentsToLocalStorage();
+    }
+
     public regenerateComments(): void {
         this.allThreads.splice(0, this.allThreads.length);
 
@@ -106,6 +129,8 @@ class StoreListenViewModel implements IStoreListenModule {
         if (commentData !== null) {
             this.loadCommentsFromJSON(commentData);
         } else {
+            // TODO: don't need to prune everything
+            localStorage.clear();
             this.regenerateComments();
         }
     }
@@ -173,6 +198,12 @@ export default {
         },
         postReply: (state: StoreListenViewModel, payload: { parentThread: CommentThread; commentToReplyTo: Comment; content: string }): void => {
             state.postReply(payload.parentThread, payload.commentToReplyTo, payload.content);
+        },
+        vote: (state: StoreListenViewModel, payload: { comment: Comment; isVotePositive: boolean}): void => {
+            state.vote(payload.comment, payload.isVotePositive);
+        },
+        revertVote: (state: StoreListenViewModel, comment: Comment): void => {
+            state.revertVote(comment);
         },
         regenerateComments: (state: StoreListenViewModel): void => {
             state.regenerateComments();
