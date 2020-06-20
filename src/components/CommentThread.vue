@@ -71,8 +71,9 @@ export default class CommentThreadComponent extends Vue {
     border-top-width: 8px;
     background: @theme-background;
     padding-top: 0.25em;
+    overflow: hidden;
 }
-@indent-size: 0.5em;
+@indent-size: 0.75em;
 .nested-comment-thread-element {
     margin-left: @indent-size;
     & .nested-comment-thread-element {
