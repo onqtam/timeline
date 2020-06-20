@@ -22,7 +22,7 @@ export class Comment {
             return "100%";
         }
         const approvalPercentage = 100 * this.upVotes / voteCount;
-        return approvalPercentage.toFixed(0);
+        return approvalPercentage.toFixed(0) + "%";
     }
 }
 
