@@ -2,6 +2,7 @@
     <div class="comment-container">
         <div class="expanded-controls"
             v-if=isExpanded
+            :class="{ 'head-comment-controls': isHead }"
         >
             <a class="vote-button"
                 :class="{ 'active-vote': hasVotedUp }"
@@ -92,6 +93,10 @@ export default class CommentComponent extends Vue {
 
     private isExpanded: boolean = true;
     private isReplyingTo: boolean = false;
+
+    private get isHead(): boolean {
+        return this.parentThread.threadHead === this.comment;
+    }
 
     private get shouldShowDelimiter(): boolean {
         const parentTail: CommentPrimitive[] = this.parentThread.threadTail;
@@ -207,6 +212,14 @@ hr {
     position: absolute;
     width: @expansion-controls-width;
     left: @expansion-controls-padding;
+    &.head-comment-controls {
+        // The head's controls overflow
+        // This makes the controls of the head as large as the containing CommentThread component
+        // This looks like a hack (and it kinda is) but a proper fix would require an incredibly complex interaction
+        // which would like more of a hack than this.
+        height: 100vh;
+        z-index: 1; // A larger z-index is require to be clickable on top of the other comments
+    }
 
     .vote-button {
         cursor: pointer;
