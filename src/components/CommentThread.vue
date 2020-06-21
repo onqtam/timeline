@@ -40,8 +40,8 @@ import store from "@/store";
 import { default as CommentThread } from "@/logic/Comments";
 
 import CommentComponent from "./Comment.vue";
-import { AudioWindow } from '@/logic/AudioFile';
-import MathHelpers from '@/logic/MathHelpers';
+import { AudioWindow } from "@/logic/AudioFile";
+import MathHelpers from "@/logic/MathHelpers";
 
 @Component({
     components: {

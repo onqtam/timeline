@@ -142,7 +142,7 @@ export default class CommentComponent extends Vue {
         if (!this.$el) {
             return "";
         }
-        let clientRect = this.$el.parentElement!.getBoundingClientRect();
+        const clientRect = this.$el.parentElement!.getBoundingClientRect();
         return clientRect.height + "px";
     }
 
@@ -162,7 +162,7 @@ export default class CommentComponent extends Vue {
         let timePeriod: string;
         let value: number;
         if (days >= 7) {
-            const dateFormatOptions = { day: "2-digit", month: "2-digit", year: "2-digit"};
+            const dateFormatOptions = { day: "2-digit", month: "2-digit", year: "2-digit" };
             return this.comment.date.toLocaleDateString("en-GB", dateFormatOptions);
         } else if (days >= 1) {
             timePeriod = "day";

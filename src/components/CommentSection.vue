@@ -97,13 +97,13 @@ export default class CommentSection extends Vue {
 
     private compareCommentThreads(lhs: CommentThread, rhs: CommentThread) {
         switch (this.sortingPredicate) {
-            case SortingPredicate.Top:
-                return rhs.threadHead.totalVotes - lhs.threadHead.totalVotes;
-            case SortingPredicate.New:
-                return rhs.threadHead.date.valueOf() - lhs.threadHead.date.valueOf();
-            case SortingPredicate.Chronologically:
-            default: // fall through, no hot yet
-                return lhs.timepoint.seconds - rhs.timepoint.seconds;
+        case SortingPredicate.Top:
+            return rhs.threadHead.totalVotes - lhs.threadHead.totalVotes;
+        case SortingPredicate.New:
+            return rhs.threadHead.date.valueOf() - lhs.threadHead.date.valueOf();
+        case SortingPredicate.Chronologically:
+        default: // fall through, no hot yet
+            return lhs.timepoint.seconds - rhs.timepoint.seconds;
         }
     }
 }
