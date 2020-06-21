@@ -6,12 +6,9 @@
         <TimelinePlayer
             ref="timeline-player"
             class="timeline-player"
-            :audio=audioFile :volume=0.15 :initialAudioPos=initialTimepoint
-            :audioWindow=audioWindow
+            :initialAudioPos=initialTimepoint
         />
-        <CommentSection
-            :audioWindow=audioWindow :commentThreads=allThreads
-        />
+        <CommentSection />
     </div>
 </template>
 
