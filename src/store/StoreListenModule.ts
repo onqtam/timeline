@@ -57,7 +57,8 @@ class StoreListenViewModel implements IStoreListenModule {
             subThread.timepoint = parentThread.timepoint;
             subThread.threadHead = commentToReplyTo;
             subThread.threadTail = [newComment];
-            parentThread.threadTail[commentIndex] = subThread;
+            // Splice, don't assign so that Vue catches the change
+            parentThread.threadTail.splice(commentIndex, 1, subThread);
         }
         this.saveCommentsToLocalStorage();
     }
