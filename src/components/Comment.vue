@@ -31,7 +31,7 @@
             <span class="author">{{ comment.author }}</span>
             <span class="separator"> · </span>
             <span class="votes">
-                {{ comment.upVotes - comment.downVotes }} points
+                {{ comment.totalVotes }} points
             </span>
             <span class="separator"> · </span>
             <span class="date">{{ formatCommentDate() }}</span>
@@ -162,7 +162,8 @@ export default class CommentComponent extends Vue {
         let timePeriod: string;
         let value: number;
         if (days >= 7) {
-            return this.comment.date.toLocaleDateString();
+            const dateFormatOptions = { day: "2-digit", month: "2-digit", year: "2-digit"};
+            return this.comment.date.toLocaleDateString("en-GB", dateFormatOptions);
         } else if (days >= 1) {
             timePeriod = "day";
             value = days;

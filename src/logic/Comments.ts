@@ -12,6 +12,10 @@ export class Comment {
     public upVotes: number = 0;
     public downVotes: number = 0;
 
+    public get totalVotes(): number {
+        return this.upVotes - this.downVotes;
+    }
+
     constructor() {
         this.id = (CommentIdCounter += 2);
     }
