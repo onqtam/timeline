@@ -2,7 +2,6 @@
     <div class="comment-container">
         <div class="expanded-controls"
             v-if=isExpanded
-            :class="{ 'head-comment-controls': isHead }"
         >
             <a class="vote-button"
                 :class="{ 'active-vote': hasVotedUp }"
@@ -135,6 +134,18 @@ export default class CommentComponent extends Vue {
         store.commit.listen.postReply(payload);
     }
 
+    private computeHeadCommentExpansionHeight(): string {
+        // This is a massive hack but a proper fix would require an incredibly complex interaction
+        // which would like more of a hack than this.
+        // Get the height of the parent thread of this head comment and set that as the height of the expanded-controls
+        // This allows the collapsible-line to run all the way through the thread
+        if (!this.$el) {
+            return "";
+        }
+        let clientRect = this.$el.parentElement!.getBoundingClientRect();
+        return clientRect.height + "px";
+    }
+
     private formatCommentDate(): string {
         const timeSinceComment = new Date().valueOf() - this.comment.date.valueOf();
         const MS_TO_SECONDS: number = 1/1000;
@@ -212,14 +223,6 @@ hr {
     position: absolute;
     width: @expansion-controls-width;
     left: @expansion-controls-padding;
-    &.head-comment-controls {
-        // The head's controls overflow
-        // This makes the controls of the head as large as the containing CommentThread component
-        // This looks like a hack (and it kinda is) but a proper fix would require an incredibly complex interaction
-        // which would like more of a hack than this.
-        height: 100vh;
-        z-index: 1; // A larger z-index is require to be clickable on top of the other comments
-    }
 
     .vote-button {
         cursor: pointer;

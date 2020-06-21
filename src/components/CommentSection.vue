@@ -11,11 +11,12 @@
             <button>Top</button>
         </div>
         <div class="timeslot"
-            v-for="slot in activeTimeslots" :key="slot.timepoint.seconds"
+            v-for="(slot, index) in activeTimeslots" :key="slot.timepoint.seconds"
         >
             <CommentThreadComponent
                 v-for="thread in slot.threads" :key="thread.id"
                 :thread=thread
+                :timeslotIndex=index
             />
         </div>
     </div>
