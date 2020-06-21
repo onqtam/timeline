@@ -6,9 +6,10 @@
             <button @click=startNewCommentThread>Submit</button>
         </div>
         <div class="comment-management-panel">
-            <button>Hot</button>
-            <button>New</button>
-            <button>Top</button>
+            <button @click=setSortingPredicate(SortingPredicate.Chronologically)>Chronologically</button>
+            <button @click=setSortingPredicate(SortingPredicate.Hot)>Hot</button>
+            <button @click=setSortingPredicate(SortingPredicate.New)>New</button>
+            <button @click=setSortingPredicate(SortingPredicate.Top)>Top</button>
         </div>
         <div class="timeslot"
             v-for="(slot, index) in activeTimeslots" :key="slot.timepoint.seconds"
@@ -36,6 +37,13 @@ import MathHelpers from "@/logic/MathHelpers";
 class Timeslot {
     public timepoint!: Timepoint;
     public threads!: CommentThread[];
+}
+
+enum SortingPredicate {
+    Chronologically,
+    Top,
+    New,
+    Hot
 }
 
 @Component({
@@ -66,13 +74,37 @@ export default class CommentSection extends Vue {
             newTimeslot.timepoint = new Timepoint(firstTimeslotStart + i * timeslotDuration);
             newTimeslot.threads = mapSlotTimeToThreads(newTimeslot.timepoint.seconds);
             timeslots.push(newTimeslot);
+            newTimeslot.threads.sort(this.compareCommentThreads.bind(this));
         }
         return timeslots;
     }
 
-    public startNewCommentThread(): void {
+    private SortingPredicate = SortingPredicate;
+    private sortingPredicate: SortingPredicate = SortingPredicate.Chronologically;
+
+    private startNewCommentThread(): void {
         const inputElement = this.$refs["new-comment-thread-content"] as HTMLInputElement;
         store.commit.listen.postNewCommentThread(inputElement.value);
+    }
+
+    private setSortingPredicate(predicate: SortingPredicate): void {
+        if (predicate === SortingPredicate.Hot) {
+            alert("Not implemented yet!");
+        } else {
+            this.sortingPredicate = predicate;
+        }
+    }
+
+    private compareCommentThreads(lhs: CommentThread, rhs: CommentThread) {
+        switch (this.sortingPredicate) {
+            case SortingPredicate.Top:
+                return rhs.threadHead.totalVotes - lhs.threadHead.totalVotes;
+            case SortingPredicate.New:
+                return rhs.threadHead.date.valueOf() - lhs.threadHead.date.valueOf();
+            case SortingPredicate.Chronologically:
+            default: // fall through, no hot yet
+                return lhs.timepoint.seconds - rhs.timepoint.seconds;
+        }
     }
 }
 
