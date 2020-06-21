@@ -2,8 +2,10 @@
     <div class="comment-thread-container">
         <router-link
             class="timepoint"
+            :style="{ left: 100 * timepointOffset + '%' }"
             :to="'/listen?t=' + thread.timepoint.seconds"
         >
+            <i class="fa fa-caret-up" aria-hidden="true"></i>
             {{ thread.timepoint.format() }}
         </router-link>
         <CommentComponent
@@ -34,9 +36,12 @@
 <script lang="ts">
 
 import { Component, Prop, Vue } from "vue-property-decorator";
+import store from "@/store";
 import { default as CommentThread } from "@/logic/Comments";
 
 import CommentComponent from "./Comment.vue";
+import { AudioWindow } from '@/logic/AudioFile';
+import MathHelpers from '@/logic/MathHelpers';
 
 @Component({
     components: {
@@ -48,9 +53,22 @@ export default class CommentThreadComponent extends Vue {
     // Props
     @Prop({ type: CommentThread })
     public thread!: CommentThread;
+    // The index of the timeslot this thread is rendered into
+    @Prop({ type: Number })
+    public timeslotIndex!: number;
 
     // Should equal the value of isExpanded on the component for the head at all times
     private isExpanded: boolean = true;
+
+    // Returns the offset of the timepoint in the current timeslot
+    private get timepointOffset(): number {
+        const audioWindow: AudioWindow = store.state.listen.audioWindow;
+        const timeslotStart: number = audioWindow.start.seconds + this.timeslotIndex * audioWindow.timeslotDuration;
+        const percentage = (this.thread.timepoint.seconds - timeslotStart) / audioWindow.timeslotDuration;
+        // TODO: This is to prevent the position to go beyond the border of the thread
+        // The proper computation should be 1 - width of timepoint element
+        return MathHelpers.clamp(percentage, 0, 0.75);
+    }
 
     // Public API
     public setIsExpanded(isExpanded: boolean): void {
@@ -63,15 +81,16 @@ export default class CommentThreadComponent extends Vue {
 <style scoped lang="less">
 @import "../cssresources/theme.less";
 
+@top-border-width: 1em;
 .comment-thread-container {
     text-align: left;
     box-sizing: border-box;
     border-radius: 0 0 5% 5%;
     border: 2px solid @theme-neutral-color;
-    border-top-width: 8px;
+    border-top-width: @top-border-width;
     background: @theme-background;
     padding-top: 0.25em;
-    overflow: hidden;
+    position: relative;
 }
 
 .nested-comment-thread-element {
@@ -83,6 +102,23 @@ export default class CommentThreadComponent extends Vue {
         }
     }
     margin-left: 0.75em;
+}
+
+.timepoint {
+    position: absolute;
+    top: -@top-border-width;
+    font-weight: bold;
+    background: @theme-background;
+    &, & i {
+        color: @theme-neutral-color;
+    }
+    &:hover, &:hover i {
+        color: @theme-neutral-color-hover;
+    }
+    padding: 0 0.25em;
+    & i {
+        text-decoration: none;
+    }
 }
 
 button {
