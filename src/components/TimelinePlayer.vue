@@ -1,8 +1,8 @@
 <template>
     <div class="timeline-player">
-        <button @click=togglePlay>
+        <VButton @click=togglePlay>
             Play/Pause
-        </button>
+        </VButton>
         <audio nocontrols
             ref="audio-element"
             :src=audio.filepath
@@ -31,12 +31,17 @@
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
 import store from "@/store";
-import { default as Timeline, TimelineMode } from "./Timeline.vue";
 import { default as AudioFile, AudioWindow } from "@/logic/AudioFile";
 import Timepoint from "@/logic/Timepoint";
 
+import VButton from "./primitives/VButton.vue"
+import { default as Timeline, TimelineMode } from "./Timeline.vue";
+
 @Component({
-    components: { Timeline }
+    components: {
+        VButton,
+        Timeline
+    }
 })
 export default class TimelinePlayer extends Vue {
     // Props
