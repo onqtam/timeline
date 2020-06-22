@@ -7,7 +7,6 @@
     </a>
 </template>
 
-
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
 
@@ -17,7 +16,7 @@ export default class VToggleButton extends Vue {
     public isActive!: boolean;
 
     // Forward all native input event handlers
-    public get inputListeners(): Object {
+    public get inputListeners(): Record<string, Function | Function[]> {
         return this.$listeners;
     }
 }

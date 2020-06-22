@@ -34,7 +34,7 @@ import store from "@/store";
 import { default as AudioFile, AudioWindow } from "@/logic/AudioFile";
 import Timepoint from "@/logic/Timepoint";
 
-import VButton from "./primitives/VButton.vue"
+import VButton from "./primitives/VButton.vue";
 import { default as Timeline, TimelineMode } from "./Timeline.vue";
 
 @Component({
