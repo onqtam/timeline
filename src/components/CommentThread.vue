@@ -3,7 +3,7 @@
         <router-link
             class="timepoint"
             :style="{ left: 100 * timepointOffset + '%' }"
-            :to="'/listen?t=' + thread.timepoint.seconds"
+            :to="'/listen?t=' + thread.timepoint.formatAsUrlParam()"
         >
             <i class="fa fa-caret-up" aria-hidden="true"></i>
             {{ thread.timepoint.format() }}

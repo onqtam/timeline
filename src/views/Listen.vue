@@ -34,10 +34,8 @@ import CommentSection from "@/components/CommentSection.vue";
     beforeRouteUpdate(to: Route, from: Route, next: NavigationGuardNext<ListenView>) {
         // There's no "afterRouteUpdate"... so we can't directly use the prop initialTimepoint
         // Fetch the timepoint from the query
-        const secondToSeekTo: number = ~~to.query.t;
-        if (!isNaN(secondToSeekTo)) {
-            (this.$refs["timeline-player"] as TimelinePlayer).syncTo(secondToSeekTo);
-        }
+        const timepointToSyncTo: Timepoint = Timepoint.parseFromURL(to.query.t as string);
+        (this.$refs["timeline-player"] as TimelinePlayer).syncTo(timepointToSyncTo.seconds);
         next();
     }
 })

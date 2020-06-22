@@ -7,19 +7,37 @@ export default class Timepoint {
         this.seconds = seconds || 0;
     }
 
+    public static parseFromURL(text: string): Timepoint {
+        const elements = text.split("-");
+        console.assert(elements.length <= 3); // TODO: report error in a better way?
+        const [hours, minutes, seconds]: number[] = elements.map(e => ~~e);
+
+        const totalSeconds = hours * 3600 + minutes * 60 + seconds;
+        return new Timepoint(totalSeconds);
+    }
+
+    public formatAsUrlParam(): string {
+        return this.formatExtended("-", false);
+    }
+
     public format(): string {
+        return this.formatExtended(":", true);
+    }
+
+    public formatExtended(delimiter: string, dropHoursIfPossible: boolean): string {
         let mutableSeconds = this.seconds;
         const hours = Math.floor(mutableSeconds / 3600);
         mutableSeconds -= hours * 3600;
         const minutes = Math.floor(mutableSeconds / 60);
         mutableSeconds -= minutes * 60;
         const leftOverSeconds = mutableSeconds;
+        // tc for time component; short name to make the usage easier
         const tc = (val: number) => this._formatTimeComponent(val);
 
-        if (hours > 0) {
-            return `${tc(hours)}:${tc(minutes)}:${tc(leftOverSeconds)}`;
+        if (dropHoursIfPossible && hours === 0) {
+            return `${tc(minutes)}${delimiter}${tc(leftOverSeconds)}`;
         }
-        return `${tc(minutes)}:${tc(leftOverSeconds)}`;
+        return `${tc(hours)}${delimiter}${tc(minutes)}${delimiter}${tc(leftOverSeconds)}`;
     }
 
     private _formatTimeComponent(value: number): string {
