@@ -31,7 +31,7 @@ import CommentSection from "@/components/CommentSection.vue";
         TimelinePlayer,
         CommentSection
     },
-    beforeRouteUpdate(to: Route, from: Route, next: NavigationGuardNext<PlayerView>) {
+    beforeRouteUpdate(to: Route, from: Route, next: NavigationGuardNext<ListenView>) {
         // There's no "afterRouteUpdate"... so we can't directly use the prop initialTimepoint
         // Fetch the timepoint from the query
         const secondToSeekTo: number = ~~to.query.t;
@@ -41,7 +41,7 @@ import CommentSection from "@/components/CommentSection.vue";
         next();
     }
 })
-export default class PlayerView extends Vue {
+export default class ListenView extends Vue {
     public get audioFile(): AudioFile {
         return store.state.listen.audioFile;
     }
