@@ -121,7 +121,7 @@ export default class TimelinePlayer extends Vue {
     }
     private updateAudioPos(): void {
         const wasInSync: boolean = this.isTimelineWindowSynced();
-        this.audioPos.seconds = this.audioElement.currentTime;
+        store.commit.listen.moveAudioPos(this.audioElement.currentTime);
         const isInSync: boolean = this.isTimelineWindowSynced();
         if (wasInSync && !isInSync) {
             const newWindowPos = this.audioWindow.start.seconds + this.audioWindow.duration;
