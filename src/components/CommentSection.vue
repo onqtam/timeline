@@ -111,6 +111,12 @@ export default class CommentSection extends Vue {
     private SortingPredicate = SortingPredicate;
     private sortingPredicate: SortingPredicate = SortingPredicate.Chronologically;
 
+    public mounted(): void {
+        // Update the number of timeslots CSS var every time we are mounted to make sure it never goes out of sync
+        const root: HTMLElement = document.documentElement;
+        root.style.setProperty("--number-of-timeslots", store.state.listen.audioWindow.timeslotCount.toString());
+    }
+
     private startNewCommentThread(): void {
         const inputElement = this.$refs["new-comment-thread-content"] as HTMLInputElement;
         store.commit.listen.postNewCommentThread(inputElement.value);
@@ -169,8 +175,11 @@ input, button {
 .comment-management-panel {
     border-left: @top-row-shared-border;
 }
+:root {
+  --number-of-timeslots: 5;
+}
 .timeslot {
-    width: 18.5%; // 5 per row (almost 20%) but leave some negative space for margins
+    width: calc(100% / var(--number-of-timeslots) - 1.5%); // distribute evenly but leave some negative space (1.5%) for margins
     max-height: 100%;
     overflow-y: auto;
     padding-right: 0.25em;
