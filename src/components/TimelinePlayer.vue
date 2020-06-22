@@ -9,7 +9,8 @@
         >
         </audio>
         <Timeline
-            :mode=TimelineMode.Standard :audioWindow=audioWindow
+            :mode=TimelineMode.Standard
+            :audioWindow=audioWindow
             :numberOfMarks=10
             :rangeStart=0 :rangeEnd=audio.duration
             :currentAudioPosition=audioPos
@@ -19,7 +20,7 @@
         <Timeline
             ref="zoomline"
             :mode=TimelineMode.Zoomline
-            :numberOfMarks=5
+            :numberOfMarks=zoomlineMarkCount
             :rangeStart=zoomlineRangeStart :rangeEnd=zoomlineRangeEnd
             :currentAudioPosition=audioPos
             @update:currentAudioPosition=onZoomlinePositionMoved
@@ -67,6 +68,9 @@ export default class TimelinePlayer extends Vue {
     private get zoomlineRangeEnd(): number {
         const seconds: number = this.audioWindow.start.seconds + this.audioWindow.duration;
         return Math.min(seconds, this.audio.duration);
+    }
+    private get zoomlineMarkCount(): number {
+        return store.state.listen.audioWindow.timeslotCount;
     }
 
     // Store the enum as a member to access it in the template

@@ -24,7 +24,7 @@ class StoreListenViewModel implements IStoreListenModule {
         this.audioFile.filepath = "../assets/Making_Sense_206_Frum.mp3";
         this.audioFile.duration = 5403;
         this.audioPos = new Timepoint();
-        this.audioWindow = new AudioWindow(new Timepoint(0), 60, 12);
+        this.audioWindow = new AudioWindow(new Timepoint(0), 80, 20);
         this.volume = 0.15;
         this.allThreads = [];
         this.createComments();
