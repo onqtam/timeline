@@ -6,10 +6,30 @@
             <VButton @click=startNewCommentThread>Submit</VButton>
         </div>
         <div class="comment-management-panel">
-            <VButton @click=setSortingPredicate(SortingPredicate.Chronologically)>Chronologically</VButton>
-            <VButton @click=setSortingPredicate(SortingPredicate.Hot)>Hot</VButton>
-            <VButton @click=setSortingPredicate(SortingPredicate.New)>New</VButton>
-            <VButton @click=setSortingPredicate(SortingPredicate.Top)>Top</VButton>
+            <VToggleButton
+                :isActive=isSortingPredicateActive(SortingPredicate.Chronologically)
+                @click=setSortingPredicate(SortingPredicate.Chronologically)
+            >
+                Chronologically
+            </VToggleButton>
+            <VToggleButton
+                :isActive=isSortingPredicateActive(SortingPredicate.Top)
+                @click=setSortingPredicate(SortingPredicate.Top)
+            >
+                Top
+            </VToggleButton>
+            <VToggleButton
+                :isActive=isSortingPredicateActive(SortingPredicate.New)
+                @click=setSortingPredicate(SortingPredicate.New)
+            >
+                New
+            </VToggleButton>
+            <VToggleButton
+                :isActive=isSortingPredicateActive(SortingPredicate.Hot)
+                @click=setSortingPredicate(SortingPredicate.Hot)
+            >
+                Hot
+            </VToggleButton>
         </div>
         <div class="timeslot"
             v-for="(slot, index) in activeTimeslots" :key="slot.timepoint.seconds"
@@ -30,6 +50,7 @@ import store from "@/store";
 import { default as CommentThread } from "@/logic/Comments";
 
 import VButton from "./primitives/VButton.vue"
+import VToggleButton from "./primitives/VToggleButton.vue"
 import CommentThreadComponent from "./CommentThread.vue";
 import { AudioWindow } from "@/logic/AudioFile";
 import Timepoint from "@/logic/Timepoint";
@@ -50,6 +71,7 @@ enum SortingPredicate {
 @Component({
     components: {
         VButton,
+        VToggleButton,
         CommentThreadComponent
     }
 })
@@ -95,6 +117,10 @@ export default class CommentSection extends Vue {
         } else {
             this.sortingPredicate = predicate;
         }
+    }
+
+    private isSortingPredicateActive(predicate: SortingPredicate): boolean {
+        return this.sortingPredicate === predicate;
     }
 
     private compareCommentThreads(lhs: CommentThread, rhs: CommentThread) {
