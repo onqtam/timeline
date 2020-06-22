@@ -1,8 +1,8 @@
 <template>
     <div>
-        <button @click=regenerateComments>
+        <VButton @click=regenerateComments>
             Regenerate Comments
-        </button>
+        </VButton>
         <TimelinePlayer
             ref="timeline-player"
             class="timeline-player"
@@ -21,11 +21,13 @@ import Timepoint from "@/logic/Timepoint";
 import { default as AudioFile, AudioWindow } from "@/logic/AudioFile";
 import { default as CommentThread } from "@/logic/Comments";
 
+import VButton from "@/components/primitives/VButton.vue";
 import TimelinePlayer from "@/components/TimelinePlayer.vue";
 import CommentSection from "@/components/CommentSection.vue";
 
 @Component({
     components: {
+        VButton,
         TimelinePlayer,
         CommentSection
     },

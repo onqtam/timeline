@@ -3,13 +3,13 @@
         <div class="new-thread-container">
             <label>Start a new thread at current time: </label>
             <input type="text" minlength="3" ref="new-comment-thread-content">
-            <button @click=startNewCommentThread>Submit</button>
+            <VButton @click=startNewCommentThread>Submit</VButton>
         </div>
         <div class="comment-management-panel">
-            <button @click=setSortingPredicate(SortingPredicate.Chronologically)>Chronologically</button>
-            <button @click=setSortingPredicate(SortingPredicate.Hot)>Hot</button>
-            <button @click=setSortingPredicate(SortingPredicate.New)>New</button>
-            <button @click=setSortingPredicate(SortingPredicate.Top)>Top</button>
+            <VButton @click=setSortingPredicate(SortingPredicate.Chronologically)>Chronologically</VButton>
+            <VButton @click=setSortingPredicate(SortingPredicate.Hot)>Hot</VButton>
+            <VButton @click=setSortingPredicate(SortingPredicate.New)>New</VButton>
+            <VButton @click=setSortingPredicate(SortingPredicate.Top)>Top</VButton>
         </div>
         <div class="timeslot"
             v-for="(slot, index) in activeTimeslots" :key="slot.timepoint.seconds"
@@ -29,6 +29,7 @@ import { Component, Vue } from "vue-property-decorator";
 import store from "@/store";
 import { default as CommentThread } from "@/logic/Comments";
 
+import VButton from "./primitives/VButton.vue"
 import CommentThreadComponent from "./CommentThread.vue";
 import { AudioWindow } from "@/logic/AudioFile";
 import Timepoint from "@/logic/Timepoint";
@@ -48,6 +49,7 @@ enum SortingPredicate {
 
 @Component({
     components: {
+        VButton,
         CommentThreadComponent
     }
 })
