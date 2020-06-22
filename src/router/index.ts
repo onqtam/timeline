@@ -1,7 +1,7 @@
 import Vue from "vue";
 import VueRouter, { RouteConfig } from "vue-router";
 import Home from "../views/Home.vue";
-import PlayerView from "../views/Player.vue";
+import ListenView from "../views/Listen.vue";
 import Timepoint from "@/logic/Timepoint";
 
 Vue.use(VueRouter);
@@ -23,7 +23,7 @@ const routes: Array<RouteConfig> = [
     {
         path: "/listen",
         name: "Listen",
-        component: PlayerView,
+        component: ListenView,
         props: (route) => ({ initialTimepoint: new Timepoint(~~route.query.t) })
     },
     {
