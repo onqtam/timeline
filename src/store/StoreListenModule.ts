@@ -2,6 +2,7 @@ import store from "@/store";
 import Timepoint from "@/logic/Timepoint";
 import { default as AudioFile, AudioWindow } from "@/logic/AudioFile";
 import { Comment, default as CommentThread } from "@/logic/Comments";
+import MathHelpers, { RandomIntegerDistribution } from "@/logic/MathHelpers";
 
 export interface IStoreListenModule {
     audioFile: AudioFile;
@@ -89,29 +90,25 @@ class StoreListenViewModel implements IStoreListenModule {
     public regenerateComments(): void {
         this.allThreads.splice(0, this.allThreads.length);
 
-        const commentsPerThread = 2;
+        const commentsPerThread = new RandomIntegerDistribution([0, 1, 2, 3, 4, 5], [0.35, 0.2, 0.15, 0.05, 0.1, 0.15]);
+        const threadsPerTimeslot = new RandomIntegerDistribution([0, 1, 2, 3, 4, 5], [0.4, 0.15, 0.1, 0.1, 0.1, 0.15]);
         const nestedness = 1;
-        const secondsBetweenThreads = 6;
-        const varianceBetweenSeconds = 6;
         const maxAudioDuration = 5403;
         const chanceForNested = 0.15;
-        // Use this func to randomize comment sections
-        const nextCommentThreadRand = (t: number) => t + (Math.random() - 0.5) * varianceBetweenSeconds + secondsBetweenThreads;
-        // Use this func to always generate comments at numbers divisible by 12
-        const nextCommentThread12 = (t: number) => t + 12;
-        // Use this func to always generate comments divisible by 12, but sometimes skip some
-        const nextCommentThread12Skip = (t: number) => t + 12 * [1, 1, 1, 2, 3][~~(Math.random() * 5)];
-        console.log(nextCommentThreadRand, nextCommentThread12, nextCommentThread12Skip); // log all to silence warnings
-        const nextCommentThread = nextCommentThreadRand;
-        for (let i = nextCommentThread(0); i < maxAudioDuration; i = nextCommentThread(i)) {
-            let newThread: CommentThread;
-            if (Math.random() <= chanceForNested) {
-                newThread = CommentThread.generateRandomThreadWithChildren(commentsPerThread, nestedness);
-            } else {
-                newThread = CommentThread.generateRandomThread(commentsPerThread);
+        const timeslotDuration = 12;
+        for (let t = 0; t < maxAudioDuration; t += timeslotDuration) {
+            const threadsInSlot = threadsPerTimeslot.sample();
+            for (let i = 0; i < threadsInSlot; i++) {
+                let newThread: CommentThread;
+                const commentsForCurrentThread = commentsPerThread.sample();
+                if (Math.random() <= chanceForNested) {
+                    newThread = CommentThread.generateRandomThreadWithChildren(commentsForCurrentThread, nestedness);
+                } else {
+                    newThread = CommentThread.generateRandomThread(commentsForCurrentThread);
+                }
+                newThread.timepoint.seconds = MathHelpers.randInRange(t, t + timeslotDuration);
+                this.allThreads.push(newThread);
             }
-            newThread.timepoint.seconds = i;
-            this.allThreads.push(newThread);
         }
         this.saveCommentsToLocalStorage();
     }
