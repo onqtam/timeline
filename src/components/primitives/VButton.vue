@@ -4,14 +4,13 @@
     </a>
 </template>
 
-
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 
 @Component
 export default class VButton extends Vue {
     // Forward all native input event handlers
-    public get inputListeners(): Object {
+    public get inputListeners(): Record<string, Function | Function[]> {
         return this.$listeners;
     }
 }

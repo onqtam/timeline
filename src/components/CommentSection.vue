@@ -49,8 +49,8 @@ import { Component, Vue } from "vue-property-decorator";
 import store from "@/store";
 import { default as CommentThread } from "@/logic/Comments";
 
-import VButton from "./primitives/VButton.vue"
-import VToggleButton from "./primitives/VToggleButton.vue"
+import VButton from "./primitives/VButton.vue";
+import VToggleButton from "./primitives/VToggleButton.vue";
 import CommentThreadComponent from "./CommentThread.vue";
 import { AudioWindow } from "@/logic/AudioFile";
 import Timepoint from "@/logic/Timepoint";
