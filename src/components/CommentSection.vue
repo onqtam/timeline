@@ -34,11 +34,16 @@
         <div class="timeslot"
             v-for="(slot, index) in activeTimeslots" :key="slot.timepoint.seconds"
         >
-            <CommentThreadComponent
-                v-for="thread in slot.threads" :key="thread.id"
-                :thread=thread
-                :timeslotIndex=index
-            />
+            <template v-if="slot.threads.length !== 0">
+                <CommentThreadComponent
+                    v-for="thread in slot.threads" :key="thread.id"
+                    :thread=thread
+                    :timeslotIndex=index
+                />
+            </template>
+            <template v-else>
+                <p>Be the first to contribute in this range!</p>
+            </template>
         </div>
     </div>
 </template>
