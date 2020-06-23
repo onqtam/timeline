@@ -3,10 +3,7 @@
         <VButton @click=regenerateComments>
             Regenerate Comments
         </VButton>
-        <TimelinePlayer
-            ref="timeline-player"
-            class="timeline-player"
-        />
+        <TimelinePlayer ref="timeline-player" class="timeline-player" />
         <CommentSection ref="comment-section" />
     </div>
 </template>
@@ -35,12 +32,11 @@ import CommentSection from "@/components/Comments/CommentSection.vue";
         // as there's no other way
         // (or at least I couldn't find) to refresh the same component
 
-        //There's no "afterRouteUpdate"... so we can't directly use the prop initialTimepoint
-        //Fetch the timepoint from the query
+        // There's no "afterRouteUpdate"... so we can't directly use the prop initialTimepoint
+        // Fetch the timepoint from the query
         const timepointToSyncTo: Timepoint|null = Timepoint.tryParseFromURL(to.query.t as string);
         if (timepointToSyncTo) {
-            // Note when updating the URL, we only move the audioPos, not the window
-            store.commit.listen.moveAudioPos(timepointToSyncTo.seconds);
+            (this.$refs["timeline-player"] as TimelinePlayer).seekTo(timepointToSyncTo.seconds);
         }
         if (to.query.thread) {
             const threadIdToFocus: number = ~~to.query.thread;
