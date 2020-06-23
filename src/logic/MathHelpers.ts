@@ -28,4 +28,7 @@ export default class MathHelpers {
     public static randInRange(min: number, max: number): number {
         return min + Math.random() * (max - min);
     }
+    public static percentageOfRange(value: number, min: number, max: number): number {
+        return (value - min) / (max - min);
+    }
 }
