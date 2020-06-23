@@ -122,6 +122,19 @@ export default class CommentSection extends Vue {
         root.style.setProperty("--number-of-timeslots", store.state.listen.audioWindow.timeslotCount.toString());
     }
 
+    public focusThread(threadId: number): void {
+        const thread: CommentThread|undefined = this.commentThreads.find(thread => thread.id === threadId);
+        // TODO: Report error in a meaningful way
+        // Assert the thread exists and is in an active timeslot
+        console.assert(thread !== undefined);
+        console.assert(this.activeTimeslots.find(slot => slot.threads.indexOf(thread!) !== -1) !== undefined);
+
+        const threadElement: HTMLElement|null = document.getElementById(threadId.toString());
+        if (threadElement) {
+            threadElement.scrollIntoView();
+        }
+    }
+
     private getTimeslotAnimationClass(timeslot: Timeslot): Record<string, boolean> {
         const now: number = this.audioPos.seconds;
         const slotStart: number = timeslot.timepoint.seconds;

@@ -24,7 +24,10 @@ const routes: Array<RouteConfig> = [
         path: "/listen",
         name: "Listen",
         component: ListenView,
-        props: (route) => ({ initialTimepoint: Timepoint.parseFromURL(route.query.t as string) })
+        props: (route) => ({
+            initialTimepoint: Timepoint.tryParseFromURL(route.query.t as string),
+            threadIdToFocus: ~~(route.query.thread as string)
+        })
     },
     {
         path: "/",

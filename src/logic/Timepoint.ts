@@ -7,9 +7,11 @@ export default class Timepoint {
         this.seconds = seconds || 0;
     }
 
-    public static parseFromURL(text: string): Timepoint {
-        const elements = text.split("-");
-        console.assert(elements.length <= 3); // TODO: report error in a better way?
+    public static tryParseFromURL(text: string): Timepoint|null {
+        const elements = text?.split("-");
+        if (!elements || elements.length !== 3) {
+            return null;
+        }
         const [hours, minutes, seconds]: number[] = elements.map(e => ~~e);
 
         const totalSeconds = hours * 3600 + minutes * 60 + seconds;

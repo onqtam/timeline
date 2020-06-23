@@ -1,9 +1,10 @@
 <template>
-    <div class="comment-thread-container">
+    <!-- Set the thread id as element id to be able to find thread's DOM element from other systems  -->
+    <div class="comment-thread-container" :id=thread.id>
         <router-link
             class="timepoint"
             :style="{ left: 100 * timepointOffset + '%' }"
-            :to="'/listen?t=' + thread.timepoint.formatAsUrlParam()"
+            :to="'/listen?t=' + thread.timepoint.formatAsUrlParam() + '&thread=' + thread.id"
         >
             <i class="fa fa-caret-up" aria-hidden="true"></i>
             {{ thread.timepoint.format() }}
