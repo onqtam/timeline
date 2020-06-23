@@ -26,4 +26,9 @@ export class AudioWindow {
         const rangeEnd = rangeStart + this.duration;
         return timepoint.seconds >= rangeStart && timepoint.seconds <= rangeEnd;
     }
+
+    public findTimeslotStartForTime(time: Timepoint|number): number {
+        const seconds: number = time instanceof Timepoint ? time.seconds : time;
+        return Math.floor(seconds / this.timeslotDuration) * this.timeslotDuration;
+    }
 }

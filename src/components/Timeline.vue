@@ -127,7 +127,7 @@ export default class Timeline extends Vue {
         switch (this.mode) {
         case TimelineMode.Standard:
             newPosition = MathHelpers.clamp(newPosition, this.rangeStart, this.rangeEnd - this.audioWindow!.duration);
-            newPosition = Math.floor(newPosition / this.audioWindow!.timeslotDuration) * this.audioWindow!.timeslotDuration;
+            newPosition = this.audioWindow!.findTimeslotStartForTime(newPosition);
             this.$emit("update:audioWindowStart", newPosition);
             break;
         case TimelineMode.Zoomline:
