@@ -3,11 +3,13 @@
     <div class="comment-thread-container" :id=thread.id>
         <router-link
             class="timepoint"
-            :style="{ left: 100 * timepointOffset + '%' }"
+            :style=routerLinkPositionStyle
             :to="'/listen?t=' + thread.timepoint.formatAsUrlParam() + '&thread=' + thread.id"
         >
-            <i class="fa fa-caret-up" aria-hidden="true"></i>
+            <!-- Switch the order if we are close to the end -->
+            <i v-if=routerLinkPlacePointerOnLeft class="fa fa-caret-up" aria-hidden="true"></i>
             {{ thread.timepoint.format() }}
+            <i v-if=!routerLinkPlacePointerOnLeft class="fa fa-caret-up" aria-hidden="true"></i>
         </router-link>
         <CommentControlsComponent
             :key=thread.threadHead.id
@@ -66,6 +68,19 @@ export default class CommentThreadComponent extends Vue {
 
     // Should equal the value of isExpanded on the component for the head at all times
     private isExpanded: boolean = true;
+
+    // Returns a Vue-like object with position data to place the routerlink for the thread at the correct position
+    private get routerLinkPositionStyle(): Record<string, string> {
+        const offset: number = this.timepointOffset;
+        if (offset > 0.5) {
+            return { right: 100 * (1-offset) + "%" };
+        } else {
+            return { left: 100 * offset + "%" };
+        }
+    }
+    private get routerLinkPlacePointerOnLeft(): boolean {
+        return this.timepointOffset <= 0.5;
+    }
 
     // Returns the offset of the timepoint in the current timeslot
     private get timepointOffset(): number {
