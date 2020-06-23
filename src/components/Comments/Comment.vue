@@ -1,32 +1,10 @@
 <template>
     <div class="comment-container">
-        <div class="expanded-controls"
-            v-if=isExpanded
-        >
-            <a class="vote-button"
-                :class="{ 'active-vote': hasVotedUp }"
-                @click=voteUp
-            >
-                <i class="fa fa-arrow-up"></i>
-            </a>
-            <a class="vote-button"
-                :class="{ 'active-vote': hasVotedDown }"
-                @click=voteDown
-            >
-                <i class="fa fa-arrow-down"></i>
-            </a>
-            <div
-                class="collapsible-border"
-                @click=toggleExpandCollapse>
-            </div>
-        </div>
-        <a
-            class="expand-button"
-            @click=toggleExpandCollapse
-            v-if=!isExpanded
-        >
-            +
-        </a>
+        <!-- Show controls if we aren't the head of a thread; the thread owns the controls for it -->
+        <CommentControlsComponent
+            v-if=!isHead
+            :comment=comment :isExpanded.sync=isExpanded :isCollapsible=true
+        />
         <div class="comment-content">
             <span class="author">{{ comment.author }}</span>
             <span class="separator"> · </span>
@@ -60,8 +38,13 @@
 import { Component, Prop, Vue } from "vue-property-decorator";
 import store from "@/store";
 import { default as CommentThread, Comment, CommentPrimitive } from "@/logic/Comments";
+import CommentControlsComponent from "./CommentControls.vue";
 
-@Component
+@Component({
+    components: {
+        CommentControlsComponent
+    }
+})
 export default class CommentComponent extends Vue {
     // Props
     @Prop({ type: Comment })
@@ -86,10 +69,6 @@ export default class CommentComponent extends Vue {
         return this.comment.content;
     }
 
-    public mounted(): void {
-        this.$emit("update:isExpanded", this.isExpanded);
-    }
-
     private isExpanded: boolean = true;
     private isReplyingTo: boolean = false;
 
@@ -103,47 +82,18 @@ export default class CommentComponent extends Vue {
         return this.isExpanded && !isLast;
     }
 
-    private toggleIsReplyingTo(): void {
-        this.isReplyingTo = !this.isReplyingTo;
-    }
-
-    private toggleExpandCollapse(): void {
-        this.isExpanded = !this.isExpanded;
+    public mounted(): void {
         this.$emit("update:isExpanded", this.isExpanded);
     }
 
-    private voteUp(): void {
-        if (this.hasVotedUp) {
-            store.commit.listen.revertVote(this.comment);
-        } else {
-            store.commit.listen.vote({ comment: this.comment, isVotePositive: true });
-        }
-    }
-
-    private voteDown(): void {
-        if (this.hasVotedDown) {
-            store.commit.listen.revertVote(this.comment);
-        } else {
-            store.commit.listen.vote({ comment: this.comment, isVotePositive: false });
-        }
+    private toggleIsReplyingTo(): void {
+        this.isReplyingTo = !this.isReplyingTo;
     }
 
     private submitReply(): void {
         const postContent: string = (this.$refs["reply-content"] as HTMLInputElement).value;
         const payload = { parentThread: this.parentThread, commentToReplyTo: this.comment, content: postContent };
         store.commit.listen.postReply(payload);
-    }
-
-    private computeHeadCommentExpansionHeight(): string {
-        // This is a massive hack but a proper fix would require an incredibly complex interaction
-        // which would like more of a hack than this.
-        // Get the height of the parent thread of this head comment and set that as the height of the expanded-controls
-        // This allows the collapsible-line to run all the way through the thread
-        if (!this.$el) {
-            return "";
-        }
-        const clientRect = this.$el.parentElement!.getBoundingClientRect();
-        return clientRect.height + "px";
     }
 
     private formatCommentDate(): string {
@@ -186,11 +136,9 @@ export default class CommentComponent extends Vue {
 </script>
 
 <style scoped lang="less">
-@import "../cssresources/theme.less";
+@import "../../cssresources/theme.less";
+@import "comments.less";
 
-@expansion-controls-padding: 0.75em;
-@expansion-controls-width: 0.35em;
-@expansion-controls-offset: 2 * @expansion-controls-padding + @expansion-controls-width;
 .comment-container {
     text-align: left;
     padding-left: @expansion-controls-offset;
@@ -216,63 +164,6 @@ input {
 hr {
     margin-right: @expansion-controls-padding;
     background: @theme-neutral-color;
-}
-
-.expanded-controls {
-    height: 90%;
-    // Absolute as otherwise can't have height: 100% on a parent with height: auto
-    position: absolute;
-    width: @expansion-controls-width;
-    left: @expansion-controls-padding;
-
-    .vote-button {
-        cursor: pointer;
-        height: 1em;
-        padding: 0;
-        transform: translate(-25%, 0);
-        display: inline-block;
-
-        text-align: center;
-        background: transparent;
-        & i {
-            display: inline-block;
-            height: 100%;
-            color: @theme-neutral-color;
-        }
-        & i:hover {
-            color: @theme-neutral-color-hover;
-        }
-        &.active-vote i {
-            color: @theme-focus-color-4;
-        }
-        &.active-vote i:hover {
-            color: @theme-focus-color-4-hover;
-        }
-    }
-    .collapsible-border {
-        height: calc(100% - 2em);
-        width: 100%;
-    }
-}
-
-.collapsible-border, .expand-button {
-    background: @theme-focus-color-3;
-    cursor: pointer;
-
-    &:hover {
-        background: @theme-focus-color-3-hover;
-    }
-}
-.expand-button {
-    position: absolute;
-    border-radius: 50%;
-    border: 0;
-    padding: 0;
-    left: @expansion-controls-padding / 2;
-    font-size: 1.1em;
-    width: @expansion-controls-width + @expansion-controls-padding;
-    height: @expansion-controls-width + @expansion-controls-padding;
-    text-align: center;
 }
 
 </style>

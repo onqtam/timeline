@@ -8,12 +8,16 @@
             <i class="fa fa-caret-up" aria-hidden="true"></i>
             {{ thread.timepoint.format() }}
         </router-link>
-        <CommentComponent
+        <CommentControlsComponent
             :key=thread.threadHead.id
+            :comment=thread.threadHead
+            :isExpanded.sync=isExpanded
+            :isCollapsible=thread.hasReplies
+        />
+        <CommentComponent
             :comment=thread.threadHead
             :parentThread=thread
             :shouldShowOnlyPreview=!isExpanded
-            @update:isExpanded=setIsExpanded
         />
         <template v-for="commentPrimitive in thread.threadTail">
             <CommentComponent
@@ -38,14 +42,16 @@
 import { Component, Prop, Vue } from "vue-property-decorator";
 import store from "@/store";
 import { default as CommentThread } from "@/logic/Comments";
-
-import CommentComponent from "./Comment.vue";
 import { AudioWindow } from "@/logic/AudioFile";
 import MathHelpers from "@/logic/MathHelpers";
 
+import CommentComponent from "./Comment.vue";
+import CommentControlsComponent from "./CommentControls.vue";
+
 @Component({
     components: {
-        CommentComponent
+        CommentComponent,
+        CommentControlsComponent
     },
     name: "CommentThreadComponent"
 })
@@ -79,7 +85,7 @@ export default class CommentThreadComponent extends Vue {
 </script>
 
 <style scoped lang="less">
-@import "../cssresources/theme.less";
+@import "../../cssresources/theme.less";
 
 @top-border-width: 1em;
 .comment-thread-container {
@@ -91,6 +97,7 @@ export default class CommentThreadComponent extends Vue {
     background: @theme-background;
     padding-top: 0.25em;
     position: relative;
+    z-index: 1;
 }
 
 .nested-comment-thread-element {

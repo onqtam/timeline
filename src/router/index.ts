@@ -24,7 +24,7 @@ const routes: Array<RouteConfig> = [
         path: "/listen",
         name: "Listen",
         component: ListenView,
-        props: (route) => ({ initialTimepoint: new Timepoint(~~route.query.t) })
+        props: (route) => ({ initialTimepoint: Timepoint.parseFromURL(route.query.t as string) })
     },
     {
         path: "/",

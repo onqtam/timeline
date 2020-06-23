@@ -54,12 +54,13 @@ import { Component, Vue } from "vue-property-decorator";
 import store from "@/store";
 import { default as CommentThread } from "@/logic/Comments";
 
-import VButton from "./primitives/VButton.vue";
-import VToggleButton from "./primitives/VToggleButton.vue";
-import CommentThreadComponent from "./CommentThread.vue";
 import { AudioWindow } from "@/logic/AudioFile";
 import Timepoint from "@/logic/Timepoint";
 import MathHelpers from "@/logic/MathHelpers";
+
+import VButton from "@/components/primitives/VButton.vue";
+import VToggleButton from "@/components//primitives/VToggleButton.vue";
+import CommentThreadComponent from "./CommentThread.vue";
 
 class Timeslot {
     public timepoint!: Timepoint;
@@ -150,7 +151,7 @@ export default class CommentSection extends Vue {
 </script>
 
 <style scoped lang="less">
-@import "../cssresources/theme.less";
+@import "../../cssresources/theme.less";
 
 .comment-section-root {
     display: flex;
