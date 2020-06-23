@@ -6,7 +6,6 @@
         <TimelinePlayer
             ref="timeline-player"
             class="timeline-player"
-            :initialAudioPos=initialTimepoint
         />
         <CommentSection ref="comment-section" />
     </div>
@@ -32,18 +31,22 @@ import CommentSection from "@/components/Comments/CommentSection.vue";
         CommentSection
     },
     beforeRouteUpdate(to: Route, from: Route, next: NavigationGuardNext<ListenView>) {
-        // TODO: the code here duplicates part of the router as there's no other way
+        // TODO: the code here duplicates part of the router and part of the onMounted code
+        // as there's no other way
         // (or at least I couldn't find) to refresh the same component
 
-        // There's no "afterRouteUpdate"... so we can't directly use the prop initialTimepoint
-        // Fetch the timepoint from the query
+        //There's no "afterRouteUpdate"... so we can't directly use the prop initialTimepoint
+        //Fetch the timepoint from the query
         const timepointToSyncTo: Timepoint|null = Timepoint.tryParseFromURL(to.query.t as string);
         if (timepointToSyncTo) {
-            (this.$refs["timeline-player"] as TimelinePlayer).syncTo(timepointToSyncTo.seconds);
+            // Note when updating the URL, we only move the audioPos, not the window
+            store.commit.listen.moveAudioPos(timepointToSyncTo.seconds);
         }
         const threadIdToFocus: number = ~~(to.query.thread as string);
         if (!isNaN(threadIdToFocus)) {
-            (this.$refs["comment-section"] as CommentSection).focusThread(threadIdToFocus);
+            this.$nextTick(() => {
+                (this.$refs["comment-section"] as CommentSection).focusThread(threadIdToFocus!);
+            });
         }
 
         next();
@@ -56,7 +59,7 @@ export default class ListenView extends Vue {
     public get allThreads(): CommentThread[] {
         return store.state.listen.allThreads;
     }
-    public audioWindow(): AudioWindow {
+    public get audioWindow(): AudioWindow {
         return store.state.listen.audioWindow;
     }
 
@@ -64,6 +67,19 @@ export default class ListenView extends Vue {
     public initialTimepoint?: Timepoint;
     @Prop({ type: Number })
     public threadIdToFocus?: number;
+
+    public mounted(): void {
+        if (this.initialTimepoint) {
+            store.commit.listen.moveAudioPos(this.initialTimepoint.seconds);
+            const timeslotStart: number = this.audioWindow.findTimeslotStartForTime(this.initialTimepoint);
+            store.commit.listen.moveAudioWindow(timeslotStart);
+        }
+        if (this.threadIdToFocus) {
+            this.$nextTick(() => {
+                (this.$refs["comment-section"] as CommentSection).focusThread(this.threadIdToFocus!);
+            });
+        }
+    }
 
     public regenerateComments(): void {
         store.commit.listen.regenerateComments();

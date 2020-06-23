@@ -40,6 +40,7 @@
                     v-for="thread in slot.threads" :key="thread.id"
                     :thread=thread
                     :timeslotIndex=index
+                    :class="{ 'focused-thread': focusedThreadId === thread.id }"
                 />
             </template>
             <template v-else>
@@ -113,6 +114,8 @@ export default class CommentSection extends Vue {
         return timeslots;
     }
 
+    public focusedThreadId: number = -1;
+
     private SortingPredicate = SortingPredicate;
     private sortingPredicate: SortingPredicate = SortingPredicate.Chronologically;
 
@@ -131,6 +134,7 @@ export default class CommentSection extends Vue {
 
         const threadElement: HTMLElement|null = document.getElementById(threadId.toString());
         if (threadElement) {
+            this.focusedThreadId = threadId;
             threadElement.scrollIntoView();
         }
     }
@@ -236,16 +240,22 @@ input, button {
     transition: outline-color 1s linear;
 
     &.timeslot-active-ramp-up {
-        outline-color: fade(@theme-focus-color-4, 30%);
+        outline-color: fade(@theme-focus-color-4, 40%);
     }
     &.timeslot-active-steady {
         outline-color: @theme-focus-color-4;
     }
     &.timeslot-active-ramp-down {
-        outline-color: fade(@theme-focus-color-4, 30%);
+        outline-color: fade(@theme-focus-color-4, 40%);
     }
 }
 .comment-thread-container {
     margin-bottom: 1em;
+    transition: all 1s linear;
+    transition-property: border-color, background-color;
+}
+.focused-thread {
+    border-color: @theme-focus-color;
+    background-color: fade(@theme-focus-color, 20%);
 }
 </style>

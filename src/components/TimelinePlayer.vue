@@ -46,9 +46,6 @@ import { default as Timeline, TimelineMode } from "./Timeline.vue";
 })
 export default class TimelinePlayer extends Vue {
     // Props
-    @Prop({ type: Timepoint })
-    public initialAudioPos!: Timepoint;
-
     public get audio(): AudioFile {
         return store.state.listen.audioFile;
     }
@@ -83,17 +80,8 @@ export default class TimelinePlayer extends Vue {
     private audioPlayTimeIntervalId: number = -1;
 
     // Public API
-    public mounted(): void {
-        // Move both the window and the audio pos during the initial render
-        if (!this.initialAudioPos) {
-            return;
-        }
-        console.assert(this.initialAudioPos.seconds >= 0 && this.initialAudioPos.seconds <= this.audio.duration);
-        store.commit.listen.moveAudioPos(this.initialAudioPos.seconds);
-        this.onTimelineWindowMoved(this.audioPos.seconds);
-    }
-    public syncTo(secondToSyncTo: number): void {
-        store.commit.listen.moveAudioPos(secondToSyncTo);
+    public seekTo(secondToSeekTo: number): void {
+        store.commit.listen.moveAudioPos(secondToSeekTo);
         this.audioElement.currentTime = this.audioPos.seconds;
     }
     public togglePlay(): void {
@@ -104,6 +92,7 @@ export default class TimelinePlayer extends Vue {
         }
     }
     public play(): void {
+        this.audioElement.currentTime = this.audioPos.seconds;
         this.audioElement.volume = this.volume;
         this.audioElement.play();
         this.audioPlayTimeIntervalId = setInterval(() => this.updateAudioPos(), 16);
@@ -125,7 +114,7 @@ export default class TimelinePlayer extends Vue {
         const isInSync: boolean = this.isTimelineWindowSynced();
         if (wasInSync && !isInSync) {
             const newWindowPos = this.audioWindow.start.seconds + this.audioWindow.duration;
-            this.onTimelineWindowMoved(newWindowPos);
+            store.commit.listen.moveAudioWindow(newWindowPos);
         }
 
         if (this.audioPos.seconds >= this.audio.duration) {
@@ -133,7 +122,7 @@ export default class TimelinePlayer extends Vue {
         }
     }
     private onZoomlinePositionMoved(newValue: number): void {
-        this.syncTo(newValue);
+        this.seekTo(newValue);
     }
     private onTimelineWindowMoved(newValue: number): void {
         store.commit.listen.moveAudioWindow(newValue);
