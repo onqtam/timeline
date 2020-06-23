@@ -5,7 +5,8 @@
             v-if=!isHead
             :comment=comment :isExpanded.sync=isExpanded :isCollapsible=true
         />
-        <div class="comment-content">
+        <!-- Set the comment id as element id to be able to find comment's DOM element from other systems  -->
+        <div class="comment-content" :id=comment.id>
             <span class="author">{{ comment.author }}</span>
             <span class="separator"> · </span>
             <span class="votes">

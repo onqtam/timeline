@@ -8,7 +8,7 @@
             class="timeline-player"
             :initialAudioPos=initialTimepoint
         />
-        <CommentSection />
+        <CommentSection ref="comment-section" />
     </div>
 </template>
 
@@ -32,10 +32,20 @@ import CommentSection from "@/components/Comments/CommentSection.vue";
         CommentSection
     },
     beforeRouteUpdate(to: Route, from: Route, next: NavigationGuardNext<ListenView>) {
+        // TODO: the code here duplicates part of the router as there's no other way
+        // (or at least I couldn't find) to refresh the same component
+
         // There's no "afterRouteUpdate"... so we can't directly use the prop initialTimepoint
         // Fetch the timepoint from the query
-        const timepointToSyncTo: Timepoint = Timepoint.parseFromURL(to.query.t as string);
-        (this.$refs["timeline-player"] as TimelinePlayer).syncTo(timepointToSyncTo.seconds);
+        const timepointToSyncTo: Timepoint|null = Timepoint.tryParseFromURL(to.query.t as string);
+        if (timepointToSyncTo) {
+            (this.$refs["timeline-player"] as TimelinePlayer).syncTo(timepointToSyncTo.seconds);
+        }
+        const threadIdToFocus: number = ~~(to.query.thread as string);
+        if (!isNaN(threadIdToFocus)) {
+            (this.$refs["comment-section"] as CommentSection).focusThread(threadIdToFocus);
+        }
+
         next();
     }
 })
@@ -52,6 +62,8 @@ export default class ListenView extends Vue {
 
     @Prop({ type: Timepoint })
     public initialTimepoint?: Timepoint;
+    @Prop({ type: Number })
+    public threadIdToFocus?: number;
 
     public regenerateComments(): void {
         store.commit.listen.regenerateComments();
