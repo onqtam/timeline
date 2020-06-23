@@ -23,7 +23,7 @@ import { default as CommentThread } from "@/logic/Comments";
 
 import VButton from "@/components/primitives/VButton.vue";
 import TimelinePlayer from "@/components/TimelinePlayer.vue";
-import CommentSection from "@/components/CommentSection.vue";
+import CommentSection from "@/components/Comments/CommentSection.vue";
 
 @Component({
     components: {

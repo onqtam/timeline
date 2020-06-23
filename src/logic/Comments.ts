@@ -39,6 +39,10 @@ export default class CommentThread {
     public threadHead!: Comment;
     public threadTail!: CommentPrimitive[];
 
+    public get hasReplies(): boolean {
+        return this.threadTail.length !== 0;
+    }
+
     constructor() {
         this.id = (CommentThreadIdCounter += 2);
     }
