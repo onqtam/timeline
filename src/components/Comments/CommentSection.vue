@@ -130,10 +130,10 @@ export default class CommentSection extends Vue {
         // TODO: Report error in a meaningful way
         // Assert the thread exists and is in an active timeslot
         console.assert(thread !== undefined);
-        console.assert(this.activeTimeslots.find(slot => slot.threads.indexOf(thread!) !== -1) !== undefined);
+        const isInActiveSlot: boolean = this.activeTimeslots.find(slot => slot.threads.indexOf(thread!) !== -1) !== undefined;
 
         const threadElement: HTMLElement|null = document.getElementById(threadId.toString());
-        if (threadElement) {
+        if (threadElement && isInActiveSlot) {
             this.focusedThreadId = threadId;
             threadElement.scrollIntoView();
         }
