@@ -33,6 +33,7 @@
         </div>
         <div class="timeslot"
             v-for="(slot, index) in activeTimeslots" :key="slot.timepoint.seconds"
+            :class=getTimeslotAnimationClass(slot)
         >
             <template v-if="slot.threads.length !== 0">
                 <CommentThreadComponent
@@ -89,6 +90,9 @@ export default class CommentSection extends Vue {
     public get audioWindow(): AudioWindow {
         return store.state.listen.audioWindow;
     }
+    public get audioPos(): Timepoint {
+        return store.state.listen.audioPos;
+    }
 
     public get activeTimeslots(): Timeslot[] {
         const visibleThreads = this.commentThreads.filter(thread => this.audioWindow.containsTimepoint(thread.timepoint));
@@ -116,6 +120,19 @@ export default class CommentSection extends Vue {
         // Update the number of timeslots CSS var every time we are mounted to make sure it never goes out of sync
         const root: HTMLElement = document.documentElement;
         root.style.setProperty("--number-of-timeslots", store.state.listen.audioWindow.timeslotCount.toString());
+    }
+
+    private getTimeslotAnimationClass(timeslot: Timeslot): Record<string, boolean> {
+        const now: number = this.audioPos.seconds;
+        const slotStart: number = timeslot.timepoint.seconds;
+        const slotEnd: number = slotStart + this.audioWindow.timeslotDuration;
+        const percentage: number = MathHelpers.percentageOfRange(now, slotStart, slotEnd);
+        const rampTime: number = 0.1;
+        return {
+            "timeslot-active-ramp-up": MathHelpers.isBetween(percentage, -rampTime/2, rampTime),
+            "timeslot-active-steady": MathHelpers.isBetween(percentage, rampTime, 1-rampTime),
+            "timeslot-active-ramp-down": MathHelpers.isBetween(percentage, 1-rampTime, 1+rampTime/2)
+        };
     }
 
     private startNewCommentThread(): void {
@@ -184,6 +201,8 @@ input, button {
     max-height: 100%;
     overflow-y: auto;
     padding-right: 0.25em;
+    box-sizing: border-box;
+    // Scrollbar
     &::-webkit-scrollbar {
         width: 0.75em;
         border-radius: 10px;
@@ -197,6 +216,20 @@ input, button {
     &::-webkit-scrollbar-thumb {
         background-color: @theme-neutral-color;
         border-radius: 10px;
+    }
+
+    // Activation animations
+    outline: 0.5em double transparent;
+    transition: outline-color 1s linear;
+
+    &.timeslot-active-ramp-up {
+        outline-color: fade(@theme-focus-color-4, 30%);
+    }
+    &.timeslot-active-steady {
+        outline-color: @theme-focus-color-4;
+    }
+    &.timeslot-active-ramp-down {
+        outline-color: fade(@theme-focus-color-4, 30%);
     }
 }
 .comment-thread-container {
