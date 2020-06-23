@@ -42,8 +42,8 @@ import CommentSection from "@/components/Comments/CommentSection.vue";
             // Note when updating the URL, we only move the audioPos, not the window
             store.commit.listen.moveAudioPos(timepointToSyncTo.seconds);
         }
-        const threadIdToFocus: number = ~~(to.query.thread as string);
-        if (!isNaN(threadIdToFocus)) {
+        if (to.query.thread) {
+            const threadIdToFocus: number = ~~to.query.thread;
             this.$nextTick(() => {
                 (this.$refs["comment-section"] as CommentSection).focusThread(threadIdToFocus!);
             });
