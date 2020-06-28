@@ -7,6 +7,20 @@ export default class Timepoint {
         this.seconds = seconds || 0;
     }
 
+    public static tryParseFromFormattedText(text: string): Timepoint|null {
+        const elements = text?.split(":");
+        if (!elements || elements.length < 2 || elements.length > 3) {
+            return null;
+        }
+        const timeComponents: number[] = elements.map(e => ~~e);
+        const seconds: number = timeComponents.pop()!;
+        const minutes: number = timeComponents.pop()!;
+        const hours: number = timeComponents.pop() || 0;
+
+        const totalSeconds = hours * 3600 + minutes * 60 + seconds;
+        return new Timepoint(totalSeconds);
+    }
+
     public static tryParseFromURL(text: string): Timepoint|null {
         const elements = text?.split("-");
         if (!elements || elements.length !== 3) {
