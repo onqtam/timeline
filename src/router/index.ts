@@ -2,6 +2,7 @@ import Vue from "vue";
 import VueRouter, { RouteConfig } from "vue-router";
 import Home from "../views/Home.vue";
 import ListenView from "../views/Listen.vue";
+import EpisodesView from "../views/Episodes.vue";
 import Timepoint from "@/logic/Timepoint";
 
 Vue.use(VueRouter);
@@ -28,6 +29,12 @@ const routes: Array<RouteConfig> = [
             initialTimepoint: Timepoint.tryParseFromURL(route.query.t as string),
             threadIdToFocus: ~~(route.query.thread as string)
         })
+    },
+    {
+        path: "/episodes/:podcastTitle",
+        name: "Episodes",
+        component: EpisodesView,
+        props: true
     },
     {
         path: "/",

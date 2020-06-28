@@ -40,7 +40,7 @@ export default class Timepoint {
         return this.formatExtended(":", true);
     }
 
-    public formatExtended(delimiter: string, dropHoursIfPossible: boolean): string {
+    private formatExtended(delimiter: string, dropHoursIfPossible: boolean): string {
         let mutableSeconds = this.seconds;
         const hours = Math.floor(mutableSeconds / 3600);
         mutableSeconds -= hours * 3600;
