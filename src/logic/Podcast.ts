@@ -5,7 +5,8 @@ export class Episode {
     public description: string = "";
     public publicationDate: Date = new Date(0);
     public durationInSeconds: number = 0;
-    public audioUrl: string = "";
+    public audioURL: string = "";
+    public imageURL: string = "";
 }
 
 export class Podcast {
@@ -48,6 +49,7 @@ export class Podcast {
         const episodeNodes = channel.querySelectorAll("item");
         for (const episodeItem of episodeNodes) {
             const episode = new Episode();
+
             episode.title = this.guaranteeLoadText(episodeItem, "title");
             episode.description = this.guaranteeLoadText(episodeItem, "description");
             episode.publicationDate = new Date(this.guaranteeLoadText(episodeItem, "pubDate"));
@@ -58,7 +60,9 @@ export class Podcast {
                 continue;
             }
             episode.durationInSeconds = asTimepoint.seconds;
-            episode.audioUrl = this.guaranteeLoadAttr(episodeItem, "enclosure", "url");
+            episode.audioURL = this.guaranteeLoadAttr(episodeItem, "enclosure", "url");
+            episode.imageURL = this.guaranteeLoadAttr(episodeItem, "image", "href");
+
             podcast.episodes.push(episode);
         }
         return podcast;
