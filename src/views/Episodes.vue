@@ -11,8 +11,8 @@
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 import { Route, NavigationGuardNext } from "vue-router";
+import store from "@/store";
 
-import AsyncLoader from "@/logic/AsyncLoader";
 import { Podcast } from "@/logic/Podcast";
 
 import VButton from "@/components/primitives/VButton.vue";
@@ -21,37 +21,24 @@ import EpisodeComponent from "@/components/Episode.vue";
 const beforeRouteChange = (to: Route, from: Route, next: NavigationGuardNext<EpisodesView>, existingView: EpisodesView|undefined) => {
     const podcastTitle = to.params.podcastTitle as string;
     console.assert(podcastTitle !== undefined);
-    const PODCAST_TO_RSS: Record<string, string> = {
-        "the-portal": "https://rss.art19.com/the-portal"
-    };
-    const rssUrl: string|undefined = PODCAST_TO_RSS[podcastTitle];
-    if (!rssUrl) {
-        // TODO: Report error in a better way
-        console.error("Unknown podcast!");
-        return;
-    }
-    const onFetchFailed = () => {
-        console.error("Invalid podcast!", podcastTitle);
-    };
-    const onFetchSuccessful = function (view: EpisodesView, rssContent: string) {
-        const parsedPodcast: Podcast | null = Podcast.parsePodcastFromRSS(rssContent);
-        if (parsedPodcast) {
-            Object.assign(view.podcast, parsedPodcast);
+    // TODO: This is a hack because the data in the store might not be loaded yet
+    // Continiously retry and wait for it to be loaded until some limit
+    const timeLimit = 5000;
+    const timeAtStart = new Date();
+    const checkIfPodcastDataIsLoaded = () => {
+        const podcast: Podcast = store.state.podcast.allPodcasts[podcastTitle];
+        const timeSpentTrying = (new Date().getTime() - timeAtStart.getTime());
+        if (!podcast && timeSpentTrying <= timeLimit) {
+            setTimeout(checkIfPodcastDataIsLoaded, 16);
+            return;
+        }
+        if (existingView) {
+            Object.assign(existingView.podcast, podcast);
         } else {
-            onFetchFailed();
+            next(view => Object.assign(view.podcast, podcast));
         }
     };
-    const loadPromise = AsyncLoader.fetchTextFile(rssUrl);
-    if (!existingView) {
-        next((view: EpisodesView) => {
-            loadPromise
-                .then(onFetchSuccessful.bind(undefined, view), onFetchFailed);
-        });
-    } else {
-        loadPromise
-            .then(onFetchSuccessful.bind(undefined, existingView), onFetchFailed)
-            .finally(next);
-    }
+    checkIfPodcastDataIsLoaded();
 };
 
 @Component({
