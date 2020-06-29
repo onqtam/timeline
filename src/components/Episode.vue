@@ -3,7 +3,9 @@
         <div class="episode-thumbnail" :style="{ 'background-image': 'url(' + episode.imageURL +')' }" >
         </div>
         <div class="episode-content">
-            <h3 class="episode-title">{{ episode.title }}</h3>
+            <router-link :to="`/listen/${podcast.titleAsURL}/${episode.titleAsURL}`">
+                <h3 class="episode-title">{{ episode.title }}</h3>
+            </router-link>
             <span> {{ episode.publicationDate.toLocaleDateString() }}</span>
             <span class="separator"> · </span>
             <span> Duration: {{ formatEpisodeDuration(episode.durationInSeconds) }}</span>
@@ -19,7 +21,7 @@
 import { Component, Vue, Prop } from "vue-property-decorator";
 
 import Timepoint from "@/logic/Timepoint";
-import { Episode } from "@/logic/Podcast";
+import { Episode, Podcast } from "@/logic/Podcast";
 
 import VButton from "@/components/primitives/VButton.vue";
 
@@ -31,6 +33,9 @@ import VButton from "@/components/primitives/VButton.vue";
 export default class EpisodeComponent extends Vue {
     @Prop({ type: Episode })
     public episode!: Episode;
+    @Prop({ type: Podcast })
+    public podcast!: Podcast;
+
     public get episodeFilteredDescription(): string {
         // TODO: Redesign, this is a "on-top-of-the-head" implementation
         // Return everything if we are reading more

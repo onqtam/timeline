@@ -3,6 +3,7 @@ import Timepoint from "@/logic/Timepoint";
 import { default as AudioFile, AudioWindow } from "@/logic/AudioFile";
 import { Comment, default as CommentThread } from "@/logic/Comments";
 import MathHelpers, { RandomIntegerDistribution } from "@/logic/MathHelpers";
+import { Episode } from "@/logic/Podcast";
 
 export interface IStoreListenModule {
     audioFile: AudioFile;
@@ -28,6 +29,11 @@ class StoreListenViewModel implements IStoreListenModule {
         this.volume = 0.15;
         this.allThreads = [];
         this.createComments();
+    }
+
+    public setActiveEpisode(episode: Episode): void {
+        this.audioFile.filepath = episode.audioURL;
+        this.audioFile.duration = episode.durationInSeconds;
     }
 
     public moveAudioWindow(newStart: number): void {
@@ -188,6 +194,9 @@ export default {
     namespaced: true as true,
     state: listenModule,
     mutations: {
+        setActiveEpisode: (state: StoreListenViewModel, episode: Episode): void => {
+            state.setActiveEpisode(episode);
+        },
         moveAudioWindow: (state: StoreListenViewModel, newStart: number): void => {
             state.moveAudioWindow(newStart);
         },

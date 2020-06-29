@@ -16,6 +16,7 @@ import store from "@/store";
 import Timepoint from "@/logic/Timepoint";
 import { default as AudioFile, AudioWindow } from "@/logic/AudioFile";
 import { default as CommentThread } from "@/logic/Comments";
+import { Episode } from "@/logic/Podcast";
 
 import VButton from "@/components/primitives/VButton.vue";
 import TimelinePlayer from "@/components/TimelinePlayer.vue";
@@ -49,6 +50,15 @@ import CommentSection from "@/components/comments/CommentSection.vue";
     }
 })
 export default class ListenView extends Vue {
+    @Prop({ type: Timepoint })
+    public initialTimepoint?: Timepoint;
+    @Prop({ type: Number })
+    public threadIdToFocus?: number;
+    @Prop({ type: String })
+    public podcastTitleURL!: string;
+    @Prop({ type: String })
+    public episodeTitleURL!: string;
+
     public get audioFile(): AudioFile {
         return store.state.listen.audioFile;
     }
@@ -58,11 +68,6 @@ export default class ListenView extends Vue {
     public get audioWindow(): AudioWindow {
         return store.state.listen.audioWindow;
     }
-
-    @Prop({ type: Timepoint })
-    public initialTimepoint?: Timepoint;
-    @Prop({ type: Number })
-    public threadIdToFocus?: number;
 
     public mounted(): void {
         if (this.initialTimepoint) {
@@ -75,6 +80,14 @@ export default class ListenView extends Vue {
                 (this.$refs["comment-section"] as CommentSection).focusThread(this.threadIdToFocus!);
             });
         }
+        console.assert(this.podcastTitleURL !== undefined && this.episodeTitleURL !== undefined);
+        const episodeToPlay = store.state.podcast.findEpisode(this.podcastTitleURL, this.episodeTitleURL);
+
+        if (!episodeToPlay) {
+            console.error("No such episode exists!");
+            return;
+        }
+        store.commit.listen.setActiveEpisode(episodeToPlay);
     }
 
     public regenerateComments(): void {

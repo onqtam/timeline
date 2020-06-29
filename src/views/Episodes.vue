@@ -2,7 +2,8 @@
     <div class="episode-view-container">
         <EpisodeComponent class="episode-slot"
             v-for="episode in podcast.episodes" :key=episode.title
-            :episode=episode>
+            :podcast=podcast :episode=episode
+        >
         </EpisodeComponent>
         <hr>
     </div>

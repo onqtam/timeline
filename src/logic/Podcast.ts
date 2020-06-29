@@ -1,4 +1,6 @@
-import Timepoint from "./Timepoint";
+const convertTitleToURLSection = (title: string) => {
+    return title.toLowerCase().replace(/[\s,:&.-]+/g, "-");
+};
 
 export class Episode {
     public title: string = "";
@@ -7,6 +9,10 @@ export class Episode {
     public durationInSeconds: number = 0;
     public audioURL: string = "";
     public imageURL: string = "";
+
+    public get titleAsURL(): string {
+        return convertTitleToURLSection(this.title);
+    }
 }
 
 export class Podcast {
@@ -16,4 +22,8 @@ export class Podcast {
     public link: string = "";
     public imageURL: string = "";
     public episodes: Episode[] = [];
+
+    public get titleAsURL(): string {
+        return convertTitleToURLSection(this.title);
+    }
 }

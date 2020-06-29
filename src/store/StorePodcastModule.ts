@@ -66,6 +66,7 @@ const parsePodcastFromRSS = function (rssContent: string): Podcast | null {
 
 export interface IStorePodcastModule {
     allPodcasts: Record<string, Podcast>;
+    findEpisode(podcastTitleURL: string, episodeTitleURL: string): Episode|undefined;
 }
 
 export class StorePodcastViewModel implements IStorePodcastModule {
@@ -99,6 +100,11 @@ export class StorePodcastViewModel implements IStorePodcastModule {
                 .then(rssContent => onFetchSuccessful(rssPair.title, rssContent))
                 .catch(onFetchFailed);
         }
+    }
+
+    public findEpisode(podcastTitleURL: string, episodeTitleURL: string): Episode|undefined {
+        const podcast: Podcast|undefined = Object.values(this.allPodcasts).find(p => p.titleAsURL === podcastTitleURL);
+        return podcast?.episodes.find(e => e.titleAsURL === episodeTitleURL);
     }
 }
 
