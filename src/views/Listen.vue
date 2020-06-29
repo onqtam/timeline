@@ -85,6 +85,15 @@ export default class ListenView extends Vue {
 
         if (!episodeToPlay) {
             console.error("No such episode exists!");
+            console.warn("Setting default episode for development purposes");
+            const defaultEpisode = new Episode();
+            defaultEpisode.title = "Test";
+            defaultEpisode.description = "test test";
+            defaultEpisode.publicationDate = new Date();
+            defaultEpisode.audioURL = "../assets/Making_Sense_206_Frum.mp3";
+            defaultEpisode.durationInSeconds = 5403;
+            defaultEpisode.imageURL = "";
+            store.commit.listen.setActiveEpisode(defaultEpisode);
             return;
         }
         store.commit.listen.setActiveEpisode(episodeToPlay);

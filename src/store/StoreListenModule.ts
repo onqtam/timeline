@@ -13,6 +13,11 @@ export interface IStoreListenModule {
     volume: number;
 }
 
+// Declare JSON-equivalent types for type checking
+type RawComment = { id: string; author: string; content: string; date: string; upVotes: string; downVotes: string };
+type RawThread = { id: string; timepoint: {seconds: string}; threadHead: RawComment; threadTail: (RawComment | RawThread)[] };
+type ThreadsPerEpisode = Record<string, RawThread[]>;
+const LOCAL_STORAGE_KEY = "comment-data-per-episode";
 class StoreListenViewModel implements IStoreListenModule {
     public audioFile!: AudioFile;
     public audioPos!: Timepoint;
@@ -20,20 +25,24 @@ class StoreListenViewModel implements IStoreListenModule {
     public volume!: number;
     public allThreads!: CommentThread[];
 
+    // TODO: Comments in an episode need to be stored in a database of some kind
+    // This is an attempt to simulate that by storing them in a big dictionary
+    private currentEpisodeKey!: string;
+
     constructor() {
         this.audioFile = new AudioFile();
-        this.audioFile.filepath = "../assets/Making_Sense_206_Frum.mp3";
-        this.audioFile.duration = 5403;
         this.audioPos = new Timepoint();
         this.audioWindow = new AudioWindow(new Timepoint(0), 80, 20);
         this.volume = 0.15;
         this.allThreads = [];
-        this.createComments();
+        this.currentEpisodeKey = "";
     }
 
     public setActiveEpisode(episode: Episode): void {
         this.audioFile.filepath = episode.audioURL;
         this.audioFile.duration = episode.durationInSeconds;
+        const episodeKey = episode.titleAsURL;
+        this.createComments(episodeKey);
     }
 
     public moveAudioWindow(newStart: number): void {
@@ -119,7 +128,6 @@ class StoreListenViewModel implements IStoreListenModule {
                 this.allThreads.push(newThread);
             }
         }
-        this.saveCommentsToLocalStorage();
     }
 
     // Internal API
@@ -131,10 +139,12 @@ class StoreListenViewModel implements IStoreListenModule {
         return comment;
     }
 
-    private createComments(): void {
-        const commentData: string | null = localStorage.getItem("comment-data");
-        if (commentData !== null) {
-            this.loadCommentsFromJSON(commentData);
+    private createComments(episodeKey: string): void {
+        this.currentEpisodeKey = episodeKey;
+        const commentData: string | null = localStorage.getItem(LOCAL_STORAGE_KEY + episodeKey);
+        const rawCommentThreads: RawThread[]|undefined = JSON.parse(commentData || "{}");
+        if (rawCommentThreads) {
+            this.loadCommentsFromJSON(rawCommentThreads);
         } else {
             // TODO: don't need to prune everything
             localStorage.clear();
@@ -142,12 +152,7 @@ class StoreListenViewModel implements IStoreListenModule {
         }
     }
 
-    private loadCommentsFromJSON(commentData: string): void {
-        // Declare JSON-equivalent types for type checking
-        type RawComment = { id: string; author: string; content: string; date: string; upVotes: string; downVotes: string };
-        type RawThread = { id: string; timepoint: {seconds: string}; threadHead: RawComment; threadTail: (RawComment | RawThread)[] };
-
-        const rawCommentThreads: [] = JSON.parse(commentData);
+    private loadCommentsFromJSON(rawCommentThreads: RawThread[]): void {
         const loadComment = (rawComment: RawComment) => {
             const comment = new Comment();
             comment.id = ~~rawComment.id;
@@ -179,10 +184,11 @@ class StoreListenViewModel implements IStoreListenModule {
         for (let i = 0; i < rawCommentThreads.length; i++) {
             this.allThreads.push(loadThread(rawCommentThreads[i]));
         }
+        this.saveCommentsToLocalStorage();
     }
 
     private saveCommentsToLocalStorage(): void {
-        localStorage.setItem("comment-data", JSON.stringify(this.allThreads));
+        localStorage.setItem(LOCAL_STORAGE_KEY + this.currentEpisodeKey, JSON.stringify(this.allThreads));
     }
 }
 
