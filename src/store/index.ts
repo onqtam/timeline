@@ -4,6 +4,7 @@ import { createDirectStore } from "direct-vuex";
 
 import { default as storeListenModule } from "./StoreListenModule";
 import { default as storeUserModule } from "./StoreUserModule";
+import { default as storePodcastModule } from "./StorePodcastModule";
 
 Vue.use(Vuex);
 
@@ -17,7 +18,8 @@ const {
 } = createDirectStore({
     modules: {
         listen: storeListenModule,
-        user: storeUserModule
+        user: storeUserModule,
+        podcast: storePodcastModule
     },
     strict: true
 });
