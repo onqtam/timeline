@@ -22,12 +22,14 @@ const routes: Array<RouteConfig> = [
         component: () => import(/* webpackChunkName: "about" */ "../views/About.vue")
     },
     {
-        path: "/listen",
+        path: "/listen/:podcastTitle/:episodeTitle",
         name: "Listen",
         component: ListenView,
         props: (route) => ({
             initialTimepoint: Timepoint.tryParseFromURL(route.query.t as string),
-            threadIdToFocus: ~~(route.query.thread as string)
+            threadIdToFocus: ~~(route.query.thread as string),
+            podcastTitleURL: route.params.podcastTitle,
+            episodeTitleURL: route.params.episodeTitle
         })
     },
     {
@@ -38,7 +40,8 @@ const routes: Array<RouteConfig> = [
     },
     {
         path: "/",
-        redirect: { name: "Listen" }
+        // TODO: Obviously hard-coding a podcast isn't perfect but it's a necessity during development
+        redirect: "/episodes/the-portal"
     }
 ];
 
