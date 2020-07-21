@@ -2,7 +2,8 @@ import store from "@/store";
 import Timepoint from "@/logic/Timepoint";
 import { default as AudioFile, AudioWindow } from "@/logic/AudioFile";
 import { Comment, default as CommentThread } from "@/logic/Comments";
-import MathHelpers, { RandomIntegerDistribution } from "@/logic/MathHelpers";
+import MathHelpers from "@/logic/MathHelpers";
+import { RandomIntegerDistribution } from "@/logic/RandomHelpers";
 import { Episode } from "@/logic/Podcast";
 
 export interface IStoreListenModule {
@@ -24,6 +25,7 @@ class StoreListenViewModel implements IStoreListenModule {
     public audioWindow!: AudioWindow;
     public volume!: number;
     public allThreads!: CommentThread[];
+    public activeEpisode!: Episode;
 
     // TODO: Comments in an episode need to be stored in a database of some kind
     // This is an attempt to simulate that by storing them in a big dictionary
@@ -39,6 +41,7 @@ class StoreListenViewModel implements IStoreListenModule {
     }
 
     public setActiveEpisode(episode: Episode): void {
+        this.activeEpisode = episode;
         this.audioFile.filepath = episode.audioURL;
         this.audioFile.duration = episode.durationInSeconds;
         const episodeKey = episode.titleAsURL;

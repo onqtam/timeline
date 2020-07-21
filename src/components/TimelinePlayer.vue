@@ -1,14 +1,18 @@
 <template>
     <div class="timeline-player">
-        <VButton @click=togglePlay>
-            Play/Pause
-        </VButton>
-        <audio nocontrols
-            ref="audio-element"
-            :src=audio.filepath
-        >
-        </audio>
+        <div class="controls">
+            <VButton @click=togglePlay>
+                Play/Pause
+            </VButton>
+            <audio nocontrols
+                class="audio-element"
+                ref="audio-element"
+                :src=audio.filepath
+            >
+            </audio>
+        </div>
         <Timeline
+            class="timeline"
             :mode=TimelineMode.Standard
             :audioWindow=audioWindow
             :numberOfMarks=10
@@ -17,7 +21,13 @@
             @update:audioWindowStart=onTimelineWindowMoved
         >
         </Timeline>
+        <AgendaComponent
+            class="agenda"
+            :agenda=activeEpisode.agenda
+        >
+        </AgendaComponent>
         <Timeline
+            class="zoomline"
             ref="zoomline"
             :mode=TimelineMode.Zoomline
             :numberOfMarks=zoomlineMarkCount
@@ -37,11 +47,14 @@ import Timepoint from "@/logic/Timepoint";
 
 import VButton from "./primitives/VButton.vue";
 import { default as Timeline, TimelineMode } from "./Timeline.vue";
+import AgendaComponent from "./Agenda.vue";
+import { Episode } from '../logic/Podcast';
 
 @Component({
     components: {
         VButton,
-        Timeline
+        Timeline,
+        AgendaComponent
     }
 })
 export default class TimelinePlayer extends Vue {
@@ -55,9 +68,11 @@ export default class TimelinePlayer extends Vue {
     public get volume(): number {
         return store.state.listen.volume;
     }
-
     public get audioPos(): Timepoint {
         return store.state.listen.audioPos;
+    }
+    public get activeEpisode(): Episode {
+        return store.state.listen.activeEpisode;
     }
     private get zoomlineRangeStart(): number {
         return this.audioWindow.start.seconds;
@@ -153,4 +168,31 @@ button {
     color: @theme-background;
     background: @theme-text-color;
 }
+
+.timeline-player {
+    display: grid;
+    grid-template-columns: 75% 25%;
+}
+
+.controls {
+    grid-column-start: 1;
+    grid-column-end: span 2;
+}
+.timeline {
+    grid-column-start: 1;
+    grid-column-end: 1;
+}
+.agenda {
+    grid-column-start: 2;
+    grid-column-end: 2;
+}
+.zoomline {
+    grid-column-start: 1;
+    grid-column-end: span 2;
+}
+
+.audio-element {
+    display: none;
+}
+
 </style>

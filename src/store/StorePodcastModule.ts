@@ -1,6 +1,7 @@
-import { Podcast, Episode } from "@/logic/Podcast";
+import { Podcast, Episode, Agenda, AgendaItem } from "@/logic/Podcast";
 import Timepoint from "@/logic/Timepoint";
 import AsyncLoader from "@/logic/AsyncLoader";
+import { RandomString } from '@/logic/RandomHelpers';
 
 const guaranteeLoadText = function (element: Element, childSelector: string): string {
     const value = element.querySelector(childSelector)?.textContent;
@@ -59,6 +60,15 @@ const parsePodcastFromRSS = function (rssContent: string): Podcast | null {
         episode.audioURL = guaranteeLoadAttr(episodeItem, "enclosure", "url");
         episode.imageURL = guaranteeLoadAttr(episodeItem, "image", "href");
 
+        // podcasts don't yet gave actual agenda so generate a random one
+        // new item every X +- Y seconds
+        const AGENDA_ITEM_INTERVAL = 600; // 10mins
+        const AGENDA_ITEM_DEVIATION = 180; // with a deviation of 3mins
+        const nextItemTime = (currentTime: number) => currentTime + AGENDA_ITEM_INTERVAL + (Math.random() - 0.5) * AGENDA_ITEM_DEVIATION;
+        for (let i = 0; i < episode.durationInSeconds; i = nextItemTime(i)) {
+            const item = new AgendaItem(RandomString.ofLength(30), new Timepoint(i));
+            episode.agenda.items.push(item);
+        }
         podcast.episodes.push(episode);
     }
     return podcast;
