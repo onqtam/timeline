@@ -1,4 +1,5 @@
 import Timepoint from "./Timepoint";
+import { RandomString } from './RandomHelpers';
 
 // Threads have odd ids, comments have even
 let CommentIdCounter = 0;
@@ -54,7 +55,6 @@ export default class CommentThread {
     public static generateComment(): Comment {
         const maxPoints = 25;
         const authors = ["Nikola", "Viktor", "Dimitroff", "Kirilov", "onqtam", "podcastfan99"];
-        const loremIpsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam ac velit neque. Pellentesque mattis velit arcu, eget pharetra arcu finibus sed. Suspendisse luctus leo sapien. Fusce pulvinar congue ante, eu efficitur massa blandit sit amet. Duis luctus nibh vel leo consequat volutpat. Suspendisse ac lacus eu lorem mattis malesuada semper vel justo. Vivamus fringilla fringilla turpis eu porttitor. Ut ullamcorper nec purus at semper. Donec at mi blandit, sollicitudin purus quis, pellentesque quam. Suspendisse potenti.";
         const differentCommentLengths = [
             5, 5, 5, 15, 15, 30, 30, 150, 300
         ];
@@ -65,8 +65,7 @@ export default class CommentThread {
         // Pick a random date earlier in 2020
         const now = new Date();
         comment.date = new Date(2020, Math.random() * (now.getMonth() - 1), Math.random() * 28);
-        // Pick a somewhat random section of lorem ipsum;
-        comment.content = loremIpsum.substr(Math.random() * loremIpsum.length, commentLength);
+        comment.content = RandomString.ofLength(commentLength);
         comment.upVotes = ~~(Math.random() * maxPoints);
         comment.downVotes = ~~(Math.random() * maxPoints);
         return comment;

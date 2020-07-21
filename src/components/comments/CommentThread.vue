@@ -4,7 +4,7 @@
         <router-link
             class="timepoint"
             :style=routerLinkPositionStyle
-            :to="'/listen?t=' + thread.timepoint.formatAsUrlParam() + '&thread=' + thread.id"
+            :to="'?t=' + thread.timepoint.formatAsUrlParam() + '&thread=' + thread.id"
         >
             <!-- Switch the order if we are close to the end -->
             <i v-if=routerLinkPlacePointerOnLeft class="fa fa-caret-up" aria-hidden="true"></i>
