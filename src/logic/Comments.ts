@@ -1,5 +1,5 @@
 import Timepoint from "./Timepoint";
-import { RandomString } from './RandomHelpers';
+import { RandomString } from "./RandomHelpers";
 
 // Threads have odd ids, comments have even
 let CommentIdCounter = 0;

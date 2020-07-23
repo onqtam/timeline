@@ -48,7 +48,7 @@ import Timepoint from "@/logic/Timepoint";
 import VButton from "./primitives/VButton.vue";
 import { default as Timeline, TimelineMode } from "./Timeline.vue";
 import AgendaComponent from "./Agenda.vue";
-import { Episode } from '../logic/Podcast';
+import { Episode } from "../logic/Podcast";
 
 @Component({
     components: {
