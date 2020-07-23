@@ -108,6 +108,10 @@ export default class ListenView extends Vue {
 <style scoped lang="less">
 @import "../cssresources/theme.less";
 
+.timeline-player {
+    height: 30vh;
+}
+
 .timeline-player, .comment-section-root {
     margin: 0 1em;
 }
