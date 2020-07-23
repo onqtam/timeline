@@ -1,8 +1,7 @@
 <template>
     <div class="agenda-container">
-        <hr>
-        <ul v-for="(item, index) in agenda.items" :key=item.timestamp.seconds>
-            <li>
+        <ul>
+            <li v-for="(item, index) in agenda.items" :key=item.timestamp.seconds>
                 <router-link
                     class="agenda-item"
                     :class="{'agenda-item-active': isAgendaItemActive(index)}"
@@ -13,7 +12,6 @@
                 </router-link>
             </li>
         </ul>
-        <hr>
     </div>
 </template>
 
@@ -43,9 +41,6 @@ export default class AgendaComponent extends Vue {
 <style scoped lang="less">
 @import "../cssresources/theme.less";
 
-hr {
-    border-style: dashed;
-}
 ul {
     list-style-type: none;
     text-align: left;
@@ -53,11 +48,10 @@ ul {
 
 .agenda-container {
     overflow-y: auto;
+    border-style: dashed none;
+    padding: 0 3em;
 }
 
-.agenda-item {
-    line-height: 1.1em;
-}
 .agenda-item-active {
     color: @theme-focus-color;
 }

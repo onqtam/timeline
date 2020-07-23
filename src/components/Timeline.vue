@@ -176,10 +176,9 @@ export default class Timeline extends Vue {
 
 .timeline-container {
     width: 100%;
-    height: 150px;
+    height: 100%;
     background: @theme-focus-color;
     border: 2px solid @theme-focus-color-3;
-    margin-bottom: 2%;
     position: relative;
     box-sizing: border-box;
     user-select: none;

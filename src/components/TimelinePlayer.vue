@@ -1,7 +1,7 @@
 <template>
     <div class="timeline-player">
         <div class="controls">
-            <VButton @click=togglePlay>
+            <VButton class="play-button" @click=togglePlay>
                 Play/Pause
             </VButton>
             <audio nocontrols
@@ -171,28 +171,40 @@ button {
 
 .timeline-player {
     display: grid;
-    grid-template-columns: 75% 25%;
+    grid-template-areas:
+        "controls controls"
+        "timeline agenda"
+        "zoomline zoomline";
+    @control-row-height: 7.5%;
+    @gap-size: 2.5%;
+    gap: @gap-size;
+    // Make sure the sum of all row heights and the gap equals 100% and the repeat for the width of all cols
+    @gap-per-row: @gap-size * 2 / 3; // 2 gaps between 3 rows, distribute their height equally among all rows
+    @gap-per-col: @gap-size * 1 / 2; // 1 gap between 2 cols
+    grid-template-rows: @control-row-height - @gap-per-row (100%-@control-row-height)/2 - @gap-per-row (100%-@control-row-height)/2 - @gap-per-row;
+    grid-template-columns: 75% - @gap-per-col 25% - @gap-per-col;
 }
 
 .controls {
-    grid-column-start: 1;
-    grid-column-end: span 2;
+    grid-area: controls;
 }
 .timeline {
-    grid-column-start: 1;
-    grid-column-end: 1;
+    grid-area: timeline;
 }
 .agenda {
-    grid-column-start: 2;
-    grid-column-end: 2;
+    grid-area: agenda;
 }
 .zoomline {
-    grid-column-start: 1;
-    grid-column-end: span 2;
+    grid-area: zoomline;
 }
 
 .audio-element {
     display: none;
+}
+
+.play-button {
+    height: 100%;
+    margin: 0;
 }
 
 </style>
