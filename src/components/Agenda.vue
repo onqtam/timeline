@@ -44,12 +44,18 @@ export default class AgendaComponent extends Vue {
 ul {
     list-style-type: none;
     text-align: left;
+    margin: 0;
+    overflow: auto;
+    height: 100%;
+}
+
+li {
+    line-height: 1.4em;
 }
 
 .agenda-container {
-    overflow-y: auto;
     border-style: dashed none;
-    padding: 0 3em;
+    padding: 1em 0;
 }
 
 .agenda-item-active {
