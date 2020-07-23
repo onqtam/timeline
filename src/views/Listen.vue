@@ -68,18 +68,7 @@ export default class ListenView extends Vue {
     public get audioWindow(): AudioWindow {
         return store.state.listen.audioWindow;
     }
-
-    public mounted(): void {
-        if (this.initialTimepoint) {
-            store.commit.listen.moveAudioPos(this.initialTimepoint.seconds);
-            const timeslotStart: number = this.audioWindow.findTimeslotStartForTime(this.initialTimepoint);
-            store.commit.listen.moveAudioWindow(timeslotStart);
-        }
-        if (this.threadIdToFocus) {
-            this.$nextTick(() => {
-                (this.$refs["comment-section"] as CommentSection).focusThread(this.threadIdToFocus!);
-            });
-        }
+    public beforeMount(): void {
         console.assert(this.podcastTitleURL !== undefined && this.episodeTitleURL !== undefined);
         const episodeToPlay = store.state.podcast.findEpisode(this.podcastTitleURL, this.episodeTitleURL);
 
@@ -97,6 +86,18 @@ export default class ListenView extends Vue {
             return;
         }
         store.commit.listen.setActiveEpisode(episodeToPlay);
+    }
+    public mounted(): void {
+        if (this.initialTimepoint) {
+            store.commit.listen.moveAudioPos(this.initialTimepoint.seconds);
+            const timeslotStart: number = this.audioWindow.findTimeslotStartForTime(this.initialTimepoint);
+            store.commit.listen.moveAudioWindow(timeslotStart);
+        }
+        if (this.threadIdToFocus) {
+            this.$nextTick(() => {
+                (this.$refs["comment-section"] as CommentSection).focusThread(this.threadIdToFocus!);
+            });
+        }
     }
 
     public regenerateComments(): void {
