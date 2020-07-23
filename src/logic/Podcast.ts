@@ -1,4 +1,4 @@
-import Timepoint from './Timepoint';
+import Timepoint from "./Timepoint";
 
 const convertTitleToURLSection = (title: string) => {
     return title.toLowerCase().replace(/[\s,:&.-]+/g, "-");

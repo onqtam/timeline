@@ -1,7 +1,7 @@
-import { Podcast, Episode, Agenda, AgendaItem } from "@/logic/Podcast";
+import { Podcast, Episode, AgendaItem } from "@/logic/Podcast";
 import Timepoint from "@/logic/Timepoint";
 import AsyncLoader from "@/logic/AsyncLoader";
-import { RandomString } from '@/logic/RandomHelpers';
+import { RandomString } from "@/logic/RandomHelpers";
 
 const guaranteeLoadText = function (element: Element, childSelector: string): string {
     const value = element.querySelector(childSelector)?.textContent;

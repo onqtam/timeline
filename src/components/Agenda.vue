@@ -18,9 +18,8 @@
 <script lang="ts">
 import { Component, Vue, Prop } from "vue-property-decorator";
 
-import Timepoint from "@/logic/Timepoint";
-import { Agenda, AgendaItem } from "@/logic/Podcast";
-import MathHelpers from '../logic/MathHelpers';
+import { Agenda } from "@/logic/Podcast";
+import MathHelpers from "../logic/MathHelpers";
 
 import store from "@/store";
 
@@ -34,7 +33,6 @@ export default class AgendaComponent extends Vue {
             this.agenda.items[itemIndex].timestamp.seconds,
             this.agenda.items[itemIndex + 1]?.timestamp.seconds || Number.POSITIVE_INFINITY);
     }
-
 }
 </script>
 
