@@ -5,6 +5,7 @@ export default class Timepoint {
 
     constructor(seconds?: number) {
         this.seconds = seconds || 0;
+        this.normalize();
     }
 
     public static tryParseFromFormattedText(text: string): Timepoint|null {
@@ -30,6 +31,12 @@ export default class Timepoint {
 
         const totalSeconds = hours * 3600 + minutes * 60 + seconds;
         return new Timepoint(totalSeconds);
+    }
+
+    // Rounds the seconds to the nearest second to avoid any sub-second instability
+    // All timepoints should be normalized before being used
+    public normalize(): void {
+        this.seconds = Math.round(this.seconds);
     }
 
     public formatAsUrlParam(): string {
