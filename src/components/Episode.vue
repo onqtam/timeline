@@ -88,6 +88,9 @@ export default class EpisodeComponent extends Vue {
     height: 100%;
     overflow: hidden;
 }
+.episode-title {
+    margin-top: 0;
+}
 .separator {
     color: @theme-neutral-color;
 }
