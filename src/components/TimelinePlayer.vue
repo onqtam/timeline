@@ -13,9 +13,10 @@
         </div>
         <Timeline
             class="timeline"
+            ref="timeline"
             :mode=TimelineMode.Standard
             :audioWindow=audioWindow
-            :numberOfMarks=10
+            :numberOfMarks=timelineMarkCount
             :rangeStart=0 :rangeEnd=audio.duration
             :currentAudioPosition=audioPos
             @update:audioWindowStart=onTimelineWindowMoved
@@ -84,6 +85,18 @@ export default class TimelinePlayer extends Vue {
     private get zoomlineMarkCount(): number {
         return store.state.listen.audioWindow.timeslotCount;
     }
+    private get timelineMarkCount(): number {
+        // TODO: This needs to be more systematic and less magical
+        if (this.currentWindowWidth >= 1280) {
+            return 10;
+        } else if (this.currentWindowWidth >= 712) {
+            return 5;
+        } else if (this.currentWindowWidth >= 480) {
+            return 4;
+        } else {
+            return 3;
+        }
+    }
 
     // Store the enum as a member to access it in the template
     private TimelineMode = TimelineMode;
@@ -93,8 +106,16 @@ export default class TimelinePlayer extends Vue {
         return this.$refs["audio-element"] as HTMLAudioElement;
     }
     private audioPlayTimeIntervalId: number = -1;
+    private currentWindowWidth: number = -1;
 
     // Public API
+    public mounted(): void {
+        this.onWindowResized();
+        window.addEventListener("resize", this.onWindowResized);
+    }
+    public destroyed(): void {
+        window.removeEventListener("resize", this.onWindowResized);
+    }
     public seekTo(secondToSeekTo: number): void {
         store.commit.listen.moveAudioPos(secondToSeekTo);
         this.audioElement.currentTime = this.audioPos.seconds;
@@ -141,6 +162,10 @@ export default class TimelinePlayer extends Vue {
     }
     private onTimelineWindowMoved(newValue: number): void {
         store.commit.listen.moveAudioWindow(newValue);
+    }
+
+    private onWindowResized(): void {
+        this.currentWindowWidth = window.innerWidth;
     }
 };
 
