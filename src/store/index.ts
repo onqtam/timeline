@@ -5,6 +5,7 @@ import { createDirectStore } from "direct-vuex";
 import { default as storeListenModule } from "./StoreListenModule";
 import { default as storeUserModule } from "./StoreUserModule";
 import { default as storePodcastModule } from "./StorePodcastModule";
+import { default as storeDeviceModule } from "./StoreDeviceInfoModule";
 
 Vue.use(Vuex);
 
@@ -19,7 +20,8 @@ const {
     modules: {
         listen: storeListenModule,
         user: storeUserModule,
-        podcast: storePodcastModule
+        podcast: storePodcastModule,
+        device: storeDeviceModule
     },
     strict: true
 });
@@ -44,3 +46,7 @@ declare module "vuex" {
         direct: AppStore;
     }
 };
+
+// App-specific init of global store
+store.state.device.setup();
+store.commit.device.addOnAppModeChangedListener(() => store.commit.listen.updateTimeslotCount(store.state.device.device.appMode));

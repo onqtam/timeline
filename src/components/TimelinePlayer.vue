@@ -50,6 +50,7 @@ import VButton from "./primitives/VButton.vue";
 import { default as Timeline, TimelineMode } from "./Timeline.vue";
 import AgendaComponent from "./Agenda.vue";
 import { Episode } from "../logic/Podcast";
+import { ActiveAppMode } from "../store/StoreDeviceInfoModule";
 
 @Component({
     components: {
@@ -83,20 +84,9 @@ export default class TimelinePlayer extends Vue {
         return Math.min(seconds, this.audio.duration);
     }
     private get zoomlineMarkCount(): number {
-        return store.state.listen.audioWindow.timeslotCount;
+        return store.state.listen.audioWindow.timeslotCount + 1;
     }
-    private get timelineMarkCount(): number {
-        // TODO: This needs to be more systematic and less magical
-        if (this.currentWindowWidth >= 1280) {
-            return 10;
-        } else if (this.currentWindowWidth >= 712) {
-            return 5;
-        } else if (this.currentWindowWidth >= 480) {
-            return 4;
-        } else {
-            return 3;
-        }
-    }
+    private timelineMarkCount: number = -1;
 
     // Store the enum as a member to access it in the template
     private TimelineMode = TimelineMode;
@@ -106,15 +96,15 @@ export default class TimelinePlayer extends Vue {
         return this.$refs["audio-element"] as HTMLAudioElement;
     }
     private audioPlayTimeIntervalId: number = -1;
-    private currentWindowWidth: number = -1;
+    private activeAppMode: ActiveAppMode = ActiveAppMode.StandardScreen;
 
     // Public API
     public mounted(): void {
         this.onWindowResized();
-        window.addEventListener("resize", this.onWindowResized);
+        store.commit.device.addOnAppModeChangedListener(this.onWindowResized.bind(this));
     }
     public destroyed(): void {
-        window.removeEventListener("resize", this.onWindowResized);
+        store.commit.device.removeOnAppModeChangedistener(this.onWindowResized.bind(this));
     }
     public seekTo(secondToSeekTo: number): void {
         store.commit.listen.moveAudioPos(secondToSeekTo);
@@ -165,7 +155,20 @@ export default class TimelinePlayer extends Vue {
     }
 
     private onWindowResized(): void {
-        this.currentWindowWidth = window.innerWidth;
+        switch (store.state.device.device.appMode) {
+        case ActiveAppMode.LargeDesktop:
+            this.timelineMarkCount = 12;
+            break;
+        case ActiveAppMode.StandardScreen:
+            this.timelineMarkCount = 10;
+            break;
+        case ActiveAppMode.Tablet:
+            this.timelineMarkCount = 5;
+            break;
+        case ActiveAppMode.Mobile:
+            this.timelineMarkCount = 3;
+            break;
+        }
     }
 };
 

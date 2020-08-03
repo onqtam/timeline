@@ -5,6 +5,7 @@ import { Comment, default as CommentThread } from "@/logic/Comments";
 import MathHelpers from "@/logic/MathHelpers";
 import { RandomIntegerDistribution } from "@/logic/RandomHelpers";
 import { Episode } from "@/logic/Podcast";
+import { ActiveAppMode } from "./StoreDeviceInfoModule";
 
 export interface IStoreListenModule {
     audioFile: AudioFile;
@@ -56,6 +57,22 @@ class StoreListenViewModel implements IStoreListenModule {
     }
     public moveAudioPos(newStart: number): void {
         this.audioPos.seconds = newStart;
+    }
+    public updateTimeslotCount(appMode: ActiveAppMode): void {
+        switch (appMode) {
+        case ActiveAppMode.LargeDesktop:
+            this.audioWindow.timeslotCount = 7;
+            break;
+        case ActiveAppMode.StandardScreen:
+            this.audioWindow.timeslotCount = 5;
+            break;
+        case ActiveAppMode.Tablet:
+            this.audioWindow.timeslotCount = 3;
+            break;
+        case ActiveAppMode.Mobile:
+            this.audioWindow.timeslotCount = 1;
+            break;
+        }
     }
 
     public postNewCommentThread(content: string): void {
@@ -211,6 +228,9 @@ export default {
         },
         moveAudioPos: (state: StoreListenViewModel, newStart: number): void => {
             state.moveAudioPos(newStart);
+        },
+        updateTimeslotCount: (state: StoreListenViewModel, appMode: ActiveAppMode): void => {
+            state.updateTimeslotCount(appMode);
         },
         postNewCommentThread: (state: StoreListenViewModel, content: string): void => {
             state.postNewCommentThread(content);
