@@ -86,7 +86,7 @@ export default class Timeline extends Vue {
     public audioWindow?: AudioWindow;
 
     public get computedMarks(): Timepoint[] {
-        if (!this.timepointMarks) {
+        if (!this.timepointMarks || this.timepointMarks.length !== this.numberOfMarks) {
             this.timepointMarks = [];
         }
         for (let i = 0; i < this.numberOfMarks; i++) {

@@ -14,6 +14,9 @@ export class AudioWindow {
     public get timeslotCount(): number {
         return ~~(this.duration / this.timeslotDuration);
     }
+    public set timeslotCount(value: number) {
+        this.timeslotDuration = ~~(this.duration / value);
+    }
 
     constructor(start?: Timepoint, duration?: number, timeslotDuration?: number) {
         this.start = start!;
