@@ -1,4 +1,4 @@
-import store from "@/store";
+import store from "@/client/store";
 
 export enum ActiveAppMode {
     LargeDesktop, // Generally 4k+

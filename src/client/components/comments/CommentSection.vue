@@ -53,15 +53,15 @@
 <script lang="ts">
 
 import { Component, Vue } from "vue-property-decorator";
-import store from "@/store";
+import store from "@/client/store";
 import { default as CommentThread } from "@/logic/Comments";
 
 import { AudioWindow } from "@/logic/AudioFile";
 import Timepoint from "@/logic/Timepoint";
 import MathHelpers from "@/logic/MathHelpers";
 
-import VButton from "@/components/primitives/VButton.vue";
-import VToggleButton from "@/components//primitives/VToggleButton.vue";
+import VButton from "@/client/components/primitives/VButton.vue";
+import VToggleButton from "@/client/components//primitives/VToggleButton.vue";
 import CommentThreadComponent from "./CommentThread.vue";
 
 class Timeslot {

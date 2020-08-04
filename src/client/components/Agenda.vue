@@ -19,9 +19,9 @@
 import { Component, Vue, Prop } from "vue-property-decorator";
 
 import { Agenda } from "@/logic/Podcast";
-import MathHelpers from "../logic/MathHelpers";
+import MathHelpers from "@/logic/MathHelpers";
 
-import store from "@/store";
+import store from "@/client/store";
 
 @Component
 export default class AgendaComponent extends Vue {

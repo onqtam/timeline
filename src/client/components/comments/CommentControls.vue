@@ -34,7 +34,7 @@
 <script lang="ts">
 
 import { Component, Prop, Vue } from "vue-property-decorator";
-import store from "@/store";
+import store from "@/client/store";
 import { Comment } from "@/logic/Comments";
 
 @Component

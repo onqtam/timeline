@@ -43,7 +43,7 @@
 <script lang="ts">
 
 import { Component, Prop, Vue } from "vue-property-decorator";
-import store from "@/store";
+import store from "@/client/store";
 import { default as CommentThread } from "@/logic/Comments";
 import { AudioWindow } from "@/logic/AudioFile";
 import MathHelpers from "@/logic/MathHelpers";

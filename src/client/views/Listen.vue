@@ -11,16 +11,16 @@
 <script lang="ts">
 import { Component, Vue, Prop } from "vue-property-decorator";
 import { Route, NavigationGuardNext } from "vue-router";
-import store from "@/store";
+import store from "@/client/store";
 
 import Timepoint from "@/logic/Timepoint";
 import { default as AudioFile, AudioWindow } from "@/logic/AudioFile";
 import { default as CommentThread } from "@/logic/Comments";
 import { Episode } from "@/logic/Podcast";
 
-import VButton from "@/components/primitives/VButton.vue";
-import TimelinePlayer from "@/components/TimelinePlayer.vue";
-import CommentSection from "@/components/comments/CommentSection.vue";
+import VButton from "@/client/components/primitives/VButton.vue";
+import TimelinePlayer from "@/client/components/TimelinePlayer.vue";
+import CommentSection from "@/client/components/comments/CommentSection.vue";
 
 @Component({
     components: {

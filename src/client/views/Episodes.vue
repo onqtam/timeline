@@ -12,12 +12,12 @@
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 import { Route, NavigationGuardNext } from "vue-router";
-import store from "@/store";
+import store from "@/client/store";
 
 import { Podcast } from "@/logic/Podcast";
 
-import VButton from "@/components/primitives/VButton.vue";
-import EpisodeComponent from "@/components/Episode.vue";
+import VButton from "@/client/components/primitives/VButton.vue";
+import EpisodeComponent from "@/client/components/Episode.vue";
 
 const beforeRouteChange = (to: Route, from: Route, next: NavigationGuardNext<EpisodesView>, existingView: EpisodesView|undefined) => {
     const podcastTitle = to.params.podcastTitle as string;

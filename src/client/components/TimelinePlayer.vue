@@ -42,14 +42,14 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import store from "@/store";
+import store from "@/client/store";
 import { default as AudioFile, AudioWindow } from "@/logic/AudioFile";
 import Timepoint from "@/logic/Timepoint";
 
 import VButton from "./primitives/VButton.vue";
 import { default as Timeline, TimelineMode } from "./Timeline.vue";
 import AgendaComponent from "./Agenda.vue";
-import { Episode } from "../logic/Podcast";
+import { Episode } from "@/logic/Podcast";
 import { ActiveAppMode } from "../store/StoreDeviceInfoModule";
 
 @Component({

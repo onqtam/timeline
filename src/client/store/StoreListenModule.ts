@@ -1,4 +1,4 @@
-import store from "@/store";
+import store from "@/client/store";
 import Timepoint from "@/logic/Timepoint";
 import { default as AudioFile, AudioWindow } from "@/logic/AudioFile";
 import { Comment, default as CommentThread } from "@/logic/Comments";

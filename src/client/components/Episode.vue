@@ -23,7 +23,7 @@ import { Component, Vue, Prop } from "vue-property-decorator";
 import Timepoint from "@/logic/Timepoint";
 import { Episode, Podcast } from "@/logic/Podcast";
 
-import VButton from "@/components/primitives/VButton.vue";
+import VButton from "@/client/components/primitives/VButton.vue";
 
 @Component({
     components: {
