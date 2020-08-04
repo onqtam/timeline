@@ -5,6 +5,9 @@ module.exports = {
     configureWebpack: {
         devtool: "source-map"
     },
+    // This overrides some default configs of the vue-cli
+    // How and why do they work...is hard question to answer, they aren't really documented.
+    // This code was produced with a ton of experimentation. Be careful about changing it.
     chainWebpack: config => {
         config
             .entry("app")

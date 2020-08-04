@@ -3,12 +3,17 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
+    "dev-client": "vue-cli-service serve",
+    "build-client": "vue-cli-service build",
+    "dev-server": "nodemon",
+    "build-server": "tsc --build --clean --force src/server",
     "lint": "vue-cli-service lint --no-fix",
     "lint-autofix": "vue-cli-service lint"
   },
   "dependencies": {
+    "@types/body-parser": "^1.19.0",
+    "@types/express": "^4.17.7",
+    "body-parser": "^1.19.0",
     "direct-vuex": "^0.11.1",
     "express": "^4.17.1",
     "vue": "^2.6.11",
@@ -36,6 +41,8 @@
     "less": "^3.0.4",
     "less-loader": "^5.0.0",
     "lint-staged": "^9.5.0",
+    "nodemon": "^2.0.4",
+    "ts-node": "^8.10.2",
     "typescript": "~3.9.3",
     "vue-template-compiler": "^2.6.11"
   },

@@ -121,7 +121,7 @@ export default class TimelinePlayer extends Vue {
         this.audioElement.currentTime = this.audioPos.seconds;
         this.audioElement.volume = this.volume;
         this.audioElement.play();
-        this.audioPlayTimeIntervalId = setInterval(() => this.updateAudioPos(), 16);
+        this.audioPlayTimeIntervalId = window.setInterval(() => this.updateAudioPos(), 16);
     }
     public pause(): void {
         this.audioElement.pause();

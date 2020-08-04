@@ -1,0 +1,16 @@
+{
+    "extends": "../../tsconfig.base.json",
+    "compilerOptions": {
+        "target": "ES6",
+        "module": "CommonJS",
+        "moduleResolution": "Node",
+        "outDir": "../../build/server",
+        "sourceMap": false,
+        "inlineSourceMap": true,
+        "inlineSources": true
+    },
+    "include": [
+        "../../src/server/**/*.ts",
+        "../../src/logic/**/*.ts",
+    ],
+}
