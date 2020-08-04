@@ -1,3 +1,6 @@
+# Custom ignores
+build/
+
 # Ignore Vue files
 
 # Logs
