@@ -26,6 +26,7 @@
 | :------ | :----- |
 | `npm run dev-client` | Run the dev version of the frontend |
 | `npm run dev-server` | Run the dev version of the server |
+| `npm run test-server` | Run tests on the server code |
 | `npm run build-client` | Build frontend for production |
 | `npm run build-server` | Build server for production |
 | `npm run lint` | Run linter |
@@ -76,6 +77,7 @@
 ## Overall project architecture
 
 We use Vue on the client to build a SPA and Node/Express/PostgreSQL on the server. TypeScript is used throughout as the only programming language.
+Mocha + Chai are running our tests. The client and the server are to developed somewhat independently - they have their own tests, configurations, build systems, etc.
 
 ### File structure
 
