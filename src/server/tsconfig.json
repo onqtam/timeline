@@ -7,7 +7,7 @@
         "outDir": "../../build/server",
         "sourceMap": false,
         "inlineSourceMap": true,
-        "inlineSources": true
+        "inlineSources": true,
     },
     "include": [
         "../../src/server/**/*.ts",

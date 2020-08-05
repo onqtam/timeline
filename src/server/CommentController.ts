@@ -15,9 +15,11 @@ export default class CommentController {
         type CommentRequest = express.Request<{}, CommentThread[], CommentDataRequest>;
         type CommentResponse = express.Response<CommentThread[]>;
         app.get("/comments", (req: CommentRequest, res: CommentResponse): void => {
-            res.setHeader("Content-Type", "text/json");
+            res.setHeader("Content-Type", "application/json");
+            // TODO: Validate input
             const commentThreads: CommentThread[] = this.getCommentThreadsFor(req.body);
-            res.end(JSON.stringify(commentThreads, null, 2));
+            const responseData = JSON.stringify(commentThreads, null, 2);
+            res.end(responseData);
         });
     }
 

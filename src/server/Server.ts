@@ -5,7 +5,7 @@ import bodyParser from "body-parser";
 import CommonParams from "../logic/CommonParams";
 
 export default class Server {
-    private app: express.Application;
+    public app: express.Application;
 
     constructor() {
         this.app = express();
