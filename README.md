@@ -1,5 +1,6 @@
 ## Initial Dev Setup
 
+1. Install PostgreSQL v12 [from here][postgre-download]
 1. Install VSCode and these extensions:
     * Vetur (syntax highlighting for .vue files)
     * Debugger for Chrome (enables VSCode to connect with Chrome over the debug protocol, only if you want to use VSCode for debugging)
@@ -31,6 +32,7 @@
 | `npm run build-server` | Build server for production |
 | `npm run lint` | Run linter |
 | `npm run lint-autofix` | Run linter and autofix errors |
+| `npm run updatedb` | Fetches the latest data for all of our podcasts and episodes and stores in the DB |
 
 ### Recommended process
 
@@ -109,10 +111,13 @@ The entire build / dev system is based on Vue-CLI. The *tsconfig.json* at the re
 ### Server-side
 
 * Express.js - Our HTTP server. It's only implemented at the most basic level. Currently, we have not implemented **pretty much all performance and security options of Express**.
+* PostgreSQL is our database. To interact with it, we use the pg and pgtools modules and the ORM/SQLBuilder TypeORM. We only use the SQLBuilder part of it for architectural reasons. Never use the ActiveRecord/DataMapper patterns, always interact with the DB through building SQL queries.
+  * To access the RDMS, run pgAdmin and open [http://localhost:57946/](http://localhost:57946/) in your browser.
 
 #### Build/configuration system
 
 The dev version of the build system is based on `nodemon` and `ts-node`. `ts-node` allows one to execute TypeScript without intermediate compilation (this allows us to greatly simplify the dev environment) and `nodemon` is a demon responsible for restarting the server whenever server code is changed.
 
+[postgre-download]: https://www.enterprisedb.com/downloads/postgres-postgresql-downloads
 [vue-devtools]: https://chrome.google.com/webstore/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd?hl=en
 [vue-cli]: https://cli.vuejs.org/guide/

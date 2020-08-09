@@ -4,7 +4,7 @@ import { default as AudioFile, AudioWindow } from "@/logic/AudioFile";
 import { Comment, default as CommentThread } from "@/logic/Comments";
 import MathHelpers from "@/logic/MathHelpers";
 import { RandomIntegerDistribution } from "@/logic/RandomHelpers";
-import { Episode } from "@/logic/Podcast";
+import { Episode } from "@/logic/entities/Podcast";
 import { ActiveAppMode } from "./StoreDeviceInfoModule";
 
 export interface IStoreListenModule {
