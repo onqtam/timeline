@@ -1,0 +1,20 @@
+{
+    "extends": "../../tsconfig.base.json",
+    "compilerOptions": {
+        "target": "es2017",
+        "module": "CommonJS",
+        "moduleResolution": "Node",
+        "outDir": "../../build/tools",
+        "sourceMap": false,
+        "inlineSourceMap": true,
+        "inlineSources": true,
+        "types": [
+          "mocha",
+          "node"
+        ],
+    },
+    "include": [
+        "../../src/tools/**/*.ts",
+        "../../src/logic/**/*.ts",
+    ],
+}
