@@ -1,30 +1,29 @@
-import express, { Application } from "express";
+import { Request, Response } from "express";
 
-import CommentThread from "../logic/Comments";
-import { RandomIntegerDistribution } from "../logic/RandomHelpers";
-import MathHelpers from "../logic/MathHelpers";
-
-class CommentDataRequest {
-    public episodeId!: number;
-    public intervalStart!: number;
-    public intervalDuration!: number;
-}
+import CommentThread from "../../logic/Comments";
+import { RandomIntegerDistribution } from "../../logic/RandomHelpers";
+import MathHelpers from "../../logic/MathHelpers";
+import RouteInfo, { HTTPVerb } from "../RouteInfo";
+import EncodingUtils from "../EncodingUtils";
 
 export default class CommentController {
-    public static registerRoutes(app: express.Application): void {
-        type CommentRequest = express.Request<{}, CommentThread[], CommentDataRequest>;
-        type CommentResponse = express.Response<CommentThread[]>;
-        app.get("/comments", (req: CommentRequest, res: CommentResponse): void => {
-            res.setHeader("Content-Type", "application/json");
-            // TODO: Validate input
-            const commentThreads: CommentThread[] = this.getCommentThreadsFor(req.body);
-            const responseData = JSON.stringify(commentThreads, null, 2);
-            res.end(responseData);
-        });
+    public static getRoutes(): RouteInfo[] {
+        return [{
+            path: "/comments",
+            verb: HTTPVerb.Get,
+            callback: CommentController.getCommentThreadsFor
+        }];
     }
 
-    private static getCommentThreadsFor(info: CommentDataRequest): CommentThread[] {
-        return CommentController.regenerateRandomComments(info.intervalStart, info.intervalDuration);
+    private static async getCommentThreadsFor(request: Request, response: Response): Promise<void> {
+        type CommentDataRequest = {
+            episodeId: number;
+            intervalStart: number;
+            intervalDuration: number;
+        };
+        const params = request.body as CommentDataRequest;
+        const comments: CommentThread[] = CommentController.regenerateRandomComments(params.intervalStart, params.intervalDuration);
+        response.end(EncodingUtils.jsonify(comments));
     }
 
     private static regenerateRandomComments(intervalStart: number, duration: number): CommentThread[] {
