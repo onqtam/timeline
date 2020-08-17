@@ -149,12 +149,6 @@ export default class Timeline extends Vue {
             this.isDraggingPlayElement = true;
         }
     }
-    private onStartDraggingWindow(event: MouseEvent): void {
-        const leftMouseButton: number = 0;
-        if (event.button === leftMouseButton) {
-            this.isDraggingPlayElement = true;
-        }
-    }
 
     private onDrag(event: DragEvent): void {
         if (!this.isDraggingPlayElement) {
@@ -164,7 +158,6 @@ export default class Timeline extends Vue {
     }
 
     private onStopDragging(): void {
-        this.isDraggingPlayElement = false;
         this.isDraggingPlayElement = false;
     }
 };

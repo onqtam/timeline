@@ -10,6 +10,14 @@
                 :src=audio.filepath
             >
             </audio>
+            <div class="slider-controls">
+                <label>Number Of Timeslots</label>
+                <VSlider class="timeslot-count-slider" :min=1 :max=5 :step=1 :value.sync=randomNum></VSlider>
+            </div>
+            <div class="slider-controls">
+                <label>Audio Window Size</label>
+                <VSlider class="window-width-count-slider" :min=1 :max=5 :step=1 :value.sync=randomNum></VSlider>
+            </div>
         </div>
         <Timeline
             class="timeline"
@@ -47,14 +55,16 @@ import { default as AudioFile, AudioWindow } from "@/logic/AudioFile";
 import Timepoint from "@/logic/Timepoint";
 
 import VButton from "./primitives/VButton.vue";
+import VSlider from "./primitives/VSlider.vue";
 import { default as Timeline, TimelineMode } from "./Timeline.vue";
 import AgendaComponent from "./Agenda.vue";
-import { Episode } from "@/logic/Podcast";
+import { Episode } from "../../logic/entities/Episode";
 import { ActiveAppMode } from "../store/StoreDeviceInfoModule";
 
 @Component({
     components: {
         VButton,
+        VSlider,
         Timeline,
         AgendaComponent
     }
@@ -87,6 +97,7 @@ export default class TimelinePlayer extends Vue {
         return store.state.listen.audioWindow.timeslotCount + 1;
     }
     private timelineMarkCount: number = -1;
+    private randomNum: number = 1;
 
     // Store the enum as a member to access it in the template
     private TimelineMode = TimelineMode;
@@ -203,7 +214,7 @@ button {
         "controls controls"
         "timeline agenda"
         "zoomline zoomline";
-    @control-row-height: 7.5%;
+    @control-row-height: 25.5%;
     @gap-size: 2.5%;
     gap: @gap-size;
     // Make sure the sum of all row heights and the gap equals 100% and the repeat for the width of all cols
@@ -231,8 +242,11 @@ button {
 }
 
 .play-button {
-    height: 100%;
     margin: 0;
+}
+.slider-controls {
+    width: 20%;
+    display: inline-block;
 }
 
 </style>

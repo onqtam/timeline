@@ -42,6 +42,7 @@ const parsePodcastFromRSS = function (rssContent: string): Podcast | null {
     podcast.author = guaranteeLoadText(channel, "author"); // usually itunes:author
     podcast.link = guaranteeLoadText(channel, "link");
     podcast.imageURL = guaranteeLoadText(channel, "image url");
+    podcast.episodes = [];
 
     const episodeNodes = channel.querySelectorAll("item");
     for (const episodeItem of episodeNodes) {
