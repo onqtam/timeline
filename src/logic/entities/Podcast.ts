@@ -11,19 +11,19 @@ const convertTitleToURLSection = (title: string) => {
 @Entity()
 export class Podcast {
     @PrimaryGeneratedColumn()
-    public id!: number;
+    public id: number = 0;
     @Column()
-    public title!: string;
+    public title: string = "";
     @Column()
-    public description!: string;
+    public description: string = "";
     @Column()
-    public author!: string;
+    public author: string = "";
     @Column()
-    public link!: string;
+    public link: string = "";
     @Column()
-    public imageURL!: string;
+    public imageURL: string = "";
     @OneToMany(() => Episode, episode => episode.owningPodcast, { cascade: true })
-    public episodes!: Episode[];
+    public episodes: Episode[] = [];
 
     public get titleAsURL(): string {
         return convertTitleToURLSection(this.title);

@@ -10,11 +10,11 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import { Component, Vue, Prop } from "vue-property-decorator";
 import { Route, NavigationGuardNext } from "vue-router";
 import store from "@/client/store";
 
-import { Podcast } from "@/logic/Podcast";
+import { Podcast } from "@/logic/entities/Podcast";
 
 import VButton from "@/client/components/primitives/VButton.vue";
 import EpisodeComponent from "@/client/components/Episode.vue";
@@ -29,7 +29,7 @@ const beforeRouteChange = (to: Route, from: Route, next: NavigationGuardNext<Epi
     const checkIfPodcastDataIsLoaded = () => {
         const podcast: Podcast = store.state.podcast.allPodcasts[podcastTitle];
         const timeSpentTrying = (new Date().getTime() - timeAtStart.getTime());
-        if (!podcast && timeSpentTrying <= timeLimit) {
+        if (!podcast || timeSpentTrying <= timeLimit) {
             setTimeout(checkIfPodcastDataIsLoaded, 16);
             return;
         }

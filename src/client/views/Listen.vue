@@ -16,7 +16,7 @@ import store from "@/client/store";
 import Timepoint from "@/logic/Timepoint";
 import { default as AudioFile, AudioWindow } from "@/logic/AudioFile";
 import { default as CommentThread } from "@/logic/Comments";
-import { Episode } from "@/logic/Podcast";
+import { Episode } from "@/logic/entities/Episode";
 
 import VButton from "@/client/components/primitives/VButton.vue";
 import TimelinePlayer from "@/client/components/TimelinePlayer.vue";
@@ -110,7 +110,7 @@ export default class ListenView extends Vue {
 @import "../cssresources/theme.less";
 
 .timeline-player {
-    height: 30vh;
+    height: 40vh;
 }
 
 .timeline-player, .comment-section-root {

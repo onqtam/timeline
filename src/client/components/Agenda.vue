@@ -18,7 +18,7 @@
 <script lang="ts">
 import { Component, Vue, Prop } from "vue-property-decorator";
 
-import { Agenda } from "@/logic/Podcast";
+import { Agenda } from "@/logic/entities/Episode";
 import MathHelpers from "@/logic/MathHelpers";
 
 import store from "@/client/store";

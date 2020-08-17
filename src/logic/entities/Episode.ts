@@ -24,21 +24,21 @@ export class Agenda {
 @Entity()
 export class Episode {
     @PrimaryGeneratedColumn()
-    public id!: number;
+    public id: number = -1;
     @Column()
-    public title!: string;
+    public title: string = "";
     @Column()
-    public description!: string;
+    public description: string = "";
     @Column()
     @IsDate()
-    public publicationDate!: Date;
+    public publicationDate: Date = new Date();
     @Column()
     @Min(1)
-    public durationInSeconds!: number;
+    public durationInSeconds: number = -1;
     @Column()
-    public audioURL!: string;
+    public audioURL: string = "";
     @Column()
-    public imageURL!: string;
+    public imageURL: string = "";
     public agenda: Agenda = new Agenda();
 
     @ManyToOne(() => Podcast, podcast => podcast.episodes, { nullable: false })
