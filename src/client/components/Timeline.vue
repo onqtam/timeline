@@ -25,6 +25,9 @@
         >
         </div>
 
+        <!-- Displays a chart of the audio file, only in Standard. The data in the chart varies depending on settings -->
+        <VChart class="standard-chart" :type=ChartType.Line :data=chartData></VChart>
+
         <!-- Displays the small vertical lines that break down the timeline into small sections -->
         <div class="mark-container">
             <div class="mark" v-for="(timepoint, index) in computedMarks" :key="index">
@@ -59,6 +62,9 @@ import Timepoint from "@/logic/Timepoint";
 import { AudioWindow } from "@/logic/AudioFile";
 import MathHelpers from "@/logic/MathHelpers";
 
+import VChart, { ChartType } from "./primitives/VChart.vue";
+import { IChartistData } from "chartist";
+
 export enum TimelineMode {
     Standard,
     Zoomline
@@ -66,7 +72,11 @@ export enum TimelineMode {
 
 // This class operates in 2 distinct modes - as a standard timeline and as a zoomline
 // Any members/functions which are solely used in one the modes must be suffixed with _<mode>
-@Component
+@Component({
+    components: {
+        VChart
+    }
+})
 export default class Timeline extends Vue {
     // Props
     @Prop({ type: Number })
@@ -99,6 +109,17 @@ export default class Timeline extends Vue {
         return this.timepointMarks;
     }
 
+    public get chartData(): IChartistData {
+        // Dummy data
+        // TODO: Update to display comment density
+        return {
+            labels: ["Mon", "Tue", "Wed", "Thu", "Fri"],
+            series: [
+                [5, 2, 4, 2, 0]
+            ]
+        };
+    }
+
     // Internal data members
     // Whether the user is currently dragging the corresponding element
     // In Zoomline mode, this is the play cursor
@@ -107,6 +128,7 @@ export default class Timeline extends Vue {
     private timepointMarks: Timepoint[] = [];
     // Store the enum as a member to access it in the template
     private TimelineMode = TimelineMode;
+    private ChartType = ChartType;
 
     // Internal API
     // Converts the given value in a percentage between the current rangeStart and rangeEnd, clamped in [0;100]
@@ -228,6 +250,13 @@ export default class Timeline extends Vue {
     border-left: @border;
     border-right: @border;
     cursor: ew-resize;
+}
+.standard-chart {
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    position: absolute;
 }
 .current-play-position {
     position: relative;
