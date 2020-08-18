@@ -12,11 +12,11 @@
             </audio>
             <div class="slider-controls">
                 <label>Number Of Timeslots</label>
-                <VSlider class="timeslot-count-slider" :min=1 :max=5 :step=1 :value.sync=randomNum></VSlider>
+                <VSlider class="timeslot-count-slider" :min=1 :max=5 :step=1 :value.sync=audioWindowTimeslotCount></VSlider>
             </div>
             <div class="slider-controls">
                 <label>Audio Window Size</label>
-                <VSlider class="window-width-count-slider" :min=1 :max=5 :step=1 :value.sync=randomNum></VSlider>
+                <VSlider class="window-width-count-slider" :min=30 :max=300 :step=30 :value.sync=audioWindowDuration></VSlider>
             </div>
         </div>
         <Timeline
@@ -77,6 +77,18 @@ export default class TimelinePlayer extends Vue {
     public get audioWindow(): AudioWindow {
         return store.state.listen.audioWindow;
     }
+    public get audioWindowTimeslotCount(): number {
+        return this.audioWindow.timeslotCount;
+    }
+    public set audioWindowTimeslotCount(value: number) {
+        store.commit.listen.setAudioWindowSlots(value);
+    }
+    public get audioWindowDuration(): number {
+        return this.audioWindow.duration;
+    }
+    public set audioWindowDuration(value: number) {
+        store.commit.listen.resizeAudioWindow(value);
+    }
     public get volume(): number {
         return store.state.listen.volume;
     }
@@ -97,7 +109,6 @@ export default class TimelinePlayer extends Vue {
         return store.state.listen.audioWindow.timeslotCount + 1;
     }
     private timelineMarkCount: number = -1;
-    private randomNum: number = 1;
 
     // Store the enum as a member to access it in the template
     private TimelineMode = TimelineMode;
