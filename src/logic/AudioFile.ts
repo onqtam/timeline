@@ -7,21 +7,23 @@ export default class AudioFile {
 }
 
 export class AudioWindow {
+    public audioFile!: AudioFile;
     public start!: Timepoint;
     public duration!: number;
-    public timeslotDuration!: number;
+    public timeslotCount!: number;
 
-    public get timeslotCount(): number {
-        return ~~(this.duration / this.timeslotDuration);
+    public get timeslotDuration(): number {
+        return ~~(this.duration / this.timeslotCount);
     }
-    public set timeslotCount(value: number) {
-        this.timeslotDuration = ~~(this.duration / value);
+    public set timeslotDuration(value: number) {
+        this.timeslotCount = ~~(this.duration / value);
     }
 
-    constructor(start?: Timepoint, duration?: number, timeslotDuration?: number) {
+    constructor(audioFile: AudioFile, start?: Timepoint, duration?: number, timeslotCount?: number) {
+        this.audioFile = audioFile;
         this.start = start!;
         this.duration = duration!;
-        this.timeslotDuration = timeslotDuration!;
+        this.timeslotCount = timeslotCount!;
     }
 
     public containsTimepoint(timepoint: Timepoint): boolean {

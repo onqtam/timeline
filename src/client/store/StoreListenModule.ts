@@ -35,7 +35,7 @@ class StoreListenViewModel implements IStoreListenModule {
     constructor() {
         this.audioFile = new AudioFile();
         this.audioPos = new Timepoint();
-        this.audioWindow = new AudioWindow(new Timepoint(0), 80, 20);
+        this.audioWindow = new AudioWindow(this.audioFile, new Timepoint(0), 80, 4);
         this.volume = 0.15;
         this.allThreads = [];
         this.currentEpisodeKey = "";
@@ -49,6 +49,19 @@ class StoreListenViewModel implements IStoreListenModule {
         this.createComments(episodeKey);
     }
 
+    public setAudioWindowSlots(newSlotCount: number): void {
+        this.audioWindow.timeslotCount = newSlotCount;
+    }
+    // Resizing the window will also move the start of the window
+    // so that the old center of the window is the same as the new one if this possible.
+    // If that's not possible (e.g. either side of the window has reached the respective audio file side)
+    // we only resize in the direction it's possible to
+    public resizeAudioWindow(newWindowDuration: number): void {
+        const unclampedWindowStart: number = this.audioWindow.start.seconds - (newWindowDuration-this.audioWindow.duration)/2;
+        const maxWindowStart = this.audioFile.duration - newWindowDuration;
+        this.audioWindow.start.seconds = MathHelpers.clamp(unclampedWindowStart, 0, maxWindowStart);
+        this.audioWindow.duration = newWindowDuration;
+    }
     public moveAudioWindow(newStart: number): void {
         // TODO: Assert we are jumping to a timeslot
         // Can we instead do the math here to avoid code duplication in caller sites?
@@ -223,11 +236,17 @@ export default {
         setActiveEpisode: (state: StoreListenViewModel, episode: Episode): void => {
             state.setActiveEpisode(episode);
         },
+        resizeAudioWindow: (state: StoreListenViewModel, newDuration: number): void => {
+            state.resizeAudioWindow(newDuration);
+        },
         moveAudioWindow: (state: StoreListenViewModel, newStart: number): void => {
             state.moveAudioWindow(newStart);
         },
         moveAudioPos: (state: StoreListenViewModel, newStart: number): void => {
             state.moveAudioPos(newStart);
+        },
+        setAudioWindowSlots: (state: StoreListenViewModel, newSlots: number): void => {
+            state.setAudioWindowSlots(newSlots);
         },
         updateTimeslotCount: (state: StoreListenViewModel, appMode: ActiveAppMode): void => {
             state.updateTimeslotCount(appMode);
