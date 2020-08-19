@@ -1,11 +1,5 @@
 import { Request, Response } from "express";
-
-export enum HTTPVerb {
-    Get = "get",
-    Post = "post",
-    Put = "put",
-    Delete = "delete"
-}
+import { HTTPVerb } from '../logic/HTTPVerb';
 
 export type RouteCallback = (request: Request, response: Response) => Promise<void>;
 

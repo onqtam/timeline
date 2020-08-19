@@ -4,6 +4,7 @@ import { Episode, AgendaItem } from "./Episode";
 import { timeStamp } from 'console';
 import { isUndefined } from 'util';
 import CommonParams from '../CommonParams';
+import EncodingUtils, { IReviveFromJSON } from '../EncodingUtils';
 
 export { Episode, AgendaItem };
 
@@ -12,7 +13,7 @@ const convertTitleToURLSection = (title: string) => {
 };
 
 @Entity()
-export class Podcast {
+export class Podcast implements IReviveFromJSON {
     @PrimaryGeneratedColumn()
     public id!: number;
     @Column()
@@ -25,7 +26,7 @@ export class Podcast {
     public link!: string;
     @Column()
     public imageURL!: string;
-    @OneToMany(() => Episode, episode => episode.owningPodcast, { cascade: true })
+    @OneToMany(() => Episode, episode => episode.owningPodcast, { cascade: true, eager: true })
     public episodes!: Episode[];
 
     public get titleAsURL(): string {
@@ -41,6 +42,14 @@ export class Podcast {
             this.link = "";
             this.imageURL = "";
             this.episodes = [];
+        }
+    }
+
+    public attachSubObjectPrototypes(): void {
+        // We only need to update the prototypes of our episodes
+        for (let episode of this.episodes) {
+            EncodingUtils.attachPrototype(episode, Episode);
+            episode.attachSubObjectPrototypes();
         }
     }
 }
