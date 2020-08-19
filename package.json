@@ -8,7 +8,7 @@
     "dev-server": "nodemon",
     "build-server": "tsc --build --clean --force src/server",
     "test-server": "env TS_NODE_PROJECT=src/server/tsconfig.json mocha -r ts-node/register src/server/**/*.ts --exit",
-    "updatedb": "env TS_NODE_PROJECT=src/tools/tsconfig.json node -r ts-node/register/transpile-only src/tools/updatedb.ts --exit",
+    "db": "env TS_NODE_PROJECT=src/tools/tsconfig.json node -r ts-node/register/transpile-only src/tools/dbmanager.ts",
     "lint": "vue-cli-service lint --no-fix",
     "lint-autofix": "vue-cli-service lint"
   },
@@ -37,6 +37,7 @@
     "@types/mocha": "^8.0.1",
     "@types/node": "^14.0.27",
     "@types/xmldom": "^0.1.30",
+    "@types/yargs": "^15.0.5",
     "@typescript-eslint/eslint-plugin": "^2.33.0",
     "@typescript-eslint/parser": "^2.33.0",
     "@vue/cli-plugin-eslint": "~4.4.0",
@@ -62,7 +63,8 @@
     "pgtools": "^0.3.0",
     "ts-node": "^8.10.2",
     "typescript": "~3.9.3",
-    "vue-template-compiler": "^2.6.11"
+    "vue-template-compiler": "^2.6.11",
+    "yargs": "^15.4.1"
   },
   "gitHooks": {
     "pre-push": "npm run lint && npm run test-server"

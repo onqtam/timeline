@@ -1,11 +1,11 @@
-import { getConnectionOptions, Connection, createConnection } from "typeorm";
+import { getConnectionOptions, Connection, createConnection, getConnection } from "typeorm";
 import xmldom from "xmldom";
 import pgtools from "pgtools";
 
-import { Podcast, Episode, AgendaItem } from "../logic/entities/Podcast";
-import Timepoint from "../logic/Timepoint";
-import AsyncLoader from "./utils/AsyncLoader";
-import { RandomString } from "../logic/RandomHelpers";
+import { Podcast, Episode, AgendaItem } from "../../logic/entities/Podcast";
+import Timepoint from "../../logic/Timepoint";
+import AsyncLoader from "./AsyncLoader";
+import { RandomString } from "../../logic/RandomHelpers";
 import { PostgresConnectionOptions } from "typeorm/driver/postgres/PostgresConnectionOptions";
 
 class ElementParserHelper {
@@ -39,7 +39,7 @@ class ElementParserHelper {
     };
 }
 
-const parsePodcastFromRSS = function (rssContent: string): Podcast | null {
+function parsePodcastFromRSS(rssContent: string): Podcast | null {
     const podcast = new Podcast();
     const xmlParser = new xmldom.DOMParser();
     const xmlDoc = xmlParser.parseFromString(rssContent, "text/xml");
@@ -99,11 +99,7 @@ const parsePodcastFromRSS = function (rssContent: string): Podcast | null {
     return podcast;
 };
 
-const PODCAST_TO_RSS: Record<string, string> = {
-    "the-portal": "https://rss.art19.com/the-portal"
-};
-
-const downloadAllRss = (): Promise<Podcast[]> => {
+async function downloadAllRss(): Promise<Podcast[]> {
     const onFetchFailed = async (): Promise<Podcast> => {
         return Promise.reject(new Error("Download failed!"));
     };
@@ -115,6 +111,10 @@ const downloadAllRss = (): Promise<Podcast[]> => {
             return Promise.reject(new Error("Parsing failed!"));
         }
     };
+
+    const PODCAST_TO_RSS: Record<string, string> = {
+        "the-portal": "https://rss.art19.com/the-portal"
+    };
     // Fire all requests at once, wait and process sequentially after that
     const promises: Promise<Podcast>[] = [];
     for (const podcast in PODCAST_TO_RSS) {
@@ -124,7 +124,7 @@ const downloadAllRss = (): Promise<Podcast[]> => {
     return Promise.all(promises);
 };
 
-const createDevTestDBIfNecessary = async (): Promise<string> => {
+async function createDevTestDBIfNecessary(): Promise<string> {
     const ormOpts: PostgresConnectionOptions = await getConnectionOptions() as PostgresConnectionOptions;
     const config = {
         user: ormOpts.username as string,
@@ -135,54 +135,59 @@ const createDevTestDBIfNecessary = async (): Promise<string> => {
     return pgtools.createdb(config, ormOpts.database!);
 };
 
-const main = async () => {
-    console.log("Fetching latest data");
-    const allPodcasts: Promise<Podcast[]> = downloadAllRss();
-
-    let connection: Connection;
-    try {
-        connection = await createConnection();
-    } catch (error) {
-        if (error.code === "3D000") {
-            // Database doesn't exist.
-            // PG error code ref: https://docstore.mik.ua/manuals/sql/postgresql-8.2.6/errcodes-appendix.html
-            console.log("Database does not exist, creating it");
-            await createDevTestDBIfNecessary();
+export default class DBTools {
+    static async initDatabaseConnection(): Promise<Connection> {
+        let connection: Connection;
+        try {
             connection = await createConnection();
-            console.log("Connection established");
-        } else {
-            throw error;
+        } catch (error) {
+            if (error.code === "3D000") {
+                // Database doesn't exist.
+                // PG error code ref: https://docstore.mik.ua/manuals/sql/postgresql-8.2.6/errcodes-appendix.html
+                console.log("Database does not exist, creating it");
+                await createDevTestDBIfNecessary();
+                connection = await createConnection();
+                console.log("Connection established");
+            } else {
+                throw error;
+            }
         }
+        return connection;
     }
-    console.log("Deleting existing data");
-    // Can't execute the deletions in parallel - deleting a podcast without deleting its episodes firsts
-    // will cause the FKs to become null and which will fail validation
-    await connection.createQueryBuilder()
-        .delete()
-        .from(Episode)
-        .execute();
-    await connection.createQueryBuilder()
-        .delete()
-        .from(Podcast)
-        .execute();
 
-    const parsedPodcasts: Podcast[] = await allPodcasts;
+    static async updatePodcastInfo(): Promise<void> {
+        console.log("Fetching latest data");
+        const allPodcasts: Promise<Podcast[]> = downloadAllRss();
 
-    console.log("Inserting new data");
-    // Can't execute the insertions in parallel - podcasts need to be inserted first so that their PKs are generated.
-    // Otherwise inserting the episodes will insert null FKs for podcastOwner
-    await connection.createQueryBuilder()
-        .insert()
-        .into(Podcast)
-        .values(parsedPodcasts)
-        .execute();
-    const allEpisodes = parsedPodcasts.flatMap(p => p.episodes);
-    await connection.createQueryBuilder()
-        .insert()
-        .into(Episode)
-        .values(allEpisodes)
-        .execute();
-    console.log("Update complete");
-};
+        const connection: Connection = getConnection();
+        console.log("Deleting existing data");
+        // Can't execute the deletions in parallel - deleting a podcast without deleting its episodes firsts
+        // will cause the FKs to become null and which will fail validation
+        await connection.createQueryBuilder()
+            .delete()
+            .from(Episode)
+            .execute();
+        await connection.createQueryBuilder()
+            .delete()
+            .from(Podcast)
+            .execute();
 
-main();
+        const parsedPodcasts: Podcast[] = await allPodcasts;
+
+        console.log("Inserting new data");
+        // Can't execute the insertions in parallel - podcasts need to be inserted first so that their PKs are generated.
+        // Otherwise inserting the episodes will insert null FKs for podcastOwner
+        await connection.createQueryBuilder()
+            .insert()
+            .into(Podcast)
+            .values(parsedPodcasts)
+            .execute();
+        const allEpisodes = parsedPodcasts.flatMap(p => p.episodes);
+        await connection.createQueryBuilder()
+            .insert()
+            .into(Episode)
+            .values(allEpisodes)
+            .execute();
+        console.log("Update complete");
+    }
+}
