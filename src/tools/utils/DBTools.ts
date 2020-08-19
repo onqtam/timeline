@@ -71,7 +71,8 @@ function parsePodcastFromRSS(rssContent: string): Podcast | null {
     for (const episodeItem of episodeNodes) {
         const episode = new Episode();
 
-        episode.owningPodcast = podcast;
+        // force set owningPodcast; cast to any as the prop is normally readonly but in this case it's appropriate to set it
+        (episode as any).owningPodcast = podcast;
         episode.title = episodeItem.firstChild("title").getText();
         episode.description = episodeItem.firstChild("description").getText();
         episode.publicationDate = new Date(episodeItem.firstChild("pubDate").getText());

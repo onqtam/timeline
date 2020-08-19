@@ -3,6 +3,7 @@ import { IsDate, Min } from "class-validator";
 
 import Timepoint from "../Timepoint";
 import { Podcast } from "./Podcast";
+import CommonParams from '../CommonParams';
 
 const convertTitleToURLSection = (title: string) => {
     return title.toLowerCase().replace(/[\s,:&.-]+/g, "-");
@@ -24,27 +25,38 @@ export class Agenda {
 @Entity()
 export class Episode {
     @PrimaryGeneratedColumn()
-    public id: number = -1;
+    public id!: number;
     @Column()
-    public title: string = "";
+    public title!: string;
     @Column()
-    public description: string = "";
+    public description!: string;
     @Column()
     @IsDate()
-    public publicationDate: Date = new Date();
+    public publicationDate!: Date;
     @Column()
     @Min(1)
-    public durationInSeconds: number = -1;
+    public durationInSeconds!: number;
     @Column()
-    public audioURL: string = "";
+    public audioURL!: string ;
     @Column()
-    public imageURL: string = "";
+    public imageURL!: string;
     public agenda: Agenda = new Agenda();
 
     @ManyToOne(() => Podcast, podcast => podcast.episodes, { nullable: false })
-    public owningPodcast!: Podcast;
+    public readonly owningPodcast!: Podcast;
 
     public get titleAsURL(): string {
         return convertTitleToURLSection(this.title);
+    }
+    constructor() {
+        if (CommonParams.IsRunningOnClient) {
+            this.id = -1;
+            this.title = "";
+            this.description = "";
+            this.publicationDate = new Date(0);
+            this.durationInSeconds = 1;
+            this.audioURL = "";
+            this.imageURL = "";
+        }
     }
 }
