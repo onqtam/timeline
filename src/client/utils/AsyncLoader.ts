@@ -1,5 +1,5 @@
 import { HTTPVerb } from '@/logic/HTTPVerb';
-import { IReviveFromJSON } from "../../logic/EncodingUtils";
+import { IReviveFromJSON, isRevivable } from "../../logic/EncodingUtils";
 
 interface Constructable<T> {
     new (): T;
@@ -53,10 +53,6 @@ export default class AsyncLoader {
         return promise;
     }
 
-    private static isRevivable<T>(obj: Object): obj is IReviveFromJSON {
-        return "attachSubObjectPrototypes" in obj;
-    }
-
     private static attachPrototypeToObject<T>(prototype: Constructable<T>, parsedObject: Object): T|T[] {
         // If the result is an array, recurse for every element of the array
         if (parsedObject instanceof Array) {
@@ -69,7 +65,7 @@ export default class AsyncLoader {
         else {
             (parsedObject as any).__proto__ = prototype.prototype;
             const objAsT = parsedObject as T;
-            if (AsyncLoader.isRevivable(objAsT)) {
+            if (isRevivable(objAsT)) {
                 objAsT.attachSubObjectPrototypes();
             }
             return objAsT;

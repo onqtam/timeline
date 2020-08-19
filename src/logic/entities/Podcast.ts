@@ -49,7 +49,6 @@ export class Podcast implements IReviveFromJSON {
         // We only need to update the prototypes of our episodes
         for (let episode of this.episodes) {
             EncodingUtils.attachPrototype(episode, Episode);
-            episode.attachSubObjectPrototypes();
         }
     }
 }

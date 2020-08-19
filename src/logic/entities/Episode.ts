@@ -28,7 +28,6 @@ export class Agenda implements IReviveFromJSON {
     public attachSubObjectPrototypes(): void {
         for (let item of this.items) {
             EncodingUtils.attachPrototype(item, AgendaItem);
-            item.attachSubObjectPrototypes();
         }
     }
 }
@@ -76,7 +75,6 @@ export class Episode implements IReviveFromJSON {
         // TODO: This might be null only because the agenda isn't stored in the DB currently
         if (this.agenda) {
             EncodingUtils.attachPrototype(this.agenda, Agenda);
-            this.agenda.attachSubObjectPrototypes();
         } else {
             this.agenda = new Agenda();
         }
