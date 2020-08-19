@@ -3,8 +3,9 @@ import { Request, Response } from "express";
 import CommentThread from "../../logic/Comments";
 import { RandomIntegerDistribution } from "../../logic/RandomHelpers";
 import MathHelpers from "../../logic/MathHelpers";
-import RouteInfo, { HTTPVerb } from "../RouteInfo";
-import EncodingUtils from "../EncodingUtils";
+import RouteInfo from "../RouteInfo";
+import EncodingUtils from "../../logic/EncodingUtils";
+import { HTTPVerb } from '../../logic/HTTPVerb';
 
 export default class CommentController {
     public static getRoutes(): RouteInfo[] {

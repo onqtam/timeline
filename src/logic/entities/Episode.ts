@@ -4,11 +4,12 @@ import { IsDate, Min } from "class-validator";
 import Timepoint from "../Timepoint";
 import { Podcast } from "./Podcast";
 import CommonParams from '../CommonParams';
+import EncodingUtils, { IReviveFromJSON } from '../EncodingUtils';
 
 const convertTitleToURLSection = (title: string) => {
     return title.toLowerCase().replace(/[\s,:&.-]+/g, "-");
 };
-export class AgendaItem {
+export class AgendaItem implements IReviveFromJSON {
     public timestamp: Timepoint = new Timepoint(0);
     public text: string = "";
 
@@ -16,14 +17,24 @@ export class AgendaItem {
         this.timestamp = timestamp;
         this.text = text;
     }
+    public attachSubObjectPrototypes(): void {
+        this.timestamp = new Timepoint(this.timestamp.seconds);
+    }
 }
 
-export class Agenda {
+export class Agenda implements IReviveFromJSON {
     public items: AgendaItem[] = [];
+
+    public attachSubObjectPrototypes(): void {
+        for (let item of this.items) {
+            EncodingUtils.attachPrototype(item, AgendaItem);
+            item.attachSubObjectPrototypes();
+        }
+    }
 }
 
 @Entity()
-export class Episode {
+export class Episode implements IReviveFromJSON {
     @PrimaryGeneratedColumn()
     public id!: number;
     @Column()
@@ -57,6 +68,17 @@ export class Episode {
             this.durationInSeconds = 1;
             this.audioURL = "";
             this.imageURL = "";
+        }
+    }
+
+    public attachSubObjectPrototypes(): void {
+        this.publicationDate = new Date(this.publicationDate);
+        // TODO: This might be null only because the agenda isn't stored in the DB currently
+        if (this.agenda) {
+            EncodingUtils.attachPrototype(this.agenda, Agenda);
+            this.agenda.attachSubObjectPrototypes();
+        } else {
+            this.agenda = new Agenda();
         }
     }
 }
