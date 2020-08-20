@@ -17,7 +17,7 @@ export class AgendaItem implements IReviveFromJSON {
         this.timestamp = timestamp;
         this.text = text;
     }
-    public attachSubObjectPrototypes(): void {
+    public reviveSubObjects(): void {
         this.timestamp = new Timepoint(this.timestamp.seconds);
     }
 }
@@ -25,9 +25,9 @@ export class AgendaItem implements IReviveFromJSON {
 export class Agenda implements IReviveFromJSON {
     public items: AgendaItem[] = [];
 
-    public attachSubObjectPrototypes(): void {
+    public reviveSubObjects(): void {
         for (let item of this.items) {
-            EncodingUtils.attachPrototype(item, AgendaItem);
+            EncodingUtils.reviveObjectAs(item, AgendaItem);
         }
     }
 }
@@ -70,11 +70,11 @@ export class Episode implements IReviveFromJSON {
         }
     }
 
-    public attachSubObjectPrototypes(): void {
+    public reviveSubObjects(): void {
         this.publicationDate = new Date(this.publicationDate);
         // TODO: This might be null only because the agenda isn't stored in the DB currently
         if (this.agenda) {
-            EncodingUtils.attachPrototype(this.agenda, Agenda);
+            EncodingUtils.reviveObjectAs(this.agenda, Agenda);
         } else {
             this.agenda = new Agenda();
         }
