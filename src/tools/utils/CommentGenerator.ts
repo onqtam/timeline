@@ -4,7 +4,7 @@ import { RandomIntegerDistribution, RandomString } from '../../logic/RandomHelpe
 import MathHelpers from '../../logic/MathHelpers';
 import Timepoint from '../../logic/entities/Timepoint';
 import { Episode } from '../../logic/entities/Episode';
-import VotedCommentRecord from '../../logic/entities/UserRecords';
+import VoteCommentRecord from '../../logic/entities/UserRecords';
 
 export default class CommentGenerator {
     public users: User[];
@@ -54,7 +54,7 @@ export default class CommentGenerator {
                 } else {
                     comment.downVotes++;
                 }
-                const voteRecord = new VotedCommentRecord();
+                const voteRecord = new VoteCommentRecord();
                 voteRecord.commentId = comment.id;
                 voteRecord.owningActivity = votingUser.activity;
                 voteRecord.wasVotePositive = isVotePositive;
@@ -71,6 +71,7 @@ export default class CommentGenerator {
         const commentLength = differentCommentLengths[~~(Math.random() * differentCommentLengths.length)];
 
         const comment = new Comment();
+        comment.episode = this.episode;
         comment.author = this.users[Math.floor(Math.random() * this.users.length)];
         comment.timepoint = timepoint;
         // Pick a random date earlier in 2020

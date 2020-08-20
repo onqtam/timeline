@@ -11,7 +11,7 @@ import CommentGenerator from './CommentGenerator';
 import User from '../../logic/entities/User';
 import UserActivity from "../../logic/entities/UserActivity";
 import Comment from "../../logic/entities/Comments";
-import VotedCommentRecord from '../../logic/entities/UserRecords';
+import VoteCommentRecord from '../../logic/entities/UserRecords';
 
 // Podcast Info handling
 class ElementParserHelper {
@@ -204,15 +204,15 @@ export default class DBTools {
         const connection: Connection = getConnection();
         await connection.createQueryBuilder()
             .delete()
-            .from(User)
-            .execute();
-        await connection.createQueryBuilder()
-            .delete()
-            .from(VotedCommentRecord)
+            .from(VoteCommentRecord)
             .execute();
         await connection.createQueryBuilder()
             .delete()
             .from(UserActivity)
+            .execute();
+        await connection.createQueryBuilder()
+            .delete()
+            .from(User)
             .execute();
 
         console.log("Inserting new data");
@@ -279,11 +279,11 @@ export default class DBTools {
         generator.generateRandomVotes(allComments);
         // User activities should now be filled, save them
         const allActivities: UserActivity[] = users.map(u => u.activity);
-        const allVoteRecords: VotedCommentRecord[] = allActivities.flatMap(a => a.voteRecords || []);
+        const allVoteRecords: VoteCommentRecord[] = allActivities.flatMap(a => a.voteRecords || []);
         // The order is important - insert all vote records, then update activities
         await connection.createQueryBuilder()
             .insert()
-            .into(VotedCommentRecord)
+            .into(VoteCommentRecord)
             .values(allVoteRecords)
             .execute();
         await connection.getRepository(UserActivity).save(allActivities);

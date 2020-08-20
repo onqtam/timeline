@@ -6,6 +6,10 @@ import MathHelpers from "@/logic/MathHelpers";
 import { RandomIntegerDistribution } from "@/logic/RandomHelpers";
 import { Episode } from "@/logic/entities/Podcast";
 import { ActiveAppMode } from "./StoreDeviceInfoModule";
+import AsyncLoader from '../utils/AsyncLoader';
+import CommonParams from '@/logic/CommonParams';
+import { HTTPVerb } from '@/logic/HTTPVerb';
+import { ActionContext } from 'vuex';
 
 export interface IStoreListenModule {
     audioFile: AudioFile;
@@ -41,8 +45,10 @@ class StoreListenViewModel implements IStoreListenModule {
         this.activeEpisode = episode;
         this.audioFile.filepath = episode.audioURL;
         this.audioFile.duration = episode.durationInSeconds;
-        const episodeKey = episode.titleAsURL;
-        this.createComments(episodeKey);
+    }
+
+    public setActiveEpisodeComments(comments: Comment[]): void {
+        this.allThreads = comments;
     }
 
     public setAudioWindowSlots(newSlotCount: number): void {
@@ -116,8 +122,12 @@ class StoreListenViewModel implements IStoreListenModule {
         this.saveCommentsToLocalStorage();
     }
 
-    public regenerateComments(): void {
+    public async loadComments(episode: Episode): Promise<Comment[]> {
         // TODO COMMENTS
+        const restURL: string = `${CommonParams.APIServerRootURL}\\comments`;
+        const requestBody = { episodeId: episode.id, intervalStart: 0, intervalEnd: episode.durationInSeconds };
+        const query_comments = AsyncLoader.makeRestRequest(restURL, HTTPVerb.Put, requestBody, Comment) as Promise<Comment[]>;
+        return query_comments;
     }
 
     // Internal API
@@ -127,10 +137,6 @@ class StoreListenViewModel implements IStoreListenModule {
         comment.content = content;
         comment.date = new Date();
         return comment;
-    }
-
-    private createComments(episodeKey: string): void {
-        // TODO COMMENTS
     }
 
     private saveCommentsToLocalStorage(): void {
@@ -146,8 +152,12 @@ export default {
     namespaced: true as true,
     state: listenModule,
     mutations: {
-        setActiveEpisode: (state: StoreListenViewModel, episode: Episode): void => {
+        // Should only be called by the loadEpisode action
+        internalSetActiveEpisode: (state: StoreListenViewModel, episode: Episode): void => {
             state.setActiveEpisode(episode);
+        },
+        internalSetActiveEpisodeComments: (state: StoreListenViewModel, comments: Comment[]): void => {
+            state.setActiveEpisodeComments(comments);
         },
         resizeAudioWindow: (state: StoreListenViewModel, newDuration: number): void => {
             state.resizeAudioWindow(newDuration);
@@ -175,9 +185,18 @@ export default {
         },
         revertVote: (state: StoreListenViewModel, comment: Comment): void => {
             state.revertVote(comment);
-        },
-        regenerateComments: (state: StoreListenViewModel): void => {
-            state.regenerateComments();
+        }
+    },
+    actions: {
+        loadEpisode: (context: ActionContext<StoreListenViewModel, StoreListenViewModel>, episode: Episode): Promise<void> => {
+            context.commit("internalSetActiveEpisode", episode);
+
+            return context.state.loadComments(episode)
+                .then(comments => {
+                    // Call the type-unsafe commit; We could call the function directly but this triggers
+                    // warnings about modifying state outside of commits
+                    context.commit("internalSetActiveEpisodeComments", comments);
+                });
         }
     }
 };
