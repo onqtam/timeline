@@ -22,7 +22,7 @@ export default class EncodingUtils {
                 this.reviveObjectAs(parsedElement, constructorFunc);
             }
         } else {
-            (obj as any).setPrototype(constructorFunc.prototype);
+            Object.setPrototypeOf(obj, constructorFunc.prototype);
             const objAsT: T = obj as T;
             if (isRevivable(objAsT)) {
                 objAsT.reviveSubObjects();

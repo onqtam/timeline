@@ -26,7 +26,7 @@ export default class AsyncLoader {
         return promise;
     }
 
-    public static async makeRestRequest<TBody, TResult>(
+    public static async makeRestRequest<TResult, TBody>(
         url: string, verb: HTTPVerb, body: TBody,
         resultType: Constructable<TResult>): Promise<TResult|TResult[]> {
 
@@ -45,9 +45,8 @@ export default class AsyncLoader {
                 }
             };
         });
-
         xhr.open(verb, url, true);
-        xhr.send();
+        xhr.send(JSON.stringify(body));
         return promise;
     }
 }

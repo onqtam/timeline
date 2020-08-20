@@ -2,13 +2,16 @@ import { Entity, Tree, PrimaryGeneratedColumn, Column, TreeChildren, ColumnOptio
 import { Min, IsDate } from 'class-validator';
 import Timepoint from "./Timepoint";
 import User from './User';
+import { Episode } from './Podcast';
 
 @Entity()
 @Tree("closure-table")
 export default class Comment {
     @PrimaryGeneratedColumn()
     public id!: number;
-    @ManyToOne(() => User)
+    @ManyToOne(() => Episode, {nullable: false})
+    public episode!: Episode;
+    @ManyToOne(() => User, {nullable: false})
     public author!: User;
     @Column()
     public content!: string;
