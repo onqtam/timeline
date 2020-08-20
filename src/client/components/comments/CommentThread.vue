@@ -12,29 +12,29 @@
             <i v-if=!routerLinkPlacePointerOnLeft class="fa fa-caret-up" aria-hidden="true"></i>
         </router-link>
         <CommentControlsComponent
-            :key=thread.threadHead.id
-            :comment=thread.threadHead
+            :key=thread.id
+            :comment=thread
             :isExpanded.sync=isExpanded
             :isCollapsible=thread.hasReplies
         />
         <CommentComponent
-            :comment=thread.threadHead
-            :parentThread=thread
+            :comment=thread
+            :parentThread=null
             :shouldShowOnlyPreview=!isExpanded
         />
-        <template v-for="commentPrimitive in thread.threadTail">
+        <template v-for="comment in thread.replies">
             <CommentComponent
                 class="nested-comment-thread-element"
-                v-if="!commentPrimitive.threadTail && isExpanded"
-                :key=commentPrimitive.id
-                :comment=commentPrimitive
+                v-if="!comment.hasReplies && isExpanded"
+                :key=comment.id
+                :comment=comment
                 :parentThread=thread
             />
             <CommentThreadComponent
                 class="nested-comment-thread-element"
-                v-if="commentPrimitive.threadTail && isExpanded"
-                :key=commentPrimitive.id
-                :thread=commentPrimitive
+                v-if="comment.hasReplies && isExpanded"
+                :key=comment.id
+                :thread=comment
             />
         </template>
     </div>
@@ -44,7 +44,7 @@
 
 import { Component, Prop, Vue } from "vue-property-decorator";
 import store from "@/client/store";
-import { default as CommentThread } from "@/logic/Comments";
+import Comment from "@/logic/entities/Comments";
 import { AudioWindow } from "@/logic/AudioFile";
 import MathHelpers from "@/logic/MathHelpers";
 
@@ -60,8 +60,8 @@ import CommentControlsComponent from "./CommentControls.vue";
 })
 export default class CommentThreadComponent extends Vue {
     // Props
-    @Prop({ type: CommentThread })
-    public thread!: CommentThread;
+    @Prop({ type: Comment })
+    public thread!: Comment;
     // The index of the timeslot this thread is rendered into
     @Prop({ type: Number })
     public timeslotIndex!: number;

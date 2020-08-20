@@ -20,7 +20,7 @@
 <script lang="ts">
 import { Component, Vue, Prop } from "vue-property-decorator";
 
-import Timepoint from "@/logic/Timepoint";
+import Timepoint from "@/logic/entities/Timepoint";
 import { Episode, Podcast } from "@/logic/entities/Podcast";
 
 import VButton from "@/client/components/primitives/VButton.vue";

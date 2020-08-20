@@ -13,9 +13,9 @@ import { Component, Vue, Prop } from "vue-property-decorator";
 import { Route, NavigationGuardNext } from "vue-router";
 import store from "@/client/store";
 
-import Timepoint from "@/logic/Timepoint";
+import Timepoint from "@/logic/entities/Timepoint";
 import { default as AudioFile, AudioWindow } from "@/logic/AudioFile";
-import { default as CommentThread } from "@/logic/Comments";
+import { default as Comment } from "@/logic/entities/Comments";
 import { Episode } from "@/logic/entities/Episode";
 
 import VButton from "@/client/components/primitives/VButton.vue";
@@ -62,7 +62,7 @@ export default class ListenView extends Vue {
     public get audioFile(): AudioFile {
         return store.state.listen.audioFile;
     }
-    public get allThreads(): CommentThread[] {
+    public get allThreads(): Comment[] {
         return store.state.listen.allThreads;
     }
     public get audioWindow(): AudioWindow {

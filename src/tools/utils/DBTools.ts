@@ -1,13 +1,19 @@
-import { getConnectionOptions, Connection, createConnection, getConnection } from "typeorm";
+import { getConnectionOptions, Connection, createConnection, getConnection, DeleteResult, InsertResult } from "typeorm";
 import xmldom from "xmldom";
 import pgtools from "pgtools";
 
 import { Podcast, Episode, AgendaItem } from "../../logic/entities/Podcast";
-import Timepoint from "../../logic/Timepoint";
+import Timepoint from "../../logic/entities/Timepoint";
 import AsyncLoader from "./AsyncLoader";
 import { RandomString } from "../../logic/RandomHelpers";
 import { PostgresConnectionOptions } from "typeorm/driver/postgres/PostgresConnectionOptions";
+import CommentGenerator from './CommentGenerator';
+import User from '../../logic/entities/User';
+import UserActivity from "../../logic/entities/UserActivity";
+import Comment from "../../logic/entities/Comments";
+import VotedCommentRecord from '../../logic/entities/UserRecords';
 
+// Podcast Info handling
 class ElementParserHelper {
     public element: Element;
 
@@ -125,6 +131,7 @@ async function downloadAllRss(): Promise<Podcast[]> {
     return Promise.all(promises);
 };
 
+// Common DB Operations
 async function createDevTestDBIfNecessary(): Promise<string> {
     const ormOpts: PostgresConnectionOptions = await getConnectionOptions() as PostgresConnectionOptions;
     const config = {
@@ -189,6 +196,98 @@ export default class DBTools {
             .into(Episode)
             .values(allEpisodes)
             .execute();
+        console.log("Update complete");
+    }
+
+    static async randomizeUsers(): Promise<User[]> {
+        console.log("Deleting existing data");
+        const connection: Connection = getConnection();
+        await connection.createQueryBuilder()
+            .delete()
+            .from(User)
+            .execute();
+        await connection.createQueryBuilder()
+            .delete()
+            .from(VotedCommentRecord)
+            .execute();
+        await connection.createQueryBuilder()
+            .delete()
+            .from(UserActivity)
+            .execute();
+
+        console.log("Inserting new data");
+        const names = ["Nikola", "Viktor", "Dimitroff", "Kirilov", "onqtam", "podcastfan99"];
+        const users: User[] = [];
+        for (let name of names) {
+            const user = new User();
+            user.shortName = name;
+            user.activity = new UserActivity();
+            user.activity.internalDBDummyValue = ~~(Math.random() * Number.MAX_SAFE_INTEGER);
+            users.push(user);
+        }
+        const activities = users.map(u => u.activity);
+        await connection.createQueryBuilder()
+            .insert()
+            .into(UserActivity)
+            .values(activities)
+            .execute();
+        await connection.createQueryBuilder()
+            .insert()
+            .into(User)
+            .values(users)
+            .execute();
+        return users;
+    }
+
+    static async randomizeComments(): Promise<void> {
+        console.log("Randomizing comment data");
+
+        const connection: Connection = getConnection();
+        console.log("Deleting existing data");
+        // Working with tree data is tricky in TypeORM and for some things we can't use the SQL Builder
+        // This is why this code mixes SQL Builder with the repository methods
+
+        // Can't delete the records in the table through the treeRepository (see issue #193 in typeorm)
+        // so run some SQL
+        const deleteExistingComments = Promise.all([
+            connection.createQueryBuilder()
+                .from("comment_closure", "comment_closure")
+                .delete()
+                .execute(),
+            connection.createQueryBuilder()
+                .from(Comment, "comment")
+                .delete()
+                .execute()
+        ]);
+        const generateUsers = this.randomizeUsers();
+        // Only generate comments for the first episode as otherwise the operation takes too long
+        const getFirstEpisode: Promise<Episode|undefined> = connection.createQueryBuilder(Episode, "episode").getOne();
+
+        await deleteExistingComments;
+        const episode: Episode = (await getFirstEpisode)!;
+        const users: User[] = await generateUsers;
+        const generator: CommentGenerator = new CommentGenerator(users, episode);
+        const topLevelThreads: Comment[] = generator.generateRandomComments();
+
+        let allComments: Comment[] = [];
+        let currentLevelComments: Comment[] = topLevelThreads;
+        while (currentLevelComments.length != 0) {
+            await connection.getTreeRepository(Comment).save(currentLevelComments);
+            currentLevelComments = currentLevelComments.flatMap(c => c.replies || []);
+            allComments.splice(allComments.length - 1, 0, ...currentLevelComments);
+        }
+        generator.generateRandomVotes(allComments);
+        // User activities should now be filled, save them
+        const allActivities: UserActivity[] = users.map(u => u.activity);
+        const allVoteRecords: VotedCommentRecord[] = allActivities.flatMap(a => a.voteRecords || []);
+        // The order is important - insert all vote records, then update activities
+        await connection.createQueryBuilder()
+            .insert()
+            .into(VotedCommentRecord)
+            .values(allVoteRecords)
+            .execute();
+        await connection.getRepository(UserActivity).save(allActivities);
+
         console.log("Update complete");
     }
 }

@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from "typeorm";
 import { IsDate, Min } from "class-validator";
 
-import Timepoint from "../Timepoint";
+import Timepoint from "./Timepoint";
 import { Podcast } from "./Podcast";
 import CommonParams from '../CommonParams';
 import EncodingUtils, { IReviveFromJSON } from '../EncodingUtils';

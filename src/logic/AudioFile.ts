@@ -1,4 +1,4 @@
-import Timepoint from "./Timepoint";
+import Timepoint from "./entities/Timepoint";
 
 export default class AudioFile {
     public filepath: string = "";

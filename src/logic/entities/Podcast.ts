@@ -1,8 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from "typeorm";
 
 import { Episode, AgendaItem } from "./Episode";
-import { timeStamp } from 'console';
-import { isUndefined } from 'util';
 import CommonParams from '../CommonParams';
 import EncodingUtils, { IReviveFromJSON } from '../EncodingUtils';
 
