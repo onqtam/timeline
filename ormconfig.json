@@ -10,5 +10,6 @@
         "src/logic/entities/*.ts"
     ],
     "logging": true,
+    "verbose": true,
     "synchronize": true
  }

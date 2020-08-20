@@ -1,4 +1,6 @@
-import User, { VotedCommentRecord, UserActivity } from "@/logic/User";
+import User from "@/logic/entities/User";
+import VoteCommentRecord from '@/logic/entities/UserRecords';
+import UserActivity from '@/logic/entities/UserActivity';
 
 export interface IStoreUserModule {
     info: User;
@@ -14,20 +16,20 @@ export class StoreUserViewModel implements IStoreUserModule {
     }
 
     // Should only be called by other modules!
-    public recordVote(votedComment: VotedCommentRecord): void {
+    public recordVote(votedComment: VoteCommentRecord): void {
         // TODO: move to a map and don't bother with management of existing keys
-        const record = this.info.activity.votedComments.find(record => record.commentId === votedComment.commentId);
+        const record = this.info.activity.voteRecords.find(record => record.commentId === votedComment.commentId);
         if (record) {
             record.wasVotePositive = votedComment.wasVotePositive;
         } else {
-            this.info.activity.votedComments.push(votedComment);
+            this.info.activity.voteRecords.push(votedComment);
         }
         this.saveUserToLocalStorage();
     }
     public revertVote(commentId: number): void {
-        const recordIndex = this.info.activity.votedComments.findIndex(record => record.commentId === commentId);
+        const recordIndex = this.info.activity.voteRecords.findIndex(record => record.commentId === commentId);
         if (recordIndex !== -1) {
-            this.info.activity.votedComments.splice(recordIndex, 1);
+            this.info.activity.voteRecords.splice(recordIndex, 1);
         }
         this.saveUserToLocalStorage();
     }
@@ -40,12 +42,12 @@ export class StoreUserViewModel implements IStoreUserModule {
     }
 
     private loadUserFromJSON(json: string): void {
-        type RawUserActivity = { votedComments: VotedCommentRecord[] };
+        type RawUserActivity = { votedComments: VoteCommentRecord[] };
         type RawUser = { shortName: string; activity: UserActivity };
 
         const rawUser = JSON.parse(json);
         this.info.shortName = rawUser.shortName;
-        this.info.activity.votedComments = rawUser.activity.votedComments;
+        this.info.activity.voteRecords = rawUser.activity.votedComments;
     }
     private saveUserToLocalStorage(): void {
         localStorage.setItem("user-info", JSON.stringify(this.info));
@@ -60,7 +62,7 @@ export default {
     namespaced: true as true,
     state: userModule,
     mutations: {
-        recordVote: (state: StoreUserViewModel, votedComment: VotedCommentRecord): void => {
+        recordVote: (state: StoreUserViewModel, votedComment: VoteCommentRecord): void => {
             state.recordVote(votedComment);
         },
         revertVote: (state: StoreUserViewModel, commentId: number): void => {

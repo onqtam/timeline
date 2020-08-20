@@ -1,0 +1,60 @@
+
+> timeline@0.1.0 db E:\Dev\timeline
+> env TS_NODE_PROJECT=src/tools/tsconfig.json node -r ts-node/register/transpile-only --unhandled-rejections=strict src/tools/dbmanager.ts "randomize"
+
+query: START TRANSACTION
+query: SELECT * FROM current_schema()
+query: SELECT * FROM "information_schema"."tables" WHERE ("table_schema" = 'public' AND "table_name" = 'episode') OR ("table_schema" = 'public' AND "table_name" = 'podcast') OR ("table_schema" = 'public' AND "table_name" = 'comment') OR ("table_schema" = 'public' AND "table_name" = 'user_activity') OR ("table_schema" = 'public' AND "table_name" = 'voted_comment_record') OR ("table_schema" = 'public' AND "table_name" = 'user') OR ("table_schema" = 'public' AND "table_name" = 'comment_closure')
+query: SELECT *, ('"' || "udt_schema" || '"."' || "udt_name" || '"')::"regtype" AS "regtype" FROM "information_schema"."columns" WHERE ("table_schema" = 'public' AND "table_name" = 'episode') OR ("table_schema" = 'public' AND "table_name" = 'podcast') OR ("table_schema" = 'public' AND "table_name" = 'comment') OR ("table_schema" = 'public' AND "table_name" = 'user_activity') OR ("table_schema" = 'public' AND "table_name" = 'voted_comment_record') OR ("table_schema" = 'public' AND "table_name" = 'user') OR ("table_schema" = 'public' AND "table_name" = 'comment_closure')
+query: SELECT "ns"."nspname" AS "table_schema", "t"."relname" AS "table_name", "cnst"."conname" AS "constraint_name", pg_get_constraintdef("cnst"."oid") AS "expression", CASE "cnst"."contype" WHEN 'p' THEN 'PRIMARY' WHEN 'u' THEN 'UNIQUE' WHEN 'c' THEN 'CHECK' WHEN 'x' THEN 'EXCLUDE' END AS "constraint_type", "a"."attname" AS "column_name" FROM "pg_constraint" "cnst" INNER JOIN "pg_class" "t" ON "t"."oid" = "cnst"."conrelid" INNER JOIN "pg_namespace" "ns" ON "ns"."oid" = "cnst"."connamespace" LEFT JOIN "pg_attribute" "a" ON "a"."attrelid" = "cnst"."conrelid" AND "a"."attnum" = ANY ("cnst"."conkey") WHERE "t"."relkind" = 'r' AND (("ns"."nspname" = 'public' AND "t"."relname" = 'episode') OR ("ns"."nspname" = 'public' AND "t"."relname" = 'podcast') OR ("ns"."nspname" = 'public' AND "t"."relname" = 'comment') OR ("ns"."nspname" = 'public' AND "t"."relname" = 'user_activity') OR ("ns"."nspname" = 'public' AND "t"."relname" = 'voted_comment_record') OR ("ns"."nspname" = 'public' AND "t"."relname" = 'user') OR ("ns"."nspname" = 'public' AND "t"."relname" = 'comment_closure'))
+query: SELECT "ns"."nspname" AS "table_schema", "t"."relname" AS "table_name", "i"."relname" AS "constraint_name", "a"."attname" AS "column_name", CASE "ix"."indisunique" WHEN 't' THEN 'TRUE' ELSE'FALSE' END AS "is_unique", pg_get_expr("ix"."indpred", "ix"."indrelid") AS "condition", "types"."typname" AS "type_name" FROM "pg_class" "t" INNER JOIN "pg_index" "ix" ON "ix"."indrelid" = "t"."oid" INNER JOIN "pg_attribute" "a" ON "a"."attrelid" = "t"."oid"  AND "a"."attnum" = ANY ("ix"."indkey") INNER JOIN "pg_namespace" "ns" ON "ns"."oid" = "t"."relnamespace" INNER JOIN "pg_class" "i" ON "i"."oid" = "ix"."indexrelid" INNER JOIN "pg_type" "types" ON "types"."oid" = "a"."atttypid" LEFT JOIN "pg_constraint" "cnst" ON "cnst"."conname" = "i"."relname" WHERE "t"."relkind" = 'r' AND "cnst"."contype" IS NULL AND (("ns"."nspname" = 'public' AND "t"."relname" = 'episode') OR ("ns"."nspname" = 'public' AND "t"."relname" = 'podcast') OR ("ns"."nspname" = 'public' AND "t"."relname" = 'comment') OR ("ns"."nspname" = 'public' AND "t"."relname" = 'user_activity') OR ("ns"."nspname" = 'public' AND "t"."relname" = 'voted_comment_record') OR ("ns"."nspname" = 'public' AND "t"."relname" = 'user') OR ("ns"."nspname" = 'public' AND "t"."relname" = 'comment_closure'))
+query: SELECT "con"."conname" AS "constraint_name", "con"."nspname" AS "table_schema", "con"."relname" AS "table_name", "att2"."attname" AS "column_name", "ns"."nspname" AS "referenced_table_schema", "cl"."relname" AS "referenced_table_name", "att"."attname" AS "referenced_column_name", "con"."confdeltype" AS "on_delete", "con"."confupdtype" AS "on_update", "con"."condeferrable" AS "deferrable", "con"."condeferred" AS "deferred" FROM ( SELECT UNNEST ("con1"."conkey") AS "parent", UNNEST ("con1"."confkey") AS "child", "con1"."confrelid", "con1"."conrelid", "con1"."conname", "con1"."contype", "ns"."nspname", "cl"."relname", "con1"."condeferrable", CASE WHEN "con1"."condeferred" THEN 'INITIALLY DEFERRED' ELSE 'INITIALLY IMMEDIATE' END as condeferred, CASE "con1"."confdeltype" WHEN 'a' THEN 'NO ACTION' WHEN 'r' THEN 'RESTRICT' WHEN 'c' THEN 'CASCADE' WHEN 'n' THEN 'SET NULL' WHEN 'd' THEN 'SET DEFAULT' END as "confdeltype", CASE "con1"."confupdtype" WHEN 'a' THEN 'NO ACTION' WHEN 'r' THEN 'RESTRICT' WHEN 'c' THEN 'CASCADE' WHEN 'n' THEN 'SET NULL' WHEN 'd' THEN 'SET DEFAULT' END as "confupdtype" FROM "pg_class" "cl" INNER JOIN "pg_namespace" "ns" ON "cl"."relnamespace" = "ns"."oid" INNER JOIN "pg_constraint" "con1" ON "con1"."conrelid" = "cl"."oid" WHERE "con1"."contype" = 'f' AND (("ns"."nspname" = 'public' AND "cl"."relname" = 'episode') OR ("ns"."nspname" = 'public' AND "cl"."relname" = 'podcast') OR ("ns"."nspname" = 'public' AND "cl"."relname" = 'comment') OR ("ns"."nspname" = 'public' AND "cl"."relname" = 'user_activity') OR ("ns"."nspname" = 'public' AND "cl"."relname" = 'voted_comment_record') OR ("ns"."nspname" = 'public' AND "cl"."relname" = 'user') OR ("ns"."nspname" = 'public' AND "cl"."relname" = 'comment_closure')) ) "con" INNER JOIN "pg_attribute" "att" ON "att"."attrelid" = "con"."confrelid" AND "att"."attnum" = "con"."child" INNER JOIN "pg_class" "cl" ON "cl"."oid" = "con"."confrelid" INNER JOIN "pg_namespace" "ns" ON "cl"."relnamespace" = "ns"."oid" INNER JOIN "pg_attribute" "att2" ON "att2"."attrelid" = "con"."conrelid" AND "att2"."attnum" = "con"."parent"
+query: SELECT * FROM "information_schema"."tables" WHERE "table_schema" = current_schema() AND "table_name" = 'typeorm_metadata'
+query: COMMIT
+Randomizing comment data
+Deleting existing data
+Deleting existing data
+query: DELETE FROM "comment_closure"
+query: DELETE FROM "comment"
+query: SELECT "episode"."id" AS "episode_id", "episode"."title" AS "episode_title", "episode"."description" AS "episode_description", "episode"."publicationDate" AS "episode_publicationDate", "episode"."durationInSeconds" AS "episode_durationInSeconds", "episode"."audioURL" AS "episode_audioURL", "episode"."imageURL" AS "episode_imageURL", "episode"."owningPodcastId" AS "episode_owningPodcastId" FROM "episode" "episode"
+query: DELETE FROM "user"
+query: DELETE FROM "user_activity"
+Inserting new data
+query: INSERT INTO "user_activity"("internalDBDummyValue") VALUES ($1), ($2), ($3), ($4), ($5), ($6) RETURNING "id" -- PARAMETERS: [1309035313,1081637165,-186983709,2020070707,-1029356177,-1516356067]
+query: INSERT INTO "user"("shortName", "activityId") VALUES ($1, $2), ($3, $4), ($5, $6), ($7, $8), ($9, $10), ($11, $12) RETURNING "id" -- PARAMETERS: ["Nikola",106,"Viktor",107,"Dimitroff",108,"Kirilov",109,"onqtam",110,"podcastfan99",111]
+query: START TRANSACTION
+query: INSERT INTO "comment"("author", "content", "date", "upVotes", "downVotes", "parentCommentId", "timepointSeconds") VALUES ($1, $2, $3, $4, $5, DEFAULT, $6) RETURNING "id" -- PARAMETERS: ["onqtam","uam. Suspendisse potenti.","2020-03-18T22:00:00.000Z",0,0,6]
+query: INSERT INTO "comment_closure"("id_ancestor", "id_descendant") VALUES ($1, $2) -- PARAMETERS: [17465,17465]
+query: INSERT INTO "comment"("author", "content", "date", "upVotes", "downVotes", "parentCommentId", "timepointSeconds") VALUES ($1, $2, $3, $4, $5, DEFAULT, $6) RETURNING "id" -- PARAMETERS: ["Viktor","andit","2020-01-22T22:00:00.000Z",0,0,12]
+query: INSERT INTO "comment_closure"("id_ancestor", "id_descendant") VALUES ($1, $2) -- PARAMETERS: [17466,17466]
+query: COMMIT
+query: INSERT INTO "voted_comment_record"("commentId", "wasVotePositive", "owningActivityId") VALUES (DEFAULT, DEFAULT, DEFAULT), (DEFAULT, DEFAULT, DEFAULT), (DEFAULT, DEFAULT, DEFAULT), (DEFAULT, DEFAULT, DEFAULT), (DEFAULT, DEFAULT, DEFAULT), (DEFAULT, DEFAULT, DEFAULT) RETURNING "id"
+query failed: INSERT INTO "voted_comment_record"("commentId", "wasVotePositive", "owningActivityId") VALUES (DEFAULT, DEFAULT, DEFAULT), (DEFAULT, DEFAULT, DEFAULT), (DEFAULT, DEFAULT, DEFAULT), (DEFAULT, DEFAULT, DEFAULT), (DEFAULT, DEFAULT, DEFAULT), (DEFAULT, DEFAULT, DEFAULT) RETURNING "id"
+error: error: null value in column "commentId" violates not-null constraint
+    at Parser.parseErrorMessage (E:\Dev\timeline\node_modules\pg-protocol\src\parser.ts:357:11)
+    at Parser.handlePacket (E:\Dev\timeline\node_modules\pg-protocol\src\parser.ts:186:21)
+    at Parser.parse (E:\Dev\timeline\node_modules\pg-protocol\src\parser.ts:101:30)
+    at Socket.<anonymous> (E:\Dev\timeline\node_modules\pg-protocol\src\index.ts:7:48)
+    at Socket.emit (events.js:315:20)
+    at addChunk (_stream_readable.js:295:12)
+    at readableAddChunk (_stream_readable.js:271:9)
+    at Socket.Readable.push (_stream_readable.js:212:10)
+    at TCP.onStreamRead (internal/stream_base_commons.js:186:23) {
+  length: 275,
+  severity: 'ERROR',
+  code: '23502',
+  detail: 'Failing row contains (2, null, null, null).',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'voted_comment_record',
+  column: 'commentId',
+  dataType: undefined,
+  constraint: undefined,
+  file: 'd:\\pginstaller_12.auto\\postgres.windows-x64\\src\\backend\\executor\\execmain.c',
+  line: '1965',
+  routine: 'ExecConstraints'
+}

@@ -52,7 +52,7 @@
 import { Component, Vue } from "vue-property-decorator";
 import store from "@/client/store";
 import { default as AudioFile, AudioWindow } from "@/logic/AudioFile";
-import Timepoint from "@/logic/Timepoint";
+import Timepoint from "@/logic/entities/Timepoint";
 
 import VButton from "./primitives/VButton.vue";
 import VSlider from "./primitives/VSlider.vue";

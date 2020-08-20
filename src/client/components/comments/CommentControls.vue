@@ -35,7 +35,7 @@
 
 import { Component, Prop, Vue } from "vue-property-decorator";
 import store from "@/client/store";
-import { Comment } from "@/logic/Comments";
+import Comment from "@/logic/entities/Comments";
 
 @Component
 export default class CommentControlsComponent extends Vue {

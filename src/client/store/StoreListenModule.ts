@@ -1,7 +1,7 @@
 import store from "@/client/store";
-import Timepoint from "@/logic/Timepoint";
+import Timepoint from "@/logic/entities/Timepoint";
 import { default as AudioFile, AudioWindow } from "@/logic/AudioFile";
-import { Comment, default as CommentThread } from "@/logic/Comments";
+import Comment from "@/logic/entities/Comments";
 import MathHelpers from "@/logic/MathHelpers";
 import { RandomIntegerDistribution } from "@/logic/RandomHelpers";
 import { Episode } from "@/logic/entities/Podcast";
@@ -9,23 +9,19 @@ import { ActiveAppMode } from "./StoreDeviceInfoModule";
 
 export interface IStoreListenModule {
     audioFile: AudioFile;
-    allThreads: CommentThread[];
+    allThreads: Comment[];
     audioPos: Timepoint;
     audioWindow: AudioWindow;
     volume: number;
 }
 
-// Declare JSON-equivalent types for type checking
-type RawComment = { id: string; author: string; content: string; date: string; upVotes: string; downVotes: string };
-type RawThread = { id: string; timepoint: {seconds: string}; threadHead: RawComment; threadTail: (RawComment | RawThread)[] };
-type ThreadsPerEpisode = Record<string, RawThread[]>;
 const LOCAL_STORAGE_KEY = "comment-data-per-episode";
 class StoreListenViewModel implements IStoreListenModule {
     public audioFile!: AudioFile;
     public audioPos!: Timepoint;
     public audioWindow!: AudioWindow;
     public volume!: number;
-    public allThreads!: CommentThread[];
+    public allThreads!: Comment[];
     public activeEpisode!: Episode;
 
     // TODO: Comments in an episode need to be stored in a database of some kind
@@ -89,30 +85,11 @@ class StoreListenViewModel implements IStoreListenModule {
     }
 
     public postNewCommentThread(content: string): void {
-        const thread = new CommentThread();
-        thread.timepoint = new Timepoint(this.audioPos.seconds);
-        thread.threadHead = this.makeComment(content);
-        thread.threadTail = [];
-        this.allThreads.push(thread); // TODO: Binary insert to keep all threads ordered?
-        this.saveCommentsToLocalStorage();
+        // TODO COMMENTS
     }
 
-    public postReply(parentThread: CommentThread, commentToReplyTo: Comment, content: string): void {
-        const newComment = this.makeComment(content);
-        if (parentThread.threadHead === commentToReplyTo) {
-            // Replying to the head, just append
-            parentThread.threadTail.push(newComment);
-        } else {
-            // Gotta start a new subthread
-            const commentIndex = parentThread.threadTail.indexOf(commentToReplyTo);
-            const subThread = new CommentThread();
-            subThread.timepoint = parentThread.timepoint;
-            subThread.threadHead = commentToReplyTo;
-            subThread.threadTail = [newComment];
-            // Splice, don't assign so that Vue catches the change
-            parentThread.threadTail.splice(commentIndex, 1, subThread);
-        }
-        this.saveCommentsToLocalStorage();
+    public postReply(parentThread: Comment, commentToReplyTo: Comment, content: string): void {
+        // TODO COMMENTS
     }
 
     public vote(comment: Comment, isVotePositive: boolean): void {
@@ -124,7 +101,8 @@ class StoreListenViewModel implements IStoreListenModule {
         }
         comment.upVotes += ~~isVotePositive;
         comment.downVotes += ~~!isVotePositive;
-        store.commit.user.recordVote({ commentId: comment.id, wasVotePositive: isVotePositive });
+        // TODO COMMENTS
+        //store.commit.user.recordVote({ commentId: comment.id, wasVotePositive: isVotePositive });
         this.saveCommentsToLocalStorage();
     }
 
@@ -139,85 +117,20 @@ class StoreListenViewModel implements IStoreListenModule {
     }
 
     public regenerateComments(): void {
-        this.allThreads.splice(0, this.allThreads.length);
-
-        const commentsPerThread = new RandomIntegerDistribution([0, 1, 2, 3, 4, 5], [0.35, 0.2, 0.15, 0.05, 0.1, 0.15]);
-        const threadsPerTimeslot = new RandomIntegerDistribution([0, 1, 2, 3, 4, 5], [0.4, 0.15, 0.1, 0.1, 0.1, 0.15]);
-        const nestedness = 1;
-        const maxAudioDuration = 5403;
-        const chanceForNested = 0.15;
-        const timeslotDuration = 12;
-        for (let t = 0; t < maxAudioDuration; t += timeslotDuration) {
-            const threadsInSlot = threadsPerTimeslot.sample();
-            for (let i = 0; i < threadsInSlot; i++) {
-                let newThread: CommentThread;
-                const commentsForCurrentThread = commentsPerThread.sample();
-                if (Math.random() <= chanceForNested) {
-                    newThread = CommentThread.generateRandomThreadWithChildren(commentsForCurrentThread, nestedness);
-                } else {
-                    newThread = CommentThread.generateRandomThread(commentsForCurrentThread);
-                }
-                newThread.timepoint.seconds = MathHelpers.randInRange(t, t + timeslotDuration);
-                this.allThreads.push(newThread);
-            }
-        }
+        // TODO COMMENTS
     }
 
     // Internal API
     private makeComment(content: string): Comment {
         const comment = new Comment();
-        comment.author = store.state.user.info.shortName;
+        comment.author = store.state.user.info;
         comment.content = content;
         comment.date = new Date();
         return comment;
     }
 
     private createComments(episodeKey: string): void {
-        this.currentEpisodeKey = episodeKey;
-        const commentData: string | null = localStorage.getItem(LOCAL_STORAGE_KEY + episodeKey);
-        const rawCommentThreads: RawThread[]|undefined = JSON.parse(commentData || "{}");
-        if (rawCommentThreads) {
-            this.loadCommentsFromJSON(rawCommentThreads);
-        } else {
-            // TODO: don't need to prune everything
-            localStorage.clear();
-            this.regenerateComments();
-        }
-    }
-
-    private loadCommentsFromJSON(rawCommentThreads: RawThread[]): void {
-        const loadComment = (rawComment: RawComment) => {
-            const comment = new Comment();
-            comment.id = ~~rawComment.id;
-            comment.author = rawComment.author;
-            comment.content = rawComment.content;
-            comment.date = new Date(rawComment.date);
-            comment.upVotes = ~~rawComment.upVotes;
-            comment.downVotes = ~~rawComment.downVotes;
-            return comment;
-        };
-        const loadThread = (rawThread: RawThread) => {
-            const newThread = new CommentThread();
-            newThread.timepoint = new Timepoint(~~rawThread.timepoint.seconds);
-            newThread.id = ~~rawThread.id;
-            newThread.threadHead = loadComment(rawThread.threadHead);
-            newThread.threadTail = [];
-            for (let i = 0; i < rawThread.threadTail.length; i++) {
-                const rawCommentPrimitive: RawComment | RawThread = rawThread.threadTail[i];
-                if ("author" in rawCommentPrimitive) {
-                    newThread.threadTail.push(loadComment(rawCommentPrimitive));
-                } else {
-                    newThread.threadTail.push(loadThread(rawCommentPrimitive));
-                }
-            }
-            return newThread;
-        };
-
-        this.allThreads.splice(0, this.allThreads.length);
-        for (let i = 0; i < rawCommentThreads.length; i++) {
-            this.allThreads.push(loadThread(rawCommentThreads[i]));
-        }
-        this.saveCommentsToLocalStorage();
+        // TODO COMMENTS
     }
 
     private saveCommentsToLocalStorage(): void {
@@ -254,7 +167,7 @@ export default {
         postNewCommentThread: (state: StoreListenViewModel, content: string): void => {
             state.postNewCommentThread(content);
         },
-        postReply: (state: StoreListenViewModel, payload: { parentThread: CommentThread; commentToReplyTo: Comment; content: string }): void => {
+        postReply: (state: StoreListenViewModel, payload: { parentThread: Comment; commentToReplyTo: Comment; content: string }): void => {
             state.postReply(payload.parentThread, payload.commentToReplyTo, payload.content);
         },
         vote: (state: StoreListenViewModel, payload: { comment: Comment; isVotePositive: boolean}): void => {

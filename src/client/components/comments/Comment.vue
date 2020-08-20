@@ -38,7 +38,7 @@
 
 import { Component, Prop, Vue } from "vue-property-decorator";
 import store from "@/client/store";
-import { default as CommentThread, Comment, CommentPrimitive } from "@/logic/Comments";
+import Comment from "@/logic/entities/Comments";
 import CommentControlsComponent from "./CommentControls.vue";
 
 @Component({
@@ -50,8 +50,8 @@ export default class CommentComponent extends Vue {
     // Props
     @Prop({ type: Comment })
     public readonly comment!: Comment;
-    @Prop({ type: CommentThread })
-    public readonly parentThread!: CommentThread;
+    @Prop({ type: Comment })
+    public readonly parentThread!: Comment | null;
     @Prop({ type: Boolean })
     public shouldShowOnlyPreview!: boolean;
 
@@ -74,12 +74,12 @@ export default class CommentComponent extends Vue {
     private isReplyingTo: boolean = false;
 
     private get isHead(): boolean {
-        return this.parentThread.threadHead === this.comment;
+        return this.parentThread !== null;
     }
 
     private get shouldShowDelimiter(): boolean {
-        const parentTail: CommentPrimitive[] = this.parentThread.threadTail;
-        const isLast = this.comment === parentTail[parentTail.length - 1];
+        const parentReplies: Comment[] = this.parentThread!.replies;
+        const isLast = this.comment === parentReplies[parentReplies.length - 1];
         return this.isExpanded && !isLast;
     }
 
@@ -93,7 +93,7 @@ export default class CommentComponent extends Vue {
 
     private submitReply(): void {
         const postContent: string = (this.$refs["reply-content"] as HTMLInputElement).value;
-        const payload = { parentThread: this.parentThread, commentToReplyTo: this.comment, content: postContent };
+        const payload = { parentThread: this.parentThread!, commentToReplyTo: this.comment, content: postContent };
         store.commit.listen.postReply(payload);
     }
 

@@ -8,7 +8,7 @@ async function updateExternalData(): Promise<void> {
 
 async function randomizeInternalData(): Promise<void> {
     await DBTools.initDatabaseConnection();
-    await DBTools.updatePodcastInfo();
+    await DBTools.randomizeComments();
 }
 
 async function main(): Promise<void> {

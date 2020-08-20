@@ -1,5 +1,5 @@
 import { Podcast, Episode, AgendaItem } from "@/logic/entities/Podcast";
-import Timepoint from "@/logic/Timepoint";
+import Timepoint from "@/logic/entities/Timepoint";
 import AsyncLoader from "@/client/utils/AsyncLoader";
 import { RandomString } from "@/logic/RandomHelpers";
 import CommonParams from '@/logic/CommonParams';

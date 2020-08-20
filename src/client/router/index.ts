@@ -4,7 +4,7 @@ import Home from "../views/Home.vue";
 import ListenView from "../views/Listen.vue";
 import EpisodesView from "../views/Episodes.vue";
 import PodcastsView from "../views/Podcasts.vue";
-import Timepoint from "@/logic/Timepoint";
+import Timepoint from "@/logic/entities/Timepoint";
 
 Vue.use(VueRouter);
 
