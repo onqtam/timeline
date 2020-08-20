@@ -45,10 +45,10 @@ export class Podcast implements IReviveFromJSON {
         }
     }
 
-    public attachSubObjectPrototypes(): void {
+    public reviveSubObjects(): void {
         // We only need to update the prototypes of our episodes
         for (let episode of this.episodes) {
-            EncodingUtils.attachPrototype(episode, Episode);
+            EncodingUtils.reviveObjectAs(episode, Episode);
         }
     }
 }

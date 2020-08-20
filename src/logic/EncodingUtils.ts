@@ -1,11 +1,11 @@
 export interface IReviveFromJSON {
     // Use this function to call EncodingUtils.attachPrototype on your sub objects
     // or reconstruct lost primitive types like Date or Timepoint
-    attachSubObjectPrototypes(): void;
+    reviveSubObjects(): void;
 }
 
 export function isRevivable<T>(obj: Object): obj is IReviveFromJSON {
-    return "attachSubObjectPrototypes" in obj;
+    return "reviveSubObjects" in obj;
 }
 
 export default class EncodingUtils {
@@ -15,11 +15,18 @@ export default class EncodingUtils {
         return JSON.stringify(obj, null, 2);
     }
 
-    public static attachPrototype<T>(obj: Object, constructorFunc: { new(...args: any[]): T}): void {
-        (obj as any).__proto__ = constructorFunc.prototype;
-        const objAsT: T = obj as T;
-        if (isRevivable(objAsT)) {
-            objAsT.attachSubObjectPrototypes();
+    public static reviveObjectAs<T>(obj: Object, constructorFunc: { new(...args: any[]): T}): void {
+        if (obj instanceof Array) {
+            for (let parsedElement of obj as T[]) {
+                console.assert(!(parsedElement instanceof Array));
+                this.reviveObjectAs(parsedElement, constructorFunc);
+            }
+        } else {
+            (obj as any).setPrototype(constructorFunc.prototype);
+            const objAsT: T = obj as T;
+            if (isRevivable(objAsT)) {
+                objAsT.reviveSubObjects();
+            }
         }
     }
 }
