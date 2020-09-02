@@ -22,6 +22,9 @@ export default class VChart extends Vue {
     @Prop({ type: Object })
     public data!: Chartist.IChartistData;
 
+    @Prop({ type: Object })
+    public options!: Chartist.IChartOptions;
+
     private chart!: AnyChartType;
 
     // Option generating getters
@@ -46,9 +49,10 @@ export default class VChart extends Vue {
     }
 
     private get chartOptions(): AnyChartOptions {
+        const commonOptions = this.options;
         switch (this.type) {
         case ChartType.Line:
-            return this.lineOptions;
+            return Object.assign(this.lineOptions, commonOptions);
         default:
             throw new Error("Should never be reached!");
         }

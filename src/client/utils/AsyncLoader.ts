@@ -28,7 +28,7 @@ export default class AsyncLoader {
 
     public static async makeRestRequest<TResult, TBody>(
         url: string, verb: HTTPVerb, body: TBody,
-        resultType: Constructable<TResult>): Promise<TResult|TResult[]> {
+        resultType?: Constructable<TResult>): Promise<TResult|TResult[]> {
 
         const xhr = new XMLHttpRequest();
 
@@ -37,7 +37,9 @@ export default class AsyncLoader {
                 if (xhr.readyState === XMLHttpRequest.DONE) {
                     if (xhr.status === 200) {
                         const parsedObject: Object = JSON.parse(xhr.responseText);
-                        EncodingUtils.reviveObjectAs(parsedObject, resultType);
+                        if (resultType) {
+                            EncodingUtils.reviveObjectAs(parsedObject, resultType);
+                        }
                         resolve(parsedObject as TResult);
                     } else {
                         reject(xhr.status);

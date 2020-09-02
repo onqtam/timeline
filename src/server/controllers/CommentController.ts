@@ -16,6 +16,10 @@ export default class CommentController {
             path: "/comments/:episodeId/:intervalStart-:intervalEnd",
             verb: HTTPVerb.Get,
             callback: CommentController.getCommentThreadsFor
+        }, {
+            path: "/comments/histogram/:episodeId/",
+            verb: HTTPVerb.Get,
+            callback: CommentController.getCommentDensityChartData
         }];
     }
 
@@ -55,11 +59,42 @@ export default class CommentController {
         }
         const query_completeTrees: Promise<Comment[]> = Promise.all(rootsWithinInterval.map(getTreeOfRoot));
         const completeTrees: Comment[] = await query_completeTrees;
-        // Fix any discrepancies between the DB data and the expected data
-        for (let comment of completeTrees) {
-            const asAny = comment as any;
-            comment.timepoint = new Timepoint(asAny.timepointSeconds);
-        }
         response.end(EncodingUtils.jsonify(completeTrees));
+    }
+
+    private static async getCommentDensityChartData(request: Request, response: Response): Promise<void> {
+        const params = {
+            episodeId: ~~request.params.episodeId
+        };
+        const FIXED_TIMESLOT_SIZE: number = 10; // Group every X seconds together
+
+        type CommentDensityRecord = {
+            timeslotIndex: number,
+            commentCount: number
+        };
+        const commentTimeslotHistogram: CommentDensityRecord[] = await getConnection()
+            .createQueryBuilder(Comment, "comment")
+            .select(`comment.\"timepointSeconds\" / ${FIXED_TIMESLOT_SIZE}`, "timeslotIndex")
+            .addSelect("count(*)", "commentCount")
+            .where("comment.\"episodeId\" = :episodeId", params) // For this episode
+            .groupBy("\"timeslotIndex\"")
+            .orderBy("\"timeslotIndex\"")
+            .execute();
+        const xAxis: number[] = commentTimeslotHistogram.map(record => record.timeslotIndex);
+        const yAxis: number[] = commentTimeslotHistogram.map(record => ~~record.commentCount); // node-pg returns COUNT as a string so convert to number
+        // Fill in values for missing timeslots
+        for (let i = 0; i < xAxis.length; i++) {
+            while (xAxis[i] !== i) {
+                xAxis.splice(i, 0, i);
+                yAxis.splice(i, 0, 0);
+                i++;
+            }
+        }
+        const resultData = {
+            xAxis: xAxis,
+            yAxis: yAxis,
+            xAxisDistance: FIXED_TIMESLOT_SIZE
+        };
+        response.end(EncodingUtils.jsonify(resultData));
     }
 }
