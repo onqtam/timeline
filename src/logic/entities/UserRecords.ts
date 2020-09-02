@@ -1,5 +1,6 @@
 import { Entity, Column, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import UserActivity from './UserActivity';
+import { IReviveFromJSON } from '../EncodingUtils';
 
 @Entity()
 export default class VoteCommentRecord {
@@ -9,6 +10,7 @@ export default class VoteCommentRecord {
     public commentId!: number;
     @Column()
     public wasVotePositive!: boolean
+    // SERVER-ONLY
     @ManyToOne(() => UserActivity, activity => activity.voteRecords, { nullable: false })
     public owningActivity!: UserActivity;
 }

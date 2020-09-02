@@ -7,7 +7,7 @@
         />
         <!-- Set the comment id as element id to be able to find comment's DOM element from other systems  -->
         <div class="comment-content" :id=comment.id>
-            <span class="author">{{ comment.author }}</span>
+            <span class="author">{{ comment.author.shortName }}</span>
             <span class="separator"> · </span>
             <span class="votes">
                 {{ comment.totalVotes }} points
@@ -78,8 +78,8 @@ export default class CommentComponent extends Vue {
     }
 
     private get shouldShowDelimiter(): boolean {
-        const parentReplies: Comment[] = this.parentThread!.replies;
-        const isLast = this.comment === parentReplies[parentReplies.length - 1];
+        const parentReplies: Comment[]|undefined = this.parentThread?.replies;
+        const isLast = parentReplies && this.comment === parentReplies[parentReplies.length - 1];
         return this.isExpanded && !isLast;
     }
 

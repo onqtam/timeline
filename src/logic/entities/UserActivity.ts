@@ -1,8 +1,9 @@
 import { Entity, OneToMany, PrimaryGeneratedColumn, Column } from 'typeorm';
 import VoteCommentRecord from './UserRecords';
+import EncodingUtils, { IReviveFromJSON } from '../EncodingUtils';
 
 @Entity()
-export default class UserActivity {
+export default class UserActivity implements IReviveFromJSON {
     @PrimaryGeneratedColumn()
     public id!: number;
     // Another bug with TypeORM...inserting an array of default-created UserActivities results in the insertion of only the first one
@@ -18,5 +19,9 @@ export default class UserActivity {
     public getVoteOnComment(commentId: number): boolean|undefined {
         const voteRecord = this.voteRecords.find(record => record.commentId === commentId);
         return voteRecord?.wasVotePositive;
+    }
+
+    public reviveSubObjects(): void {
+        EncodingUtils.reviveObjectAs(this.voteRecords, VoteCommentRecord);
     }
 }
