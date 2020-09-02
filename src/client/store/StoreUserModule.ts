@@ -1,6 +1,10 @@
 import User from "@/logic/entities/User";
 import VoteCommentRecord from '@/logic/entities/UserRecords';
 import UserActivity from '@/logic/entities/UserActivity';
+import { ActionContext } from 'vuex';
+import CommonParams from '@/logic/CommonParams';
+import AsyncLoader from '../utils/AsyncLoader';
+import { HTTPVerb } from '@/logic/HTTPVerb';
 
 export interface IStoreUserModule {
     info: User;
@@ -11,46 +15,37 @@ export class StoreUserViewModel implements IStoreUserModule {
 
     constructor() {
         this.info = new User();
-        this.info.shortName = "DEFAULT";
-        this.createUser();
     }
 
     // Should only be called by other modules!
     public recordVote(votedComment: VoteCommentRecord): void {
+        // TODO: Server-side
         // TODO: move to a map and don't bother with management of existing keys
-        const record = this.info.activity.voteRecords.find(record => record.commentId === votedComment.commentId);
-        if (record) {
-            record.wasVotePositive = votedComment.wasVotePositive;
-        } else {
-            this.info.activity.voteRecords.push(votedComment);
-        }
-        this.saveUserToLocalStorage();
+        //const record = this.info.activity.voteRecords.find(record => record.commentId === votedComment.commentId);
+        //if (record) {
+        //    record.wasVotePositive = votedComment.wasVotePositive;
+        //} else {
+        //    this.info.activity.voteRecords.push(votedComment);
+        //}
+        //this.saveUserToLocalStorage();
     }
     public revertVote(commentId: number): void {
-        const recordIndex = this.info.activity.voteRecords.findIndex(record => record.commentId === commentId);
-        if (recordIndex !== -1) {
-            this.info.activity.voteRecords.splice(recordIndex, 1);
-        }
-        this.saveUserToLocalStorage();
+        // TODO: Server-side
+        //const recordIndex = this.info.activity.voteRecords.findIndex(record => record.commentId === commentId);
+        //if (recordIndex !== -1) {
+        //    this.info.activity.voteRecords.splice(recordIndex, 1);
+        //}
+        //this.saveUserToLocalStorage();
     }
-
-    private createUser(): void {
-        const dataInStorage = localStorage.getItem("user-info");
-        if (dataInStorage !== null) {
-            this.loadUserFromJSON(dataInStorage);
-        }
+    public loadUser(): Promise<User> {
+        console.log(`Fetching user data`);
+        const restURL: string = `${CommonParams.APIServerRootURL}\\user\\`;
+        const query_user = AsyncLoader.makeRestRequest(restURL, HTTPVerb.Get, null, User) as Promise<User>;
+        return query_user;
     }
-
-    private loadUserFromJSON(json: string): void {
-        type RawUserActivity = { votedComments: VoteCommentRecord[] };
-        type RawUser = { shortName: string; activity: UserActivity };
-
-        const rawUser = JSON.parse(json);
-        this.info.shortName = rawUser.shortName;
-        this.info.activity.voteRecords = rawUser.activity.votedComments;
-    }
-    private saveUserToLocalStorage(): void {
-        localStorage.setItem("user-info", JSON.stringify(this.info));
+    public internalSetActiveUser(user: User): void {
+        this.info = user;
+        console.log("User data loaded from the server");
     }
 }
 
@@ -67,6 +62,17 @@ export default {
         },
         revertVote: (state: StoreUserViewModel, commentId: number): void => {
             state.revertVote(commentId);
+        },
+        internalSetActiveUser: (state: StoreUserViewModel, user: User): void => {
+            state.internalSetActiveUser(user);
+        }
+    },
+    actions: {
+        loadUser: (context: ActionContext<StoreUserViewModel, StoreUserViewModel>): Promise<void> => {
+            return context.state.loadUser()
+                .then(user => {
+                    context.commit("internalSetActiveUser", user);
+                });
         }
     }
 };

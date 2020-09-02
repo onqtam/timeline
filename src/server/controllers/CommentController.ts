@@ -8,6 +8,7 @@ import EncodingUtils from "../../logic/EncodingUtils";
 import { HTTPVerb } from '../../logic/HTTPVerb';
 import { getConnection, LessThanOrEqual, MoreThanOrEqual, FindManyOptions, Raw, getConnectionOptions } from 'typeorm';
 import Timepoint from "../../logic/entities/Timepoint";
+import User from "../../logic/entities/User";
 
 export default class CommentController {
     public static getRoutes(): RouteInfo[] {
@@ -26,24 +27,38 @@ export default class CommentController {
         };
         console.log("Received params: ", JSON.stringify(params));
 
-        const rootsWithinInterval: Comment[] = await getConnection().createQueryBuilder()
-            .select()
-            .from(Comment, "comment")
+        const rootsWithinInterval: Comment[] = await getConnection()
+            .createQueryBuilder(Comment, "comment")
             .where("comment.\"parentId\" is NULL") // Roots
             .where("comment.\"episodeId\" = :episodeId", params) // For this episode
             .andWhere("comment.\"timepointSeconds\" >= :intervalStart", params) // In the given interval
             .andWhere("comment.\"timepointSeconds\" <= :intervalEnd", params)
-            .execute();
+            .leftJoinAndSelect("comment.author", "author")
+            .getMany();
 
         const getTreeOfRoot = async (c: Comment): Promise<Comment> => {
-            return getConnection().getTreeRepository(Comment)
-                .findDescendantsTree(c);
+            // Normally we would to want to call commentRepository.findDescendantsTree to map the tree and be done...
+            // but of course TypeORM doesn't allow one to simultaneously map the tree and join on another table
+            // so we do this incredibly ugly thing (the part after getRawEntities) which was simply copied from the impl
+            // of findDescendantsTree
+            const commentRepository = getConnection().getTreeRepository(Comment);
+            const commentRepoAsAny = commentRepository as any;
+            return commentRepository
+                .createDescendantsQueryBuilder("comment", "commentClosure", c)
+                .leftJoinAndSelect("comment.author", "author")
+                .getRawAndEntities()
+                .then(entitiesAndScalars => {
+                    const relationMaps = commentRepoAsAny.createRelationMaps("comment", entitiesAndScalars.raw);
+                    commentRepoAsAny.buildChildrenEntityTree(c, entitiesAndScalars.entities, relationMaps);
+                    return c;
+                });
         }
         const query_completeTrees: Promise<Comment[]> = Promise.all(rootsWithinInterval.map(getTreeOfRoot));
         const completeTrees: Comment[] = await query_completeTrees;
         // Fix any discrepancies between the DB data and the expected data
         for (let comment of completeTrees) {
-            comment.timepoint = new Timepoint((comment as any).timepointSeconds);
+            const asAny = comment as any;
+            comment.timepoint = new Timepoint(asAny.timepointSeconds);
         }
         response.end(EncodingUtils.jsonify(completeTrees));
     }

@@ -57,5 +57,6 @@ export default class Comment {
         for (let reply of this.replies) {
             EncodingUtils.reviveObjectAs(reply, Comment);
         }
+        EncodingUtils.reviveObjectAs(this.author, User);
     }
 }
