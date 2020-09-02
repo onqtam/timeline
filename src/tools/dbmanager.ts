@@ -1,5 +1,6 @@
 import DBTools from "./utils/dbtools";
 import yargs from "yargs";
+import User from '@/logic/entities/User';
 
 async function updateExternalData(): Promise<void> {
     await DBTools.initDatabaseConnection();
@@ -8,7 +9,10 @@ async function updateExternalData(): Promise<void> {
 
 async function randomizeInternalData(): Promise<void> {
     await DBTools.initDatabaseConnection();
-    await DBTools.randomizeComments();
+    await DBTools.cleanUpComments();
+    await DBTools.cleanUpUsers();
+    const users: User[] = await DBTools.randomizeUsers();
+    await DBTools.randomizeComments(users);
 }
 
 async function main(): Promise<void> {

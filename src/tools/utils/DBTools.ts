@@ -199,9 +199,13 @@ export default class DBTools {
         console.log("Update complete");
     }
 
-    static async randomizeUsers(): Promise<User[]> {
+    static async cleanUpUsers(): Promise<void> {
         console.log("Deleting existing data");
         const connection: Connection = getConnection();
+        await connection.createQueryBuilder()
+            .delete()
+            .from(User)
+            .execute();
         await connection.createQueryBuilder()
             .delete()
             .from(VoteCommentRecord)
@@ -210,11 +214,27 @@ export default class DBTools {
             .delete()
             .from(UserActivity)
             .execute();
-        await connection.createQueryBuilder()
-            .delete()
-            .from(User)
-            .execute();
+    }
 
+    static async cleanUpComments(): Promise<void> {
+        const connection: Connection = getConnection();
+        console.log("Deleting existing data");
+        // Working with tree data is tricky in TypeORM and for some things we can't use the SQL Builder
+        // This is why this code mixes SQL Builder with the repository methods
+
+        // Can't delete the records in the table through the treeRepository (see issue #193 in typeorm)
+        // so run some SQL
+        await connection.createQueryBuilder()
+                .from("comment_closure", "comment_closure")
+                .delete()
+                .execute();
+        await connection.createQueryBuilder()
+                .from(Comment, "comment")
+                .delete()
+                .execute();
+    }
+
+    static async randomizeUsers(): Promise<User[]> {
         console.log("Inserting new data");
         const names = ["Nikola", "Viktor", "Dimitroff", "Kirilov", "onqtam", "podcastfan99"];
         const users: User[] = [];
@@ -226,6 +246,8 @@ export default class DBTools {
             users.push(user);
         }
         const activities = users.map(u => u.activity);
+
+        const connection: Connection = getConnection();
         await connection.createQueryBuilder()
             .insert()
             .into(UserActivity)
@@ -239,33 +261,14 @@ export default class DBTools {
         return users;
     }
 
-    static async randomizeComments(): Promise<void> {
+    static async randomizeComments(users: User[]): Promise<void> {
         console.log("Randomizing comment data");
 
         const connection: Connection = getConnection();
-        console.log("Deleting existing data");
-        // Working with tree data is tricky in TypeORM and for some things we can't use the SQL Builder
-        // This is why this code mixes SQL Builder with the repository methods
-
-        // Can't delete the records in the table through the treeRepository (see issue #193 in typeorm)
-        // so run some SQL
-        const deleteExistingComments = Promise.all([
-            connection.createQueryBuilder()
-                .from("comment_closure", "comment_closure")
-                .delete()
-                .execute(),
-            connection.createQueryBuilder()
-                .from(Comment, "comment")
-                .delete()
-                .execute()
-        ]);
-        const generateUsers = this.randomizeUsers();
         // Only generate comments for the first episode as otherwise the operation takes too long
         const getFirstEpisode: Promise<Episode|undefined> = connection.createQueryBuilder(Episode, "episode").getOne();
 
-        await deleteExistingComments;
         const episode: Episode = (await getFirstEpisode)!;
-        const users: User[] = await generateUsers;
         const generator: CommentGenerator = new CommentGenerator(users, episode);
         const topLevelThreads: Comment[] = generator.generateRandomComments();
 
