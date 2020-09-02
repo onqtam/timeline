@@ -3,6 +3,7 @@ import { Min, IsDate } from 'class-validator';
 import Timepoint from "./Timepoint";
 import User from './User';
 import { Episode } from './Podcast';
+import EncodingUtils from '../EncodingUtils';
 
 @Entity()
 @Tree("closure-table")
@@ -28,6 +29,7 @@ export default class Comment {
     public timepoint!: Timepoint;
     @TreeChildren()
     public replies!: Comment[];
+    // SERVER SIDE ONLY
     // TypeORM bug 123: We don't need to know the parentComment...but TypeORM does (even though it has all the information already)
     @TreeParent()
     public parentComment!: Comment;
@@ -47,5 +49,13 @@ export default class Comment {
         }
         const approvalPercentage = 100 * this.upVotes / voteCount;
         return approvalPercentage.toFixed(0) + "%";
+    }
+
+    public reviveSubObjects(): void {
+        this.date = new Date(this.date);
+        this.timepoint = new Timepoint(this.timepoint.seconds);
+        for (let reply of this.replies) {
+            EncodingUtils.reviveObjectAs(reply, Comment);
+        }
     }
 }

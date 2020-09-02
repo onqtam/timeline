@@ -55,8 +55,7 @@ import CommentControlsComponent from "./CommentControls.vue";
     components: {
         CommentComponent,
         CommentControlsComponent
-    },
-    name: "CommentThreadComponent"
+    }
 })
 export default class CommentThreadComponent extends Vue {
     // Props

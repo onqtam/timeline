@@ -49,6 +49,7 @@ class StoreListenViewModel implements IStoreListenModule {
 
     public setActiveEpisodeComments(comments: Comment[]): void {
         this.allThreads = comments;
+        console.log("Comments for active episode updated");
     }
 
     public setAudioWindowSlots(newSlotCount: number): void {
@@ -123,10 +124,9 @@ class StoreListenViewModel implements IStoreListenModule {
     }
 
     public async loadComments(episode: Episode): Promise<Comment[]> {
-        // TODO COMMENTS
-        const restURL: string = `${CommonParams.APIServerRootURL}\\comments`;
-        const requestBody = { episodeId: episode.id, intervalStart: 0, intervalEnd: episode.durationInSeconds };
-        const query_comments = AsyncLoader.makeRestRequest(restURL, HTTPVerb.Put, requestBody, Comment) as Promise<Comment[]>;
+        console.log(`Fetching ALL comments for episode ${episode.id}`);
+        const restURL: string = `${CommonParams.APIServerRootURL}\\comments\\${episode.id}\\${0}-${episode.durationInSeconds}`;
+        const query_comments = AsyncLoader.makeRestRequest(restURL, HTTPVerb.Get, null, Comment) as Promise<Comment[]>;
         return query_comments;
     }
 
@@ -193,8 +193,6 @@ export default {
 
             return context.state.loadComments(episode)
                 .then(comments => {
-                    // Call the type-unsafe commit; We could call the function directly but this triggers
-                    // warnings about modifying state outside of commits
                     context.commit("internalSetActiveEpisodeComments", comments);
                 });
         }
