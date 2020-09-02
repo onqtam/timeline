@@ -290,6 +290,8 @@ export default class DBTools {
             .values(allVoteRecords)
             .execute();
         await connection.getRepository(UserActivity).save(allActivities);
+        // Resave comments to update their up/down vote counters
+        await connection.getRepository(Comment).save(allComments);
 
         console.log("Update complete");
     }
