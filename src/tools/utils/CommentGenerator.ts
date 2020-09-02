@@ -23,7 +23,8 @@ export default class CommentGenerator {
         const threadsPerTimeslot = new RandomIntegerDistribution([0, 1, 2, 3, 4, 5], [0.4, 0.15, 0.1, 0.1, 0.1, 0.15]);
         const chanceForNested = 0.15;
         const timeslotDuration = 12;
-        for (let t = 0; t < timeslotDuration * 5; t += timeslotDuration) {
+        const minutesToGeneratesCommentsIn = 10; // only in the first X minutes
+        for (let t = 0; t < minutesToGeneratesCommentsIn * 60; t += timeslotDuration) {
             const threadsInSlot = threadsPerTimeslot.sample();
             for (let i = 0; i < threadsInSlot; i++) {
                 let newThread: Comment;

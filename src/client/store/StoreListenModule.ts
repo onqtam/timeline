@@ -19,6 +19,17 @@ export interface IStoreListenModule {
     volume: number;
 }
 
+type Histogram = {
+    xAxis: number[],
+    yAxis: number[],
+    xAxisDistance: number
+};
+
+type FullCommentData = {
+    allComments: Comment[],
+    commentDensityHistogram: Histogram
+}
+
 const LOCAL_STORAGE_KEY = "comment-data-per-episode";
 class StoreListenViewModel implements IStoreListenModule {
     public audioFile!: AudioFile;
@@ -26,6 +37,7 @@ class StoreListenViewModel implements IStoreListenModule {
     public audioWindow!: AudioWindow;
     public volume!: number;
     public allThreads!: Comment[];
+    public commentDensityHistogram!: Histogram;
     public activeEpisode!: Episode;
 
     // TODO: Comments in an episode need to be stored in a database of some kind
@@ -47,8 +59,9 @@ class StoreListenViewModel implements IStoreListenModule {
         this.audioFile.duration = episode.durationInSeconds;
     }
 
-    public setActiveEpisodeComments(comments: Comment[]): void {
-        this.allThreads = comments;
+    public setActiveEpisodeComments(commentData: FullCommentData): void {
+        this.allThreads = commentData.allComments;
+        this.commentDensityHistogram = commentData.commentDensityHistogram;
         console.log("Comments for active episode updated");
     }
 
@@ -123,11 +136,16 @@ class StoreListenViewModel implements IStoreListenModule {
         this.saveCommentsToLocalStorage();
     }
 
-    public async loadComments(episode: Episode): Promise<Comment[]> {
+    public async loadCommentData(episode: Episode): Promise<FullCommentData> {
         console.log(`Fetching ALL comments for episode ${episode.id}`);
-        const restURL: string = `${CommonParams.APIServerRootURL}\\comments\\${episode.id}\\${0}-${episode.durationInSeconds}`;
-        const query_comments = AsyncLoader.makeRestRequest(restURL, HTTPVerb.Get, null, Comment) as Promise<Comment[]>;
-        return query_comments;
+        const loadCommentsURL: string = `${CommonParams.APIServerRootURL}/comments/${episode.id}/${0}-${episode.durationInSeconds}`;
+        const query_comments = AsyncLoader.makeRestRequest(loadCommentsURL, HTTPVerb.Get, null, Comment) as Promise<Comment[]>;
+        const loadHistogramURL: string = `${CommonParams.APIServerRootURL}/comments/histogram/${episode.id}`;
+        const query_histogram = AsyncLoader.makeRestRequest(loadHistogramURL, HTTPVerb.Get, null) as Promise<Histogram>;
+        return {
+            allComments: await query_comments,
+            commentDensityHistogram: await query_histogram
+        };
     }
 
     // Internal API
@@ -156,8 +174,8 @@ export default {
         internalSetActiveEpisode: (state: StoreListenViewModel, episode: Episode): void => {
             state.setActiveEpisode(episode);
         },
-        internalSetActiveEpisodeComments: (state: StoreListenViewModel, comments: Comment[]): void => {
-            state.setActiveEpisodeComments(comments);
+        internalSetActiveEpisodeComments: (state: StoreListenViewModel, commentData: FullCommentData): void => {
+            state.setActiveEpisodeComments(commentData);
         },
         resizeAudioWindow: (state: StoreListenViewModel, newDuration: number): void => {
             state.resizeAudioWindow(newDuration);
@@ -191,9 +209,9 @@ export default {
         loadEpisode: (context: ActionContext<StoreListenViewModel, StoreListenViewModel>, episode: Episode): Promise<void> => {
             context.commit("internalSetActiveEpisode", episode);
 
-            return context.state.loadComments(episode)
-                .then(comments => {
-                    context.commit("internalSetActiveEpisodeComments", comments);
+            return context.state.loadCommentData(episode)
+                .then((commentData: FullCommentData) => {
+                    context.commit("internalSetActiveEpisodeComments", commentData);
                 });
         }
     }

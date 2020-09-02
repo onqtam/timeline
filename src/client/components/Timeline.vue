@@ -26,7 +26,7 @@
         </div>
 
         <!-- Displays a chart of the audio file, only in Standard. The data in the chart varies depending on settings -->
-        <VChart class="standard-chart" :type=ChartType.Line :data=chartData></VChart>
+        <VChart class="standard-chart" :type=ChartType.Line :data=chartData :options=chartOptions></VChart>
 
         <!-- Displays the small vertical lines that break down the timeline into small sections -->
         <div class="mark-container">
@@ -63,7 +63,9 @@ import { AudioWindow } from "@/logic/AudioFile";
 import MathHelpers from "@/logic/MathHelpers";
 
 import VChart, { ChartType } from "./primitives/VChart.vue";
-import { IChartistData } from "chartist";
+import { IChartistData, IChartOptions, ILineChartOptions } from "chartist";
+import store from '../store';
+import Chartist from 'chartist';
 
 export enum TimelineMode {
     Standard,
@@ -110,13 +112,18 @@ export default class Timeline extends Vue {
     }
 
     public get chartData(): IChartistData {
-        // Dummy data
-        // TODO: Update to display comment density
+        const histogram = store.state.listen.commentDensityHistogram;
         return {
-            labels: ["Mon", "Tue", "Wed", "Thu", "Fri"],
-            series: [
-                [5, 2, 4, 2, 0]
-            ]
+            labels: histogram.xAxis,
+            series: [histogram.yAxis],
+        };
+    }
+
+
+    public get chartOptions(): ILineChartOptions {
+        const histogram = store.state.listen.commentDensityHistogram;
+        return {
+            // TODO
         };
     }
 
