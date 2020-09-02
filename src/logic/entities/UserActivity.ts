@@ -1,5 +1,5 @@
 import { Entity, OneToMany, PrimaryGeneratedColumn, Column } from 'typeorm';
-import VotedCommentRecord from './UserRecords';
+import VoteCommentRecord from './UserRecords';
 
 @Entity()
 export default class UserActivity {
@@ -11,8 +11,8 @@ export default class UserActivity {
     // TODO: Revisit in a future version of TypeORM
     @Column({nullable: true})
     public internalDBDummyValue!: number;
-    @OneToMany(() => VotedCommentRecord, commentRecord => commentRecord.owningActivity, { cascade: true, eager: true })
-    public voteRecords!: VotedCommentRecord[];
+    @OneToMany(() => VoteCommentRecord, commentRecord => commentRecord.owningActivity, { cascade: true, eager: true })
+    public voteRecords!: VoteCommentRecord[];
 
     // Returns true if the user voted positive, false if the vote was negative, undefined if he hasn't voted
     public getVoteOnComment(commentId: number): boolean|undefined {
