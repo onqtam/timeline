@@ -7,23 +7,23 @@ import RouteInfo from "../RouteInfo";
 import EncodingUtils from "../../logic/EncodingUtils";
 import { HTTPVerb } from '../../logic/HTTPVerb';
 import { getConnection, LessThanOrEqual, MoreThanOrEqual, FindManyOptions, Raw, getConnectionOptions } from 'typeorm';
+import Timepoint from "../../logic/entities/Timepoint";
 
 export default class CommentController {
     public static getRoutes(): RouteInfo[] {
         return [{
-            path: "/comments",
-            verb: HTTPVerb.Put,
+            path: "/comments/:episodeId/:intervalStart-:intervalEnd",
+            verb: HTTPVerb.Get,
             callback: CommentController.getCommentThreadsFor
         }];
     }
 
     private static async getCommentThreadsFor(request: Request, response: Response): Promise<void> {
-        type CommentDataRequest = {
-            episodeId: number;
-            intervalStart: number;
-            intervalDuration: number;
+        const params = {
+            episodeId: ~~request.params.episodeId,
+            intervalStart: ~~request.params.intervalStart,
+            intervalEnd: ~~request.params.intervalEnd
         };
-        const params = request.body as CommentDataRequest;
         console.log("Received params: ", JSON.stringify(params));
 
         const rootsWithinInterval: Comment[] = await getConnection().createQueryBuilder()
@@ -41,6 +41,10 @@ export default class CommentController {
         }
         const query_completeTrees: Promise<Comment[]> = Promise.all(rootsWithinInterval.map(getTreeOfRoot));
         const completeTrees: Comment[] = await query_completeTrees;
+        // Fix any discrepancies between the DB data and the expected data
+        for (let comment of completeTrees) {
+            comment.timepoint = new Timepoint((comment as any).timepointSeconds);
+        }
         response.end(EncodingUtils.jsonify(completeTrees));
     }
 }
