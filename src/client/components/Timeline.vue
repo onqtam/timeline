@@ -26,7 +26,7 @@
         </div>
 
         <!-- Displays a chart of the audio file, only in Standard. The data in the chart varies depending on settings -->
-        <VChart class="standard-chart" :type=ChartType.Line :data=chartData :options=chartOptions></VChart>
+        <VChart ref="chart" class="standard-chart" :type=ChartType.Line :data=chartData :options=chartOptions></VChart>
 
         <!-- Displays the small vertical lines that break down the timeline into small sections -->
         <div class="mark-container">
@@ -113,6 +113,10 @@ export default class Timeline extends Vue {
 
     public get chartData(): IChartistData {
         const histogram = store.state.listen.commentDensityHistogram;
+        if (this.$refs["chart"]) {
+            // Force update the chart element as Vue doesn't pick the changes for some reason
+            (this.$refs["chart"] as Vue).$forceUpdate();
+        }
         return {
             labels: histogram.xAxis,
             series: [histogram.yAxis],
@@ -123,7 +127,21 @@ export default class Timeline extends Vue {
     public get chartOptions(): ILineChartOptions {
         const histogram = store.state.listen.commentDensityHistogram;
         return {
-            // TODO
+            chartPadding: {
+                right: 0, left: 0, top: 0, bottom: 0
+            },
+            showArea: false,
+            showPoint: false,
+            axisX: {
+                showGrid: false,
+                offset: 0,
+                type: Chartist.StepAxis,
+                ticks: histogram.xAxis
+            },
+            axisY: {
+                showGrid: false,
+                offset: 0,
+            }
         };
     }
 

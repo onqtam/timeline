@@ -58,7 +58,7 @@ export default class VChart extends Vue {
         }
     }
 
-    public mounted(): void {
+    public buildChart(): void {
         switch (this.type) {
         case ChartType.Line:
             this.chart = new Chartist.Line(".chartist-chart", this.data, this.chartOptions);
@@ -67,6 +67,14 @@ export default class VChart extends Vue {
             this.chart = new Chartist.Bar(".chartist-chart", this.data, this.chartOptions);
             break;
         }
+    }
+
+    public beforeUpdate(): void {
+        this.buildChart();
+    }
+
+    public mounted(): void {
+        this.buildChart();
     }
 }
 
