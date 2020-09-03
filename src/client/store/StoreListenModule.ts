@@ -37,7 +37,7 @@ class StoreListenViewModel implements IStoreListenModule {
     public audioWindow!: AudioWindow;
     public volume!: number;
     public allThreads!: Comment[];
-    public commentDensityHistogram!: Histogram;
+    public commentDensityHistogram: Histogram;
     public activeEpisode!: Episode;
 
     // TODO: Comments in an episode need to be stored in a database of some kind
@@ -51,6 +51,12 @@ class StoreListenViewModel implements IStoreListenModule {
         this.volume = 0.15;
         this.allThreads = [];
         this.currentEpisodeKey = "";
+
+        this.commentDensityHistogram = {
+            xAxis: [],
+            yAxis: [],
+            xAxisDistance: 0
+        };
     }
 
     public setActiveEpisode(episode: Episode): void {
@@ -62,6 +68,12 @@ class StoreListenViewModel implements IStoreListenModule {
     public setActiveEpisodeComments(commentData: FullCommentData): void {
         this.allThreads = commentData.allComments;
         this.commentDensityHistogram = commentData.commentDensityHistogram;
+        // The received histograms doesn't contain values beyond the last comment
+        // so fill in trailing zeros
+        // TODO: Figure out how to do this faster
+        const valueCount: number = ~~(this.audioFile.duration / this.commentDensityHistogram.xAxisDistance);
+        this.commentDensityHistogram.xAxis.length = valueCount;
+        this.commentDensityHistogram.xAxis.fill(0);
         console.log("Comments for active episode updated");
     }
 

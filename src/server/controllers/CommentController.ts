@@ -66,7 +66,7 @@ export default class CommentController {
         const params = {
             episodeId: ~~request.params.episodeId
         };
-        const FIXED_TIMESLOT_SIZE: number = 10; // Group every X seconds together
+        const FIXED_TIMESLOT_SIZE: number = 60; // Group every X seconds together
 
         type CommentDensityRecord = {
             timeslotIndex: number,
