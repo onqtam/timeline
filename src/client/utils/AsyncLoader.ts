@@ -1,5 +1,6 @@
 import { HTTPVerb } from '@/logic/HTTPVerb';
 import EncodingUtils, { IReviveFromJSON, isRevivable } from "../../logic/EncodingUtils";
+import store from '../store';
 
 interface Constructable<T> {
     new (): T;
@@ -36,11 +37,15 @@ export default class AsyncLoader {
             xhr.onreadystatechange = function () {
                 if (xhr.readyState === XMLHttpRequest.DONE) {
                     if (xhr.status === 200) {
-                        const parsedObject: Object = JSON.parse(xhr.responseText);
-                        if (resultType) {
-                            EncodingUtils.reviveObjectAs(parsedObject, resultType);
+                        if (xhr.responseText.length !== 0) {
+                            const parsedObject: Object = JSON.parse(xhr.responseText);
+                            if (resultType) {
+                                EncodingUtils.reviveObjectAs(parsedObject, resultType);
+                            }
+                            resolve(parsedObject as TResult);
+                        } else {
+                            resolve();
                         }
-                        resolve(parsedObject as TResult);
                     } else {
                         reject(xhr.status);
                     }
@@ -48,6 +53,12 @@ export default class AsyncLoader {
             };
         });
         xhr.open(verb, url, true);
+
+        xhr.setRequestHeader("Content-Type", "application/json");
+        if (store.state.user.isAuthenticated) {
+            xhr.setRequestHeader("Timeline-User-Id", store.state.user.info.id.toString());
+        }
+
         xhr.send(JSON.stringify(body));
         return promise;
     }

@@ -154,7 +154,7 @@ export default class CommentSection extends Vue {
 
     private startNewCommentThread(): void {
         const inputElement = this.$refs["new-comment-thread-content"] as HTMLInputElement;
-        store.commit.listen.postNewCommentThread(inputElement.value);
+        store.dispatch.listen.postComment({commentToReplyTo: undefined, content: inputElement.value });
     }
 
     private setSortingPredicate(predicate: SortingPredicate): void {

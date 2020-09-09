@@ -5,37 +5,38 @@ import { ActionContext } from 'vuex';
 import CommonParams from '@/logic/CommonParams';
 import AsyncLoader from '../utils/AsyncLoader';
 import { HTTPVerb } from '@/logic/HTTPVerb';
+import { isNumber } from 'util';
 
 export interface IStoreUserModule {
     info: User;
+    isAuthenticated: boolean;
 }
 
 export class StoreUserViewModel implements IStoreUserModule {
     public info: User;
-
+    public get isAuthenticated(): boolean {
+        return isNumber(this.info.id);
+    }
     constructor() {
         this.info = new User();
     }
 
     // Should only be called by other modules!
-    public recordVote(votedComment: VoteCommentRecord): void {
-        // TODO: Server-side
+    public recordVote(votedComment: {commentId: number, wasVotePositive: boolean}): void {
         // TODO: move to a map and don't bother with management of existing keys
-        //const record = this.info.activity.voteRecords.find(record => record.commentId === votedComment.commentId);
-        //if (record) {
-        //    record.wasVotePositive = votedComment.wasVotePositive;
-        //} else {
-        //    this.info.activity.voteRecords.push(votedComment);
-        //}
-        //this.saveUserToLocalStorage();
+        const record = this.info.activity.voteRecords.find(record => record.commentId === votedComment.commentId);
+        if (record) {
+            record.wasVotePositive = votedComment.wasVotePositive;
+        } else {
+            this.info.activity.voteRecords.push(votedComment as unknown as VoteCommentRecord);
+        }
     }
     public revertVote(commentId: number): void {
         // TODO: Server-side
-        //const recordIndex = this.info.activity.voteRecords.findIndex(record => record.commentId === commentId);
-        //if (recordIndex !== -1) {
-        //    this.info.activity.voteRecords.splice(recordIndex, 1);
-        //}
-        //this.saveUserToLocalStorage();
+        const recordIndex = this.info.activity.voteRecords.findIndex(record => record.commentId === commentId);
+        if (recordIndex !== -1) {
+            this.info.activity.voteRecords.splice(recordIndex, 1);
+        }
     }
     public loadUser(): Promise<User> {
         console.log(`Fetching user data`);
@@ -57,10 +58,10 @@ export default {
     namespaced: true as true,
     state: userModule,
     mutations: {
-        recordVote: (state: StoreUserViewModel, votedComment: VoteCommentRecord): void => {
+        localRecordVote: (state: StoreUserViewModel, votedComment: {commentId: number, wasVotePositive: boolean}): void => {
             state.recordVote(votedComment);
         },
-        revertVote: (state: StoreUserViewModel, commentId: number): void => {
+        localRevertVote: (state: StoreUserViewModel, commentId: number): void => {
             state.revertVote(commentId);
         },
         internalSetActiveUser: (state: StoreUserViewModel, user: User): void => {

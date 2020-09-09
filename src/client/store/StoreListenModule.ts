@@ -116,12 +116,20 @@ class StoreListenViewModel implements IStoreListenModule {
         }
     }
 
-    public postNewCommentThread(content: string): void {
-        // TODO COMMENTS
+    public localPostNewComment(commentToReplyTo: Comment|undefined, content: string): void {
+        const comment = new Comment();
+        comment.id = ~~(Math.random() * 99999); // Generate a random id to avoid conflicting keys in vue
+        comment.author = store.state.user.info;
+        comment.content = content;
+        if (commentToReplyTo) {
+            commentToReplyTo.replies.push(comment);
+        } else {
+            this.allThreads.push(comment);
+        }
     }
 
-    public postReply(parentThread: Comment, commentToReplyTo: Comment, content: string): void {
-        // TODO COMMENTS
+    public isVoteValid(comment: Comment, isVotePositive: boolean|undefined): boolean {
+        return store.state.user.info.activity.getVoteOnComment(comment.id) !== isVotePositive;
     }
 
     public vote(comment: Comment, isVotePositive: boolean): void {
@@ -133,9 +141,7 @@ class StoreListenViewModel implements IStoreListenModule {
         }
         comment.upVotes += ~~isVotePositive;
         comment.downVotes += ~~!isVotePositive;
-        // TODO COMMENTS
-        //store.commit.user.recordVote({ commentId: comment.id, wasVotePositive: isVotePositive });
-        this.saveCommentsToLocalStorage();
+        store.commit.user.localRecordVote({ commentId: comment.id, wasVotePositive: isVotePositive });
     }
 
     public revertVote(comment: Comment): void {
@@ -144,8 +150,7 @@ class StoreListenViewModel implements IStoreListenModule {
         // revert the previous vote
         comment.upVotes -= ~~existingVoteRecord!;
         comment.downVotes -= ~~!existingVoteRecord!;
-        store.commit.user.revertVote(comment.id);
-        this.saveCommentsToLocalStorage();
+        store.commit.user.localRevertVote(comment.id);
     }
 
     public async loadCommentData(episode: Episode): Promise<FullCommentData> {
@@ -160,17 +165,35 @@ class StoreListenViewModel implements IStoreListenModule {
         };
     }
 
-    // Internal API
-    private makeComment(content: string): Comment {
-        const comment = new Comment();
-        comment.author = store.state.user.info;
-        comment.content = content;
-        comment.date = new Date();
-        return comment;
+    public async storeServerVote(comment: Comment, wasVotePositive: boolean): Promise<void> {
+        const URL: string = `${CommonParams.APIServerRootURL}/comments/vote/`;
+        const requestBody = {
+            commentId: comment.id,
+            wasVotePositive: wasVotePositive
+        };
+        const query_storeVote = AsyncLoader.makeRestRequest(URL, HTTPVerb.Post, requestBody) as Promise<void>;
+        return query_storeVote;
     }
 
-    private saveCommentsToLocalStorage(): void {
-        localStorage.setItem(LOCAL_STORAGE_KEY + this.currentEpisodeKey, JSON.stringify(this.allThreads));
+    public async storeServerVoteRevert(comment: Comment): Promise<void> {
+        const URL: string = `${CommonParams.APIServerRootURL}/comments/vote/`;
+        const requestBody = {
+            commentId: comment.id,
+        };
+        const query_revertVote = AsyncLoader.makeRestRequest(URL, HTTPVerb.Delete, requestBody) as Promise<void>;
+        return query_revertVote;
+    }
+
+    public async storeServerNewComment(commentToReply: Comment|undefined, content: string): Promise<void> {
+        const URL: string = `${CommonParams.APIServerRootURL}/comments/`;
+        const requestBody = {
+            commentToReplyToId: commentToReply?.id || null,
+            episodeId: this.activeEpisode.id,
+            timepointSeconds: this.audioPos.seconds,
+            content: content
+        };
+        const query_revertVote = AsyncLoader.makeRestRequest(URL, HTTPVerb.Post, requestBody) as Promise<void>;
+        return query_revertVote;
     }
 }
 
@@ -189,6 +212,15 @@ export default {
         internalSetActiveEpisodeComments: (state: StoreListenViewModel, commentData: FullCommentData): void => {
             state.setActiveEpisodeComments(commentData);
         },
+        internalLocalPostNewComment: (state: StoreListenViewModel, payload: { commentToReplyTo: Comment|undefined; content: string }): void => {
+            state.localPostNewComment(payload.commentToReplyTo, payload.content);
+        },
+        internalLocalVote: (state: StoreListenViewModel, payload: { comment: Comment; isVotePositive: boolean}): void => {
+            state.vote(payload.comment, payload.isVotePositive);
+        },
+        internalLocalRevertVote: (state: StoreListenViewModel, comment: Comment): void => {
+            state.revertVote(comment);
+        },
         resizeAudioWindow: (state: StoreListenViewModel, newDuration: number): void => {
             state.resizeAudioWindow(newDuration);
         },
@@ -203,18 +235,6 @@ export default {
         },
         updateTimeslotCount: (state: StoreListenViewModel, appMode: ActiveAppMode): void => {
             state.updateTimeslotCount(appMode);
-        },
-        postNewCommentThread: (state: StoreListenViewModel, content: string): void => {
-            state.postNewCommentThread(content);
-        },
-        postReply: (state: StoreListenViewModel, payload: { parentThread: Comment; commentToReplyTo: Comment; content: string }): void => {
-            state.postReply(payload.parentThread, payload.commentToReplyTo, payload.content);
-        },
-        vote: (state: StoreListenViewModel, payload: { comment: Comment; isVotePositive: boolean}): void => {
-            state.vote(payload.comment, payload.isVotePositive);
-        },
-        revertVote: (state: StoreListenViewModel, comment: Comment): void => {
-            state.revertVote(comment);
         }
     },
     actions: {
@@ -225,6 +245,25 @@ export default {
                 .then((commentData: FullCommentData) => {
                     context.commit("internalSetActiveEpisodeComments", commentData);
                 });
+        },
+        postComment: (context: ActionContext<StoreListenViewModel, StoreListenViewModel>, payload: { commentToReplyTo: Comment|undefined; content: string }): Promise<void> => {
+            context.commit("internalLocalPostNewComment", payload);
+            return context.state.storeServerNewComment(payload.commentToReplyTo, payload.content);
+        },
+        vote: (context: ActionContext<StoreListenViewModel, StoreListenViewModel>, payload: { comment: Comment; isVotePositive: boolean}): Promise<void> => {
+            if (context.state.isVoteValid(payload.comment, payload.isVotePositive)) {
+                // Commit locally to update the UI immediately
+                context.commit("internalLocalVote", payload);
+                return context.state.storeServerVote(payload.comment, payload.isVotePositive);
+            }
+            return Promise.resolve();
+        },
+        revertVote: (context: ActionContext<StoreListenViewModel, StoreListenViewModel>, comment: Comment): Promise<void> => {
+            if (context.state.isVoteValid(comment, undefined)) {
+                context.commit("internalLocalRevertVote", comment);
+                return context.state.storeServerVoteRevert(comment);
+            }
+            return Promise.resolve();
         }
     }
 };
