@@ -6,9 +6,12 @@ import MathHelpers from "../../logic/MathHelpers";
 import RouteInfo from "../RouteInfo";
 import EncodingUtils from "../../logic/EncodingUtils";
 import { HTTPVerb } from '../../logic/HTTPVerb';
-import { getConnection, LessThanOrEqual, MoreThanOrEqual, FindManyOptions, Raw, getConnectionOptions } from 'typeorm';
+import { getConnection, LessThanOrEqual, MoreThanOrEqual, FindManyOptions, Raw, getConnectionOptions, InsertResult, DeleteResult } from 'typeorm';
 import Timepoint from "../../logic/entities/Timepoint";
 import User from "../../logic/entities/User";
+import VoteCommentRecord from '../../logic/entities/UserRecords';
+import UserActivity from '../../logic/entities/UserActivity';
+import { Episode } from '../../logic/entities/Episode';
 
 export default class CommentController {
     public static getRoutes(): RouteInfo[] {
@@ -20,6 +23,18 @@ export default class CommentController {
             path: "/comments/histogram/:episodeId/",
             verb: HTTPVerb.Get,
             callback: CommentController.getCommentDensityChartData
+        }, {
+            path: "/comments/",
+            verb: HTTPVerb.Post,
+            callback: CommentController.postComment
+        }, {
+            path: "/comments/vote/",
+            verb: HTTPVerb.Post,
+            callback: CommentController.recordVote
+        }, {
+            path: "/comments/vote/",
+            verb: HTTPVerb.Delete,
+            callback: CommentController.revertVote
         }];
     }
 
@@ -96,5 +111,168 @@ export default class CommentController {
             xAxisDistance: FIXED_TIMESLOT_SIZE
         };
         response.end(EncodingUtils.jsonify(resultData));
+    }
+
+    private static async recordVote(request: Request, response: Response): Promise<void> {
+        const params = {
+            userId: ~~request.header("Timeline-User-Id")!,
+            commentId: ~~request.body.commentId,
+            wasVotePositive: request.body.wasVotePositive,
+        };
+        console.log("Received params: ", JSON.stringify(params));
+
+        // TODO: avoid looking up the activity id by changing the DB Schema to include the user directly
+        const user: User = await getConnection()
+            .createQueryBuilder(User, "user")
+            .whereInIds([params.userId])
+            .execute();
+
+        const query_existingRecord: Promise<VoteCommentRecord|undefined> = getConnection()
+            .createQueryBuilder(VoteCommentRecord, "voteRecord")
+            .select()
+            .where(
+                `voteRecord."owningActivityId" = :activityId AND voteRecord."commentId" = :commentId`,
+                {activityId: (user as any).activity_id, commentId: params.commentId}
+            )
+            .getOne();
+
+        // Also load the relevant comment to update the counters;
+        // TODO: Move the update to SQL? Stored procedure or something?
+        const query_comment: Promise<Comment> = getConnection()
+            .createQueryBuilder(Comment, "comment")
+            .select()
+            .whereInIds([params.commentId])
+            .execute();
+
+        const existingRecord: VoteCommentRecord|undefined = await query_existingRecord;
+        let query_upsertRecord: Promise<void>;
+        if (!existingRecord) {
+            const userActivity: UserActivity = await getConnection()
+                .createQueryBuilder(UserActivity, "activity")
+                .whereInIds([(user as any).activity_id])
+                .execute();
+
+            const record = new VoteCommentRecord();
+            record.commentId = params.commentId;
+            record.wasVotePositive = params.wasVotePositive;
+            record.owningActivity = userActivity;
+
+            query_upsertRecord = getConnection()
+                .createQueryBuilder(VoteCommentRecord, "voteRecord")
+                .insert()
+                .values([record])
+                .execute() as unknown as Promise<void>;
+        } else {
+            query_upsertRecord = getConnection()
+                .createQueryBuilder(VoteCommentRecord, "voteRecord")
+                .update()
+                .where(
+                    `voteRecord."owningActivityId" = :activityId AND voteRecord."commentId" = :commentId`,
+                    {activityId: user.activity.id, commentId: params.commentId}
+                )
+                .set({wasVotePositive: params.wasVotePositive})
+                .execute() as unknown as Promise<void>;
+        }
+
+        const comment: Comment = await query_comment;
+        if (existingRecord) {
+            comment.upVotes -= ~~existingRecord.wasVotePositive;
+            comment.downVotes -= ~~!existingRecord.wasVotePositive;
+        }
+        comment.upVotes += ~~params.wasVotePositive;
+        comment.downVotes += ~~!params.wasVotePositive;
+        const query_updateCommentCounters = getConnection()
+            .createQueryBuilder(Comment, "comment")
+            .update()
+            .whereInIds([comment.id])
+            .set({ upVotes: comment.upVotes, downVotes: comment.downVotes})
+            .execute();
+
+        await query_upsertRecord;
+        await query_updateCommentCounters;
+        response.end();
+    }
+
+    private static async revertVote(request: Request, response: Response): Promise<void> {
+        const params = {
+            userId: ~~request.header("Timeline-User-Id")!,
+            commentId: ~~request.body.commentId,
+        };
+        console.log("Received params: ", JSON.stringify(params));
+
+        // TODO: avoid looking up the user & activity id by changing the DB Schema to include the user directly
+        const user: User = await getConnection()
+            .createQueryBuilder(User, "user")
+            .whereInIds([params.userId])
+            .execute();
+
+        const existingRecord: VoteCommentRecord = await getConnection()
+            .createQueryBuilder(VoteCommentRecord, "voteRecord")
+            .delete()
+            .where(
+                `voteRecord."owningActivityId" = :activityId AND voteRecord."commentId" = :commentId`,
+                {activityId: user.activity.id, commentId: params.commentId}
+            )
+            .returning("voteRecord")
+            .execute() as unknown as VoteCommentRecord;
+
+        // Also load the relevant comment to update the counters
+        const comment: Comment = await getConnection()
+            .createQueryBuilder(Comment, "comment")
+            .select()
+            .whereInIds([params.commentId])
+            .execute();
+
+        comment.upVotes -= ~~existingRecord.wasVotePositive;
+        comment.downVotes -= ~~!existingRecord.wasVotePositive;
+
+        await getConnection()
+            .createQueryBuilder(Comment, "comment")
+            .update()
+            .whereInIds([comment.id])
+            .set({ upVotes: comment.upVotes, downVotes: comment.downVotes})
+            .execute();
+
+        response.end();
+    }
+
+
+    private static async postComment(request: Request, response: Response): Promise<void> {
+        console.log("ma h ",request.body);
+        const params = {
+            userId: ~~request.header("Timeline-User-Id")!,
+            episodeId: request.body.episodeId as number,
+            commentToReplyToId: request.body.commentToReplyToId as number|null,
+            timepointSeconds: ~~request.body.timepointSeconds as number,
+            content: request.body.content as string
+        };
+        console.log("Received params: ", JSON.stringify(params));
+
+        const query_user: Promise<User|undefined> = getConnection()
+            .createQueryBuilder(User, "user")
+            .whereInIds([params.userId])
+            .getOne();
+        const query_episode: Promise<Episode|undefined> = getConnection()
+            .createQueryBuilder(Episode, "episode")
+            .whereInIds([params.episodeId])
+            .getOne();
+
+        let newComment = new Comment();
+        newComment.content = params.content;
+        newComment.date = new Date();
+        newComment.downVotes = 0;
+        newComment.upVotes = 0;
+        newComment.timepoint = new Timepoint(params.timepointSeconds);
+        newComment.author = (await query_user)!;
+        newComment.episode = (await query_episode)!;
+
+        await getConnection()
+            .createQueryBuilder()
+            .insert()
+            .into(Comment)
+            .values([newComment])
+            .execute();
+
+        response.end();
     }
 }

@@ -4,6 +4,7 @@ import Timepoint from "./Timepoint";
 import User from './User';
 import { Episode } from './Podcast';
 import EncodingUtils from '../EncodingUtils';
+import CommonParams from '../CommonParams';
 
 @Entity()
 @Tree("closure-table")
@@ -33,6 +34,18 @@ export default class Comment {
     // TypeORM bug 123: We don't need to know the parentComment...but TypeORM does (even though it has all the information already)
     @TreeParent()
     public parentComment!: Comment;
+
+    constructor() {
+        if (CommonParams.IsRunningOnClient) {
+            this.id = -1;
+            this.content = "";
+            this.date = new Date();
+            this.upVotes = 0;
+            this.downVotes = 0;
+            this.timepoint = new Timepoint();
+            this.replies = [];
+        }
+    }
 
     public get hasReplies(): boolean {
         return this.replies && this.replies.length !== 0;
