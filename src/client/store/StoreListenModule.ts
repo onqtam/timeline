@@ -120,7 +120,12 @@ class StoreListenViewModel implements IStoreListenModule {
         const comment = new Comment();
         comment.id = ~~(Math.random() * 99999); // Generate a random id to avoid conflicting keys in vue
         comment.author = store.state.user.info;
+        comment.episode = this.activeEpisode;
         comment.content = content;
+        comment.date = new Date();
+        comment.timepoint = new Timepoint(this.audioPos.seconds);
+        comment.upVotes = 0;
+        comment.downVotes = 0;
         if (commentToReplyTo) {
             commentToReplyTo.replies.push(comment);
         } else {
@@ -192,8 +197,8 @@ class StoreListenViewModel implements IStoreListenModule {
             timepointSeconds: this.audioPos.seconds,
             content: content
         };
-        const query_revertVote = AsyncLoader.makeRestRequest(URL, HTTPVerb.Post, requestBody) as Promise<void>;
-        return query_revertVote;
+        const query_postNewComment = AsyncLoader.makeRestRequest(URL, HTTPVerb.Post, requestBody) as Promise<void>;
+        return query_postNewComment;
     }
 }
 

@@ -7,7 +7,7 @@ import EncodingUtils from '../EncodingUtils';
 import CommonParams from '../CommonParams';
 
 @Entity()
-@Tree("closure-table")
+@Tree("materialized-path")
 export default class Comment {
     @PrimaryGeneratedColumn()
     public id!: number;

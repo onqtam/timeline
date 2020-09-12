@@ -92,9 +92,13 @@ export default class CommentComponent extends Vue {
     }
 
     private submitReply(): void {
-        const postContent: string = (this.$refs["reply-content"] as HTMLInputElement).value;
-        const payload = { commentToReplyTo: this.comment, content: postContent };
-        store.dispatch.listen.postComment(payload);
+        const inputElement: HTMLInputElement = this.$refs["reply-content"] as HTMLInputElement;
+        const postContent: string = inputElement.value;
+        if (postContent) {
+            const payload = { commentToReplyTo: this.comment, content: postContent };
+            store.dispatch.listen.postComment(payload);
+            inputElement.value = "";
+        }
     }
 
     private formatCommentDate(): string {

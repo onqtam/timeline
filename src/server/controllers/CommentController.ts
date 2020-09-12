@@ -12,7 +12,7 @@ import User from "../../logic/entities/User";
 import VoteCommentRecord from '../../logic/entities/UserRecords';
 import UserActivity from '../../logic/entities/UserActivity';
 import { Episode } from '../../logic/entities/Episode';
-
+import CommentGenerator from "../../tools/utils/CommentGenerator";
 export default class CommentController {
     public static getRoutes(): RouteInfo[] {
         return [{
@@ -127,12 +127,12 @@ export default class CommentController {
             .whereInIds([params.userId])
             .execute();
 
-        const query_existingRecord: Promise<VoteCommentRecord|undefined> = getConnection()
+        const query_existingRecord: Promise<VoteCommentRecord | undefined> = getConnection()
             .createQueryBuilder(VoteCommentRecord, "voteRecord")
             .select()
             .where(
                 `voteRecord."owningActivityId" = :activityId AND voteRecord."commentId" = :commentId`,
-                {activityId: (user as any).activity_id, commentId: params.commentId}
+                { activityId: (user as any).activity_id, commentId: params.commentId }
             )
             .getOne();
 
@@ -144,7 +144,7 @@ export default class CommentController {
             .whereInIds([params.commentId])
             .execute();
 
-        const existingRecord: VoteCommentRecord|undefined = await query_existingRecord;
+        const existingRecord: VoteCommentRecord | undefined = await query_existingRecord;
         let query_upsertRecord: Promise<void>;
         if (!existingRecord) {
             const userActivity: UserActivity = await getConnection()
@@ -168,9 +168,9 @@ export default class CommentController {
                 .update()
                 .where(
                     `voteRecord."owningActivityId" = :activityId AND voteRecord."commentId" = :commentId`,
-                    {activityId: user.activity.id, commentId: params.commentId}
+                    { activityId: user.activity.id, commentId: params.commentId }
                 )
-                .set({wasVotePositive: params.wasVotePositive})
+                .set({ wasVotePositive: params.wasVotePositive })
                 .execute() as unknown as Promise<void>;
         }
 
@@ -185,7 +185,7 @@ export default class CommentController {
             .createQueryBuilder(Comment, "comment")
             .update()
             .whereInIds([comment.id])
-            .set({ upVotes: comment.upVotes, downVotes: comment.downVotes})
+            .set({ upVotes: comment.upVotes, downVotes: comment.downVotes })
             .execute();
 
         await query_upsertRecord;
@@ -211,7 +211,7 @@ export default class CommentController {
             .delete()
             .where(
                 `voteRecord."owningActivityId" = :activityId AND voteRecord."commentId" = :commentId`,
-                {activityId: user.activity.id, commentId: params.commentId}
+                { activityId: user.activity.id, commentId: params.commentId }
             )
             .returning("voteRecord")
             .execute() as unknown as VoteCommentRecord;
@@ -230,7 +230,7 @@ export default class CommentController {
             .createQueryBuilder(Comment, "comment")
             .update()
             .whereInIds([comment.id])
-            .set({ upVotes: comment.upVotes, downVotes: comment.downVotes})
+            .set({ upVotes: comment.upVotes, downVotes: comment.downVotes })
             .execute();
 
         response.end();
@@ -238,21 +238,21 @@ export default class CommentController {
 
 
     private static async postComment(request: Request, response: Response): Promise<void> {
-        console.log("ma h ",request.body);
+        console.log("ma h ", request.body);
         const params = {
             userId: ~~request.header("Timeline-User-Id")!,
             episodeId: request.body.episodeId as number,
-            commentToReplyToId: request.body.commentToReplyToId as number|null,
+            commentToReplyToId: request.body.commentToReplyToId as number | null,
             timepointSeconds: ~~request.body.timepointSeconds as number,
             content: request.body.content as string
         };
         console.log("Received params: ", JSON.stringify(params));
 
-        const query_user: Promise<User|undefined> = getConnection()
+        const query_user: Promise<User | undefined> = getConnection()
             .createQueryBuilder(User, "user")
             .whereInIds([params.userId])
             .getOne();
-        const query_episode: Promise<Episode|undefined> = getConnection()
+        const query_episode: Promise<Episode | undefined> = getConnection()
             .createQueryBuilder(Episode, "episode")
             .whereInIds([params.episodeId])
             .getOne();
@@ -265,13 +265,22 @@ export default class CommentController {
         newComment.timepoint = new Timepoint(params.timepointSeconds);
         newComment.author = (await query_user)!;
         newComment.episode = (await query_episode)!;
+        newComment.replies = [];
 
-        await getConnection()
-            .createQueryBuilder()
-            .insert()
-            .into(Comment)
-            .values([newComment])
-            .execute();
+        const commentRepo = getConnection().getTreeRepository(Comment);
+
+        // TODO: Rework the calls to treeRepo.save as SQL queries
+        if (params.commentToReplyToId) {
+            const query_parentComment: Promise<Comment | undefined> = commentRepo.findOne(params.commentToReplyToId);
+            let parentComment = await commentRepo.findDescendantsTree((await query_parentComment)!);
+            if (parentComment.replies === undefined) {
+                parentComment.replies = [];
+            }
+            newComment.parentComment = parentComment;
+            parentComment.replies.push(newComment);
+            await commentRepo.save(parentComment);
+        }
+        await commentRepo.save(newComment);
 
         response.end();
     }
