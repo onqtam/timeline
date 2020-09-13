@@ -1,0 +1,16 @@
+{
+    "cSpell.words": [
+        "Frum",
+        "downlevel",
+        "parsererror",
+        "timeslots",
+        "upsert"
+    ],
+    "cSpell.ignoreWords": [
+        "dbmanager",
+        "src",
+        "src tools dbmanager ts",
+        "tools",
+        "ts"
+    ]
+}
