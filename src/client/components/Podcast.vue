@@ -1,16 +1,16 @@
 <template>
-    <div class="episode-slot" :class="{ 'active-episode-slot': isReadingMore }">
-        <div class="episode-thumbnail" :style="{ 'background-image': 'url(' + episode.imageURL +')' }" >
+    <div class="podcast-slot" :class="{ 'active-podcast-slot': isReadingMore }">
+        <div class="podcast-thumbnail" :style="{ 'background-image': 'url(' + podcast.imageURL +')' }" >
         </div>
-        <div class="episode-content">
-            <router-link :to="`/listen/${podcast.titleAsURL}/${episode.titleAsURL}`">
-                <h3 class="episode-title">{{ episode.title }}</h3>
+        <div class="podcast-content">
+            <router-link :to="`/episodes/${podcast.titleAsURL}`">
+                <h3 class="podcast-title">{{ podcast.title }}</h3>
             </router-link>
-            <span> {{ episode.publicationDate.toLocaleDateString() }}</span>
+            <span> {{ podcast.author }}</span>
             <span class="separator"> · </span>
-            <span> Duration: {{ formatEpisodeDuration(episode.durationInSeconds) }}</span>
+            <span>{{ podcast.episodes.length }} Episodes</span>
             <br>
-            <div class="episode-description" v-html=episodeFilteredDescription>
+            <div class="podcast-description" v-html=podcastFilteredDescription>
             </div>
         </div>
         <VButton class="read-more-button" @click=toggleMore>Read more</VButton>
@@ -21,7 +21,7 @@
 import { Component, Vue, Prop } from "vue-property-decorator";
 
 import Timepoint from "@/logic/entities/Timepoint";
-import { Episode, Podcast } from "@/logic/entities/Podcast";
+import { Podcast } from "@/logic/entities/Podcast";
 
 import VButton from "@/client/components/primitives/VButton.vue";
 
@@ -30,28 +30,27 @@ import VButton from "@/client/components/primitives/VButton.vue";
         VButton
     }
 })
-export default class EpisodeComponent extends Vue {
-    @Prop({ type: Episode })
-    public episode!: Episode;
+export default class PodcastComponent extends Vue {
     @Prop({ type: Podcast })
     public podcast!: Podcast;
 
-    public get episodeFilteredDescription(): string {
+    // TODO: Extract the "readmore" part which is duplicated here in the Episode component as a external component
+    public get podcastFilteredDescription(): string {
         // TODO: Redesign, this is a "on-top-of-the-head" implementation
         // Return everything if we are reading more
         if (this.isReadingMore) {
-            return this.episode.description;
+            return this.podcast.description;
         }
         // 1. Create a dummy element
         // 2. Inject the HTML-enabled description
         // 3. Return only the first item
         const dummyDiv = document.createElement("div");
-        dummyDiv.innerHTML = this.episode.description;
+        dummyDiv.innerHTML = this.podcast.description;
         return dummyDiv.children.length > 0 ? dummyDiv.children[0].outerHTML : dummyDiv.outerHTML;
     }
     public isReadingMore: boolean = false;
 
-    public formatEpisodeDuration(duration: number): string {
+    public formatPodcastDuration(duration: number): string {
         return new Timepoint(duration).format();
     }
     public toggleMore(): void {
@@ -63,17 +62,17 @@ export default class EpisodeComponent extends Vue {
 <style scoped lang="less">
 @import "../cssresources/theme.less";
 
-.episode-slot {
+.podcast-slot {
     box-sizing: border-box;
     padding: 0;
     padding-bottom: 2.5em;
 }
-.episode-thumbnail, .episode-content {
+.podcast-thumbnail, .podcast-content {
     margin: 0;
     display: inline-block;
     box-sizing: border-box;
 }
-.episode-thumbnail {
+.podcast-thumbnail {
     background-size: contain;
     background-position: top center;
     background-repeat: no-repeat;
@@ -81,14 +80,14 @@ export default class EpisodeComponent extends Vue {
     height: 100%;
     float: left;
 }
-.episode-content {
+.podcast-content {
     text-align: left;
     padding-left: 1em;
     width: 80%;
     height: 100%;
     overflow: hidden;
 }
-.episode-title {
+.podcast-title {
     margin-top: 0;
 }
 .separator {
@@ -101,11 +100,11 @@ export default class EpisodeComponent extends Vue {
     float: right;
 }
 </style>
-<!-- Unscoped CSS in order to style the episode description as it is dynamic html-->
+<!-- Unscoped CSS in order to style the podcast description as it is dynamic html-->
 <style lang="less">
-.episode-description h1,
-.episode-description h2,
-.episode-description h3 {
+.podcast-description h1,
+.podcast-description h2,
+.podcast-description h3 {
     font-size: 1.2em;
 }
 </style>

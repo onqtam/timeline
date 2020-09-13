@@ -35,7 +35,7 @@
 
 import { Component, Prop, Vue } from "vue-property-decorator";
 import store from "@/client/store";
-import { Comment } from "@/logic/Comments";
+import Comment from "@/logic/entities/Comments";
 
 @Component
 export default class CommentControlsComponent extends Vue {
@@ -66,17 +66,17 @@ export default class CommentControlsComponent extends Vue {
 
     private voteUp(): void {
         if (this.hasVotedUp) {
-            store.commit.listen.revertVote(this.comment);
+            store.dispatch.listen.revertVote(this.comment);
         } else {
-            store.commit.listen.vote({ comment: this.comment, isVotePositive: true });
+            store.dispatch.listen.vote({ comment: this.comment, isVotePositive: true });
         }
     }
 
     private voteDown(): void {
         if (this.hasVotedDown) {
-            store.commit.listen.revertVote(this.comment);
+            store.dispatch.listen.revertVote(this.comment);
         } else {
-            store.commit.listen.vote({ comment: this.comment, isVotePositive: false });
+            store.dispatch.listen.vote({ comment: this.comment, isVotePositive: false });
         }
     }
 }

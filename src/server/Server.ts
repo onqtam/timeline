@@ -6,6 +6,7 @@ import CommonParams from "../logic/CommonParams";
 import RouteInfo from "./RouteInfo";
 import CommentController from "./controllers/CommentController";
 import PodcastController from "./controllers/PodcastController";
+import UserController from "./controllers/UserController";
 
 export default class Server {
     public app: express.Application;
@@ -13,6 +14,13 @@ export default class Server {
     constructor() {
         this.app = express();
         this.app.use(bodyParser.json());
+        // Enable CORS in dev environment
+        // TODO: Block this in production
+        this.app.use((req, res, next) => {
+            res.header("Access-Control-Allow-Origin", "*");
+            res.header("Access-Control-Allow-Headers", "*");
+            next();
+        });
     }
 
     public async init(): Promise<void> {
@@ -23,6 +31,7 @@ export default class Server {
         let routes: RouteInfo[] = [];
         routes = routes.concat(CommentController.getRoutes());
         routes = routes.concat(PodcastController.getRoutes());
+        routes = routes.concat(UserController.getRoutes());
 
         for (const route of routes) {
             this.app[route.verb](route.path, (request: Request, response: Response, next: Function) => {

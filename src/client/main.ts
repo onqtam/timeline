@@ -6,7 +6,8 @@ import router from "./router";
 Vue.config.productionTip = false;
 Vue.config.devtools = true;
 
-new Vue({
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(window as any).app = new Vue({
     router,
     store: store.original,
     render: h => h(App)

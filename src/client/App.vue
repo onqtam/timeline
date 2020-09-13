@@ -1,12 +1,30 @@
 <template>
-  <div id="app">
-    <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
+    <div id="app">
+        <div id="nav">
+            <router-link to="/">Home</router-link> |
+            <router-link to="/about">About</router-link>
+        </div>
+        <router-view/>
     </div>
-    <router-view/>
-  </div>
 </template>
+
+<script lang="ts">
+import { Component, Vue } from "vue-property-decorator";
+
+import VButton from "@/client/components/primitives/VButton.vue";
+import store from "./store";
+
+@Component({
+    components: {
+        VButton
+    }
+})
+export default class App extends Vue {
+    public beforeMount(): void {
+        store.dispatch.user.loadUser();
+    }
+}
+</script>
 
 <style lang="less">
 @import "./cssresources/theme.less";

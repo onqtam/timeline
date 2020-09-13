@@ -1,6 +1,10 @@
 // A better class for managing timepoints in the played content
+
+import { Column } from "typeorm";
+
 // Use instead of number where possible
 export default class Timepoint {
+    @Column()
     public seconds: number;
 
     constructor(seconds?: number) {

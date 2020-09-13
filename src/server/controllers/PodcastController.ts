@@ -1,8 +1,9 @@
 import { Request, Response } from "express";
 import { getConnection } from "typeorm";
 import { Podcast, Episode } from "../../logic/entities/Podcast";
-import RouteInfo, { HTTPVerb } from "../RouteInfo";
-import EncodingUtils from "../EncodingUtils";
+import RouteInfo from "../RouteInfo";
+import EncodingUtils from "../../logic/EncodingUtils";
+import { HTTPVerb } from "../../logic/HTTPVerb";
 
 export default class PodcastController {
     public static getRoutes(): RouteInfo[] {
@@ -11,7 +12,7 @@ export default class PodcastController {
             verb: HTTPVerb.Get,
             callback: PodcastController.getAllPodcasts
         }, {
-            path: "/episodes",
+            path: "/episodes/:podcastId",
             verb: HTTPVerb.Get,
             callback: PodcastController.getEpisodesFor
         }];
@@ -19,16 +20,15 @@ export default class PodcastController {
 
     private static async getAllPodcasts(request: Request, response: Response): Promise<void> {
         const podcasts: Podcast[] = await getConnection()
-            .createQueryBuilder()
-            .select()
-            .from<Podcast>(Podcast, "podcast")
-            .execute();
+            .createQueryBuilder(Podcast, "podcast")
+            .leftJoinAndSelect("podcast.episodes", "episode")
+            .getMany();
         response.end(EncodingUtils.jsonify(podcasts));
     }
 
     private static async getEpisodesFor(request: Request, response: Response): Promise<void> {
         type PodcastParams = { podcastId: number };
-        const podcastId: number = (request.body as PodcastParams).podcastId;
+        const podcastId: number = (request.params as unknown as PodcastParams).podcastId;
         const episodes: Episode[] = await getConnection()
             .createQueryBuilder()
             .relation(Podcast, "episodes")

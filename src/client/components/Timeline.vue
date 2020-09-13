@@ -26,7 +26,7 @@
         </div>
 
         <!-- Displays a chart of the audio file, only in Standard. The data in the chart varies depending on settings -->
-        <VChart class="standard-chart" :type=ChartType.Line :data=chartData></VChart>
+        <VChart ref="chart" class="standard-chart" :type=ChartType.Line :data=chartData :options=chartOptions></VChart>
 
         <!-- Displays the small vertical lines that break down the timeline into small sections -->
         <div class="mark-container">
@@ -58,12 +58,13 @@
 
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
-import Timepoint from "@/logic/Timepoint";
+import Timepoint from "@/logic/entities/Timepoint";
 import { AudioWindow } from "@/logic/AudioFile";
 import MathHelpers from "@/logic/MathHelpers";
 
 import VChart, { ChartType } from "./primitives/VChart.vue";
-import { IChartistData } from "chartist";
+import Chartist, { IChartistData, ILineChartOptions } from "chartist";
+import store from "../store";
 
 export enum TimelineMode {
     Standard,
@@ -110,13 +111,35 @@ export default class Timeline extends Vue {
     }
 
     public get chartData(): IChartistData {
-        // Dummy data
-        // TODO: Update to display comment density
+        const histogram = store.state.listen.commentDensityHistogram;
+        if (this.$refs.chart) {
+            // Force update the chart element as Vue doesn't pick the changes for some reason
+            (this.$refs.chart as Vue).$forceUpdate();
+        }
         return {
-            labels: ["Mon", "Tue", "Wed", "Thu", "Fri"],
-            series: [
-                [5, 2, 4, 2, 0]
-            ]
+            labels: histogram.xAxis,
+            series: [histogram.yAxis]
+        };
+    }
+
+    public get chartOptions(): ILineChartOptions {
+        const histogram = store.state.listen.commentDensityHistogram;
+        return {
+            chartPadding: {
+                right: 0, left: 0, top: 0, bottom: 0
+            },
+            showArea: false,
+            showPoint: false,
+            axisX: {
+                showGrid: false,
+                offset: 0,
+                type: Chartist.StepAxis,
+                ticks: histogram.xAxis
+            },
+            axisY: {
+                showGrid: false,
+                offset: 0
+            }
         };
     }
 

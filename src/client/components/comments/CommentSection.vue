@@ -54,10 +54,10 @@
 
 import { Component, Vue } from "vue-property-decorator";
 import store from "@/client/store";
-import { default as CommentThread } from "@/logic/Comments";
+import { default as Comment } from "@/logic/entities/Comments";
 
 import { AudioWindow } from "@/logic/AudioFile";
-import Timepoint from "@/logic/Timepoint";
+import Timepoint from "@/logic/entities/Timepoint";
 import MathHelpers from "@/logic/MathHelpers";
 
 import VButton from "@/client/components/primitives/VButton.vue";
@@ -66,7 +66,7 @@ import CommentThreadComponent from "./CommentThread.vue";
 
 class Timeslot {
     public timepoint!: Timepoint;
-    public threads!: CommentThread[];
+    public threads!: Comment[];
 }
 
 enum SortingPredicate {
@@ -85,7 +85,7 @@ enum SortingPredicate {
 })
 export default class CommentSection extends Vue {
     // Props
-    public get commentThreads(): CommentThread[] {
+    public get commentThreads(): Comment[] {
         return store.state.listen.allThreads;
     }
     public get audioWindow(): AudioWindow {
@@ -126,7 +126,7 @@ export default class CommentSection extends Vue {
     }
 
     public focusThread(threadId: number): void {
-        const thread: CommentThread|undefined = this.commentThreads.find(thread => thread.id === threadId);
+        const thread: Comment|undefined = this.commentThreads.find(thread => thread.id === threadId);
         // TODO: Report error in a meaningful way
         // Assert the thread exists and is in an active timeslot
         console.assert(thread !== undefined);
@@ -154,7 +154,7 @@ export default class CommentSection extends Vue {
 
     private startNewCommentThread(): void {
         const inputElement = this.$refs["new-comment-thread-content"] as HTMLInputElement;
-        store.commit.listen.postNewCommentThread(inputElement.value);
+        store.dispatch.listen.postComment({ commentToReplyTo: undefined, content: inputElement.value });
     }
 
     private setSortingPredicate(predicate: SortingPredicate): void {
@@ -169,12 +169,12 @@ export default class CommentSection extends Vue {
         return this.sortingPredicate === predicate;
     }
 
-    private compareCommentThreads(lhs: CommentThread, rhs: CommentThread) {
+    private compareCommentThreads(lhs: Comment, rhs: Comment) {
         switch (this.sortingPredicate) {
         case SortingPredicate.Top:
-            return rhs.threadHead.totalVotes - lhs.threadHead.totalVotes;
+            return rhs.totalVotes - lhs.totalVotes;
         case SortingPredicate.New:
-            return rhs.threadHead.date.valueOf() - lhs.threadHead.date.valueOf();
+            return rhs.date.valueOf() - lhs.date.valueOf();
         case SortingPredicate.Chronologically:
         default: // fall through, no hot yet
             return lhs.timepoint.seconds - rhs.timepoint.seconds;
