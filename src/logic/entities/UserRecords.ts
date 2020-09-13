@@ -1,6 +1,5 @@
-import { Entity, Column, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import UserActivity from './UserActivity';
-import { IReviveFromJSON } from '../EncodingUtils';
+import { Entity, Column, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import UserActivity from "./UserActivity";
 
 @Entity()
 export default class VoteCommentRecord {

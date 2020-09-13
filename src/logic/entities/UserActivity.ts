@@ -1,6 +1,6 @@
-import { Entity, OneToMany, PrimaryGeneratedColumn, Column } from 'typeorm';
-import VoteCommentRecord from './UserRecords';
-import EncodingUtils, { IReviveFromJSON } from '../EncodingUtils';
+import { Entity, OneToMany, PrimaryGeneratedColumn, Column } from "typeorm";
+import VoteCommentRecord from "./UserRecords";
+import EncodingUtils, { IReviveFromJSON } from "../EncodingUtils";
 
 @Entity()
 export default class UserActivity implements IReviveFromJSON {
@@ -10,7 +10,7 @@ export default class UserActivity implements IReviveFromJSON {
     // because TypeORM decides they are all the same. This member is set to a random integer in order to make sure TypeORM doesn't do
     // stupid things.
     // TODO: Revisit in a future version of TypeORM
-    @Column({nullable: true})
+    @Column({ nullable: true })
     public internalDBDummyValue!: number;
     @OneToMany(() => VoteCommentRecord, commentRecord => commentRecord.owningActivity, { cascade: true, eager: true })
     public voteRecords!: VoteCommentRecord[];

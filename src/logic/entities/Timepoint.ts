@@ -1,6 +1,6 @@
 // A better class for managing timepoints in the played content
 
-import { ValueTransformer, Column } from 'typeorm';
+import { Column } from "typeorm";
 
 // Use instead of number where possible
 export default class Timepoint {

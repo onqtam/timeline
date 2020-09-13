@@ -1,12 +1,8 @@
-import { Podcast, Episode, AgendaItem } from "@/logic/entities/Podcast";
-import Timepoint from "@/logic/entities/Timepoint";
+import { Podcast, Episode } from "@/logic/entities/Podcast";
 import AsyncLoader from "@/client/utils/AsyncLoader";
-import { RandomString } from "@/logic/RandomHelpers";
-import CommonParams from '@/logic/CommonParams';
-import { HTTPVerb } from '@/logic/HTTPVerb';
-import { ActionContext } from 'vuex';
-import { moduleActionContext } from '.';
-import { localActionContext } from 'direct-vuex';
+import CommonParams from "@/logic/CommonParams";
+import { HTTPVerb } from "@/logic/HTTPVerb";
+import { ActionContext } from "vuex";
 
 export interface IStorePodcastModule {
     allPodcasts: Podcast[];
@@ -24,7 +20,6 @@ export class StorePodcastViewModel implements IStorePodcastModule {
         const podcast: Podcast|undefined = this.allPodcasts.find(p => p.titleAsURL === podcastTitleURL);
         return podcast?.episodes.find(e => e.titleAsURL === episodeTitleURL);
     }
-
 
     public updatePodcastData(newPodcastData: Podcast[]): void {
         this.allPodcasts.splice(0, this.allPodcasts.length, ...newPodcastData);
@@ -55,7 +50,6 @@ export default {
         refreshPodcastData: async (context: ActionContext<StorePodcastViewModel, StorePodcastViewModel>): Promise<void> => {
             return context.state.fetchPodcastData()
                 .then(podcasts => {
-                    localActionContext
                     // Call the type-unsafe commit; We could call the function directly but this triggers
                     // warnings about modifying state outside of commits
                     context.commit("internalUpdatePodcastData", podcasts);

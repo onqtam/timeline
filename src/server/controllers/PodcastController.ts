@@ -3,7 +3,7 @@ import { getConnection } from "typeorm";
 import { Podcast, Episode } from "../../logic/entities/Podcast";
 import RouteInfo from "../RouteInfo";
 import EncodingUtils from "../../logic/EncodingUtils";
-import { HTTPVerb } from '../../logic/HTTPVerb';
+import { HTTPVerb } from "../../logic/HTTPVerb";
 
 export default class PodcastController {
     public static getRoutes(): RouteInfo[] {

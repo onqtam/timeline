@@ -1,8 +1,8 @@
-import { HTTPVerb } from '@/logic/HTTPVerb';
-import EncodingUtils, { IReviveFromJSON, isRevivable } from "../../logic/EncodingUtils";
-import store from '../store';
+import { HTTPVerb } from "@/logic/HTTPVerb";
+import EncodingUtils from "../../logic/EncodingUtils";
+import store from "../store";
 
-interface Constructable<T> {
+interface IConstructable<T> {
     new (): T;
 }
 
@@ -29,8 +29,7 @@ export default class AsyncLoader {
 
     public static async makeRestRequest<TResult, TBody>(
         url: string, verb: HTTPVerb, body: TBody,
-        resultType?: Constructable<TResult>): Promise<TResult|TResult[]> {
-
+        resultType?: IConstructable<TResult>): Promise<TResult|TResult[]> {
         const xhr = new XMLHttpRequest();
 
         const promise = new Promise<TResult>((resolve, reject) => {
@@ -38,7 +37,8 @@ export default class AsyncLoader {
                 if (xhr.readyState === XMLHttpRequest.DONE) {
                     if (xhr.status === 200) {
                         if (xhr.responseText.length !== 0) {
-                            const parsedObject: Object = JSON.parse(xhr.responseText);
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            const parsedObject: Record<string, any> = JSON.parse(xhr.responseText);
                             if (resultType) {
                                 EncodingUtils.reviveObjectAs(parsedObject, resultType);
                             }

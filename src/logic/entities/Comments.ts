@@ -1,19 +1,19 @@
-import { Entity, Tree, PrimaryGeneratedColumn, Column, TreeChildren, ColumnOptions, ValueTransformer, TreeParent, ManyToOne } from 'typeorm';
-import { Min, IsDate } from 'class-validator';
+import { Entity, Tree, PrimaryGeneratedColumn, Column, TreeChildren, TreeParent, ManyToOne } from "typeorm";
+import { Min, IsDate } from "class-validator";
 import Timepoint from "./Timepoint";
-import User from './User';
-import { Episode } from './Podcast';
-import EncodingUtils from '../EncodingUtils';
-import CommonParams from '../CommonParams';
+import User from "./User";
+import { Episode } from "./Podcast";
+import EncodingUtils from "../EncodingUtils";
+import CommonParams from "../CommonParams";
 
 @Entity()
 @Tree("materialized-path")
 export default class Comment {
     @PrimaryGeneratedColumn()
     public id!: number;
-    @ManyToOne(() => Episode, {nullable: false})
+    @ManyToOne(() => Episode, { nullable: false })
     public episode!: Episode;
-    @ManyToOne(() => User, {nullable: false})
+    @ManyToOne(() => User, { nullable: false })
     public author!: User;
     @Column()
     public content!: string;
@@ -26,7 +26,7 @@ export default class Comment {
     @Column()
     @Min(0)
     public downVotes: number = 0;
-    @Column(type => Timepoint)
+    @Column(() => Timepoint)
     public timepoint!: Timepoint;
     @TreeChildren()
     public replies!: Comment[];
@@ -67,7 +67,7 @@ export default class Comment {
     public reviveSubObjects(): void {
         this.date = new Date(this.date);
         this.timepoint = new Timepoint(this.timepoint.seconds);
-        for (let reply of this.replies) {
+        for (const reply of this.replies) {
             EncodingUtils.reviveObjectAs(reply, Comment);
         }
         EncodingUtils.reviveObjectAs(this.author, User);

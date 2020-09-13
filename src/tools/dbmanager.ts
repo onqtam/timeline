@@ -1,6 +1,6 @@
 import DBTools from "./utils/dbtools";
 import yargs from "yargs";
-import User from '@/logic/entities/User';
+import User from "@/logic/entities/User";
 
 async function updateExternalData(): Promise<void> {
     await DBTools.initDatabaseConnection();

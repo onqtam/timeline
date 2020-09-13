@@ -3,8 +3,8 @@ import { IsDate, Min } from "class-validator";
 
 import Timepoint from "./Timepoint";
 import { Podcast } from "./Podcast";
-import CommonParams from '../CommonParams';
-import EncodingUtils, { IReviveFromJSON } from '../EncodingUtils';
+import CommonParams from "../CommonParams";
+import EncodingUtils, { IReviveFromJSON } from "../EncodingUtils";
 
 const convertTitleToURLSection = (title: string) => {
     return title.toLowerCase().replace(/[\s,:&.-]+/g, "-");
@@ -26,7 +26,7 @@ export class Agenda implements IReviveFromJSON {
     public items: AgendaItem[] = [];
 
     public reviveSubObjects(): void {
-        for (let item of this.items) {
+        for (const item of this.items) {
             EncodingUtils.reviveObjectAs(item, AgendaItem);
         }
     }

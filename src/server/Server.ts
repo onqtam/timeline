@@ -6,7 +6,7 @@ import CommonParams from "../logic/CommonParams";
 import RouteInfo from "./RouteInfo";
 import CommentController from "./controllers/CommentController";
 import PodcastController from "./controllers/PodcastController";
-import UserController from './controllers/UserController';
+import UserController from "./controllers/UserController";
 
 export default class Server {
     public app: express.Application;

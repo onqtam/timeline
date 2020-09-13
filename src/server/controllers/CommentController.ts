@@ -1,18 +1,16 @@
 import { Request, Response } from "express";
 
 import Comment from "../../logic/entities/Comments";
-import { RandomIntegerDistribution } from "../../logic/RandomHelpers";
-import MathHelpers from "../../logic/MathHelpers";
 import RouteInfo from "../RouteInfo";
 import EncodingUtils from "../../logic/EncodingUtils";
-import { HTTPVerb } from '../../logic/HTTPVerb';
-import { getConnection, LessThanOrEqual, MoreThanOrEqual, FindManyOptions, Raw, getConnectionOptions, InsertResult, DeleteResult } from 'typeorm';
+import { HTTPVerb } from "../../logic/HTTPVerb";
+import { getConnection } from "typeorm";
 import Timepoint from "../../logic/entities/Timepoint";
 import User from "../../logic/entities/User";
-import VoteCommentRecord from '../../logic/entities/UserRecords';
-import UserActivity from '../../logic/entities/UserActivity';
-import { Episode } from '../../logic/entities/Episode';
-import CommentGenerator from "../../tools/utils/CommentGenerator";
+import VoteCommentRecord from "../../logic/entities/UserRecords";
+import UserActivity from "../../logic/entities/UserActivity";
+import { Episode } from "../../logic/entities/Episode";
+
 export default class CommentController {
     public static getRoutes(): RouteInfo[] {
         return [{
@@ -61,6 +59,7 @@ export default class CommentController {
             // so we do this incredibly ugly thing (the part after getRawEntities) which was simply copied from the impl
             // of findDescendantsTree
             const commentRepository = getConnection().getTreeRepository(Comment);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const commentRepoAsAny = commentRepository as any;
             return commentRepository
                 .createDescendantsQueryBuilder("comment", "commentClosure", c)
@@ -71,7 +70,7 @@ export default class CommentController {
                     commentRepoAsAny.buildChildrenEntityTree(c, entitiesAndScalars.entities, relationMaps);
                     return c;
                 });
-        }
+        };
         const query_completeTrees: Promise<Comment[]> = Promise.all(rootsWithinInterval.map(getTreeOfRoot));
         const completeTrees: Comment[] = await query_completeTrees;
         response.end(EncodingUtils.jsonify(completeTrees));
@@ -84,12 +83,12 @@ export default class CommentController {
         const FIXED_TIMESLOT_SIZE: number = 60; // Group every X seconds together
 
         type CommentDensityRecord = {
-            timeslotIndex: number,
-            commentCount: number
+            timeslotIndex: number;
+            commentCount: number;
         };
         const commentTimeslotHistogram: CommentDensityRecord[] = await getConnection()
             .createQueryBuilder(Comment, "comment")
-            .select(`comment.\"timepointSeconds\" / ${FIXED_TIMESLOT_SIZE}`, "timeslotIndex")
+            .select(`comment."timepointSeconds" / ${FIXED_TIMESLOT_SIZE}`, "timeslotIndex")
             .addSelect("count(*)", "commentCount")
             .where("comment.\"episodeId\" = :episodeId", params) // For this episode
             .groupBy("\"timeslotIndex\"")
@@ -117,7 +116,7 @@ export default class CommentController {
         const params = {
             userId: ~~request.header("Timeline-User-Id")!,
             commentId: ~~request.body.commentId,
-            wasVotePositive: request.body.wasVotePositive,
+            wasVotePositive: request.body.wasVotePositive
         };
         console.log("Received params: ", JSON.stringify(params));
 
@@ -131,7 +130,8 @@ export default class CommentController {
             .createQueryBuilder(VoteCommentRecord, "voteRecord")
             .select()
             .where(
-                `voteRecord."owningActivityId" = :activityId AND voteRecord."commentId" = :commentId`,
+                "voteRecord.\"owningActivityId\" = :activityId AND voteRecord.\"commentId\" = :commentId",
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 { activityId: (user as any).activity_id, commentId: params.commentId }
             )
             .getOne();
@@ -149,6 +149,7 @@ export default class CommentController {
         if (!existingRecord) {
             const userActivity: UserActivity = await getConnection()
                 .createQueryBuilder(UserActivity, "activity")
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 .whereInIds([(user as any).activity_id])
                 .execute();
 
@@ -167,7 +168,7 @@ export default class CommentController {
                 .createQueryBuilder(VoteCommentRecord, "voteRecord")
                 .update()
                 .where(
-                    `voteRecord."owningActivityId" = :activityId AND voteRecord."commentId" = :commentId`,
+                    "voteRecord.\"owningActivityId\" = :activityId AND voteRecord.\"commentId\" = :commentId",
                     { activityId: user.activity.id, commentId: params.commentId }
                 )
                 .set({ wasVotePositive: params.wasVotePositive })
@@ -196,7 +197,7 @@ export default class CommentController {
     private static async revertVote(request: Request, response: Response): Promise<void> {
         const params = {
             userId: ~~request.header("Timeline-User-Id")!,
-            commentId: ~~request.body.commentId,
+            commentId: ~~request.body.commentId
         };
         console.log("Received params: ", JSON.stringify(params));
 
@@ -210,7 +211,7 @@ export default class CommentController {
             .createQueryBuilder(VoteCommentRecord, "voteRecord")
             .delete()
             .where(
-                `voteRecord."owningActivityId" = :activityId AND voteRecord."commentId" = :commentId`,
+                "voteRecord.\"owningActivityId\" = :activityId AND voteRecord.\"commentId\" = :commentId",
                 { activityId: user.activity.id, commentId: params.commentId }
             )
             .returning("voteRecord")
@@ -236,7 +237,6 @@ export default class CommentController {
         response.end();
     }
 
-
     private static async postComment(request: Request, response: Response): Promise<void> {
         console.log("ma h ", request.body);
         const params = {
@@ -257,7 +257,7 @@ export default class CommentController {
             .whereInIds([params.episodeId])
             .getOne();
 
-        let newComment = new Comment();
+        const newComment = new Comment();
         newComment.content = params.content;
         newComment.date = new Date();
         newComment.downVotes = 0;
@@ -272,7 +272,7 @@ export default class CommentController {
         // TODO: Rework the calls to treeRepo.save as SQL queries
         if (params.commentToReplyToId) {
             const query_parentComment: Promise<Comment | undefined> = commentRepo.findOne(params.commentToReplyToId);
-            let parentComment = await commentRepo.findDescendantsTree((await query_parentComment)!);
+            const parentComment = await commentRepo.findDescendantsTree((await query_parentComment)!);
             if (parentComment.replies === undefined) {
                 parentComment.replies = [];
             }

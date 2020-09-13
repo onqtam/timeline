@@ -13,7 +13,6 @@ import store from "@/client/store";
 import Timepoint from "@/logic/entities/Timepoint";
 import { default as AudioFile, AudioWindow } from "@/logic/AudioFile";
 import { default as Comment } from "@/logic/entities/Comments";
-import { Episode } from "@/logic/entities/Episode";
 
 import VButton from "@/client/components/primitives/VButton.vue";
 import TimelinePlayer from "@/client/components/TimelinePlayer.vue";

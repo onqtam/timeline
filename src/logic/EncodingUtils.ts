@@ -3,8 +3,8 @@ export interface IReviveFromJSON {
     // or reconstruct lost primitive types like Date or Timepoint
     reviveSubObjects(): void;
 }
-
-export function isRevivable<T>(obj: Object): obj is IReviveFromJSON {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function isRevivable<T>(obj: Record<string, any>): obj is IReviveFromJSON {
     return "reviveSubObjects" in obj;
 }
 
@@ -15,9 +15,10 @@ export default class EncodingUtils {
         return JSON.stringify(obj, null, 2);
     }
 
-    public static reviveObjectAs<T>(obj: Object, constructorFunc: { new(...args: any[]): T}): void {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    public static reviveObjectAs<T>(obj: Record<string, any>, constructorFunc: { new(...args: any[]): T}): void {
         if (obj instanceof Array) {
-            for (let parsedElement of obj as T[]) {
+            for (const parsedElement of obj as T[]) {
                 console.assert(!(parsedElement instanceof Array));
                 this.reviveObjectAs(parsedElement, constructorFunc);
             }
