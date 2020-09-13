@@ -1,8 +1,5 @@
 <template>
     <div>
-        <VButton @click=regenerateComments>
-            Regenerate Comments
-        </VButton>
         <TimelinePlayer ref="timeline-player" class="timeline-player" />
         <CommentSection ref="comment-section" />
     </div>
@@ -13,10 +10,9 @@ import { Component, Vue, Prop } from "vue-property-decorator";
 import { Route, NavigationGuardNext } from "vue-router";
 import store from "@/client/store";
 
-import Timepoint from "@/logic/Timepoint";
+import Timepoint from "@/logic/entities/Timepoint";
 import { default as AudioFile, AudioWindow } from "@/logic/AudioFile";
-import { default as CommentThread } from "@/logic/Comments";
-import { Episode } from "@/logic/entities/Episode";
+import { default as Comment } from "@/logic/entities/Comments";
 
 import VButton from "@/client/components/primitives/VButton.vue";
 import TimelinePlayer from "@/client/components/TimelinePlayer.vue";
@@ -62,7 +58,7 @@ export default class ListenView extends Vue {
     public get audioFile(): AudioFile {
         return store.state.listen.audioFile;
     }
-    public get allThreads(): CommentThread[] {
+    public get allThreads(): Comment[] {
         return store.state.listen.allThreads;
     }
     public get audioWindow(): AudioWindow {
@@ -74,18 +70,9 @@ export default class ListenView extends Vue {
 
         if (!episodeToPlay) {
             console.error("No such episode exists!");
-            console.warn("Setting default episode for development purposes");
-            const defaultEpisode = new Episode();
-            defaultEpisode.title = "Test";
-            defaultEpisode.description = "test test";
-            defaultEpisode.publicationDate = new Date();
-            defaultEpisode.audioURL = "../assets/Making_Sense_206_Frum.mp3";
-            defaultEpisode.durationInSeconds = 5403;
-            defaultEpisode.imageURL = "";
-            store.commit.listen.setActiveEpisode(defaultEpisode);
             return;
         }
-        store.commit.listen.setActiveEpisode(episodeToPlay);
+        store.dispatch.listen.loadEpisode(episodeToPlay);
     }
     public mounted(): void {
         if (this.initialTimepoint) {
@@ -98,10 +85,6 @@ export default class ListenView extends Vue {
                 (this.$refs["comment-section"] as CommentSection).focusThread(this.threadIdToFocus!);
             });
         }
-    }
-
-    public regenerateComments(): void {
-        store.commit.listen.regenerateComments();
     }
 }
 </script>

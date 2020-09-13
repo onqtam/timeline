@@ -22,24 +22,20 @@ import EpisodeComponent from "@/client/components/Episode.vue";
 const beforeRouteChange = (to: Route, from: Route, next: NavigationGuardNext<EpisodesView>, existingView: EpisodesView|undefined) => {
     const podcastTitle = to.params.podcastTitle as string;
     console.assert(podcastTitle !== undefined);
-    // TODO: This is a hack because the data in the store might not be loaded yet
-    // Continiously retry and wait for it to be loaded until some limit
-    const timeLimit = 5000;
-    const timeAtStart = new Date();
-    const checkIfPodcastDataIsLoaded = () => {
-        const podcast: Podcast = store.state.podcast.allPodcasts[podcastTitle];
-        const timeSpentTrying = (new Date().getTime() - timeAtStart.getTime());
-        if (!podcast || timeSpentTrying <= timeLimit) {
-            setTimeout(checkIfPodcastDataIsLoaded, 16);
-            return;
-        }
+
+    const displayPage = () => {
+        const podcast: Podcast|undefined = store.state.podcast.allPodcasts.find(p => p.titleAsURL === podcastTitle);
+        // TODO: handle not found case
         if (existingView) {
             Object.assign(existingView.podcast, podcast);
         } else {
-            next(view => Object.assign(view.podcast, podcast));
+            next(view => {
+                console.log(view);
+                Object.assign(view.podcast, podcast);
+            });
         }
     };
-    checkIfPodcastDataIsLoaded();
+    store.dispatch.podcast.initPodcastData().then(displayPage);
 };
 
 @Component({

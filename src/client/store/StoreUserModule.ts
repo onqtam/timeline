@@ -1,54 +1,50 @@
-import User, { VotedCommentRecord, UserActivity } from "@/logic/User";
+import User from "@/logic/entities/User";
+import VoteCommentRecord from "@/logic/entities/UserRecords";
+import { ActionContext } from "vuex";
+import CommonParams from "@/logic/CommonParams";
+import AsyncLoader from "../utils/AsyncLoader";
+import { HTTPVerb } from "@/logic/HTTPVerb";
 
 export interface IStoreUserModule {
     info: User;
+    isAuthenticated: boolean;
 }
 
 export class StoreUserViewModel implements IStoreUserModule {
     public info: User;
-
+    public get isAuthenticated(): boolean {
+        return Number.isInteger(this.info.id);
+    }
     constructor() {
         this.info = new User();
-        this.info.shortName = "DEFAULT";
-        this.createUser();
     }
 
     // Should only be called by other modules!
-    public recordVote(votedComment: VotedCommentRecord): void {
+    public recordVote(votedComment: {commentId: number; wasVotePositive: boolean}): void {
         // TODO: move to a map and don't bother with management of existing keys
-        const record = this.info.activity.votedComments.find(record => record.commentId === votedComment.commentId);
+        const record = this.info.activity.voteRecords.find(record => record.commentId === votedComment.commentId);
         if (record) {
             record.wasVotePositive = votedComment.wasVotePositive;
         } else {
-            this.info.activity.votedComments.push(votedComment);
+            this.info.activity.voteRecords.push(votedComment as unknown as VoteCommentRecord);
         }
-        this.saveUserToLocalStorage();
     }
     public revertVote(commentId: number): void {
-        const recordIndex = this.info.activity.votedComments.findIndex(record => record.commentId === commentId);
+        // TODO: Server-side
+        const recordIndex = this.info.activity.voteRecords.findIndex(record => record.commentId === commentId);
         if (recordIndex !== -1) {
-            this.info.activity.votedComments.splice(recordIndex, 1);
-        }
-        this.saveUserToLocalStorage();
-    }
-
-    private createUser(): void {
-        const dataInStorage = localStorage.getItem("user-info");
-        if (dataInStorage !== null) {
-            this.loadUserFromJSON(dataInStorage);
+            this.info.activity.voteRecords.splice(recordIndex, 1);
         }
     }
-
-    private loadUserFromJSON(json: string): void {
-        type RawUserActivity = { votedComments: VotedCommentRecord[] };
-        type RawUser = { shortName: string; activity: UserActivity };
-
-        const rawUser = JSON.parse(json);
-        this.info.shortName = rawUser.shortName;
-        this.info.activity.votedComments = rawUser.activity.votedComments;
+    public loadUser(): Promise<User> {
+        console.log("Fetching user data");
+        const restURL: string = `${CommonParams.APIServerRootURL}\\user\\`;
+        const query_user = AsyncLoader.makeRestRequest(restURL, HTTPVerb.Get, null, User) as Promise<User>;
+        return query_user;
     }
-    private saveUserToLocalStorage(): void {
-        localStorage.setItem("user-info", JSON.stringify(this.info));
+    public internalSetActiveUser(user: User): void {
+        this.info = user;
+        console.log("User data loaded from the server");
     }
 }
 
@@ -60,11 +56,22 @@ export default {
     namespaced: true as true,
     state: userModule,
     mutations: {
-        recordVote: (state: StoreUserViewModel, votedComment: VotedCommentRecord): void => {
+        localRecordVote: (state: StoreUserViewModel, votedComment: {commentId: number; wasVotePositive: boolean}): void => {
             state.recordVote(votedComment);
         },
-        revertVote: (state: StoreUserViewModel, commentId: number): void => {
+        localRevertVote: (state: StoreUserViewModel, commentId: number): void => {
             state.revertVote(commentId);
+        },
+        internalSetActiveUser: (state: StoreUserViewModel, user: User): void => {
+            state.internalSetActiveUser(user);
+        }
+    },
+    actions: {
+        loadUser: (context: ActionContext<StoreUserViewModel, StoreUserViewModel>): Promise<void> => {
+            return context.state.loadUser()
+                .then(user => {
+                    context.commit("internalSetActiveUser", user);
+                });
         }
     }
 };

@@ -1,6 +1,8 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from "typeorm";
 
 import { Episode, AgendaItem } from "./Episode";
+import CommonParams from "../CommonParams";
+import EncodingUtils, { IReviveFromJSON } from "../EncodingUtils";
 
 export { Episode, AgendaItem };
 
@@ -9,23 +11,42 @@ const convertTitleToURLSection = (title: string) => {
 };
 
 @Entity()
-export class Podcast {
+export class Podcast implements IReviveFromJSON {
     @PrimaryGeneratedColumn()
-    public id: number = 0;
+    public id!: number;
     @Column()
-    public title: string = "";
+    public title!: string;
     @Column()
-    public description: string = "";
+    public description!: string;
     @Column()
-    public author: string = "";
+    public author!: string;
     @Column()
-    public link: string = "";
+    public link!: string;
     @Column()
-    public imageURL: string = "";
-    @OneToMany(() => Episode, episode => episode.owningPodcast, { cascade: true })
-    public episodes: Episode[] = [];
+    public imageURL!: string;
+    @OneToMany(() => Episode, episode => episode.owningPodcast, { cascade: true, eager: true })
+    public episodes!: Episode[];
 
     public get titleAsURL(): string {
         return convertTitleToURLSection(this.title);
+    }
+
+    constructor() {
+        if (CommonParams.IsRunningOnClient) {
+            this.id = -1;
+            this.title = "";
+            this.description = "";
+            this.author = "";
+            this.link = "";
+            this.imageURL = "";
+            this.episodes = [];
+        }
+    }
+
+    public reviveSubObjects(): void {
+        // We only need to update the prototypes of our episodes
+        for (const episode of this.episodes) {
+            EncodingUtils.reviveObjectAs(episode, Episode);
+        }
     }
 }

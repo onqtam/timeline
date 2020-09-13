@@ -32,7 +32,7 @@
 | `npm run build-server` | Build server for production |
 | `npm run lint` | Run linter |
 | `npm run lint-autofix` | Run linter and autofix errors |
-| `npm run updatedb` | Fetches the latest data for all of our podcasts and episodes and stores in the DB |
+| `npm run db -- <command>` | A multi-purpose tool which manages interactions with the database. Run `npm run db -- --help` for a list of commands |
 
 ### Recommended process
 

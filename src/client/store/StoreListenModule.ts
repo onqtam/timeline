@@ -1,31 +1,40 @@
 import store from "@/client/store";
-import Timepoint from "@/logic/Timepoint";
+import Timepoint from "@/logic/entities/Timepoint";
 import { default as AudioFile, AudioWindow } from "@/logic/AudioFile";
-import { Comment, default as CommentThread } from "@/logic/Comments";
+import Comment from "@/logic/entities/Comments";
 import MathHelpers from "@/logic/MathHelpers";
-import { RandomIntegerDistribution } from "@/logic/RandomHelpers";
 import { Episode } from "@/logic/entities/Podcast";
 import { ActiveAppMode } from "./StoreDeviceInfoModule";
+import AsyncLoader from "../utils/AsyncLoader";
+import CommonParams from "@/logic/CommonParams";
+import { HTTPVerb } from "@/logic/HTTPVerb";
+import { ActionContext } from "vuex";
 
 export interface IStoreListenModule {
     audioFile: AudioFile;
-    allThreads: CommentThread[];
+    allThreads: Comment[];
     audioPos: Timepoint;
     audioWindow: AudioWindow;
     volume: number;
 }
 
-// Declare JSON-equivalent types for type checking
-type RawComment = { id: string; author: string; content: string; date: string; upVotes: string; downVotes: string };
-type RawThread = { id: string; timepoint: {seconds: string}; threadHead: RawComment; threadTail: (RawComment | RawThread)[] };
-type ThreadsPerEpisode = Record<string, RawThread[]>;
-const LOCAL_STORAGE_KEY = "comment-data-per-episode";
+type Histogram = {
+    xAxis: number[];
+    yAxis: number[];
+    xAxisDistance: number;
+};
+
+type FullCommentData = {
+    allComments: Comment[];
+    commentDensityHistogram: Histogram;
+}
 class StoreListenViewModel implements IStoreListenModule {
     public audioFile!: AudioFile;
     public audioPos!: Timepoint;
     public audioWindow!: AudioWindow;
     public volume!: number;
-    public allThreads!: CommentThread[];
+    public allThreads!: Comment[];
+    public commentDensityHistogram: Histogram;
     public activeEpisode!: Episode;
 
     // TODO: Comments in an episode need to be stored in a database of some kind
@@ -39,14 +48,30 @@ class StoreListenViewModel implements IStoreListenModule {
         this.volume = 0.15;
         this.allThreads = [];
         this.currentEpisodeKey = "";
+
+        this.commentDensityHistogram = {
+            xAxis: [],
+            yAxis: [],
+            xAxisDistance: 0
+        };
     }
 
     public setActiveEpisode(episode: Episode): void {
         this.activeEpisode = episode;
         this.audioFile.filepath = episode.audioURL;
         this.audioFile.duration = episode.durationInSeconds;
-        const episodeKey = episode.titleAsURL;
-        this.createComments(episodeKey);
+    }
+
+    public setActiveEpisodeComments(commentData: FullCommentData): void {
+        this.allThreads = commentData.allComments;
+        this.commentDensityHistogram = commentData.commentDensityHistogram;
+        // The received histograms doesn't contain values beyond the last comment
+        // so fill in trailing zeros
+        // TODO: Figure out how to do this faster
+        const valueCount: number = ~~(this.audioFile.duration / this.commentDensityHistogram.xAxisDistance);
+        this.commentDensityHistogram.xAxis.length = valueCount;
+        this.commentDensityHistogram.xAxis.fill(0);
+        console.log("Comments for active episode updated");
     }
 
     public setAudioWindowSlots(newSlotCount: number): void {
@@ -88,31 +113,25 @@ class StoreListenViewModel implements IStoreListenModule {
         }
     }
 
-    public postNewCommentThread(content: string): void {
-        const thread = new CommentThread();
-        thread.timepoint = new Timepoint(this.audioPos.seconds);
-        thread.threadHead = this.makeComment(content);
-        thread.threadTail = [];
-        this.allThreads.push(thread); // TODO: Binary insert to keep all threads ordered?
-        this.saveCommentsToLocalStorage();
+    public localPostNewComment(commentToReplyTo: Comment|undefined, content: string): void {
+        const comment = new Comment();
+        comment.id = ~~(Math.random() * 99999); // Generate a random id to avoid conflicting keys in vue
+        comment.author = store.state.user.info;
+        comment.episode = this.activeEpisode;
+        comment.content = content;
+        comment.date = new Date();
+        comment.timepoint = new Timepoint(this.audioPos.seconds);
+        comment.upVotes = 0;
+        comment.downVotes = 0;
+        if (commentToReplyTo) {
+            commentToReplyTo.replies.push(comment);
+        } else {
+            this.allThreads.push(comment);
+        }
     }
 
-    public postReply(parentThread: CommentThread, commentToReplyTo: Comment, content: string): void {
-        const newComment = this.makeComment(content);
-        if (parentThread.threadHead === commentToReplyTo) {
-            // Replying to the head, just append
-            parentThread.threadTail.push(newComment);
-        } else {
-            // Gotta start a new subthread
-            const commentIndex = parentThread.threadTail.indexOf(commentToReplyTo);
-            const subThread = new CommentThread();
-            subThread.timepoint = parentThread.timepoint;
-            subThread.threadHead = commentToReplyTo;
-            subThread.threadTail = [newComment];
-            // Splice, don't assign so that Vue catches the change
-            parentThread.threadTail.splice(commentIndex, 1, subThread);
-        }
-        this.saveCommentsToLocalStorage();
+    public isVoteValid(comment: Comment, isVotePositive: boolean|undefined): boolean {
+        return store.state.user.info.activity.getVoteOnComment(comment.id) !== isVotePositive;
     }
 
     public vote(comment: Comment, isVotePositive: boolean): void {
@@ -124,8 +143,7 @@ class StoreListenViewModel implements IStoreListenModule {
         }
         comment.upVotes += ~~isVotePositive;
         comment.downVotes += ~~!isVotePositive;
-        store.commit.user.recordVote({ commentId: comment.id, wasVotePositive: isVotePositive });
-        this.saveCommentsToLocalStorage();
+        store.commit.user.localRecordVote({ commentId: comment.id, wasVotePositive: isVotePositive });
     }
 
     public revertVote(comment: Comment): void {
@@ -134,94 +152,50 @@ class StoreListenViewModel implements IStoreListenModule {
         // revert the previous vote
         comment.upVotes -= ~~existingVoteRecord!;
         comment.downVotes -= ~~!existingVoteRecord!;
-        store.commit.user.revertVote(comment.id);
-        this.saveCommentsToLocalStorage();
+        store.commit.user.localRevertVote(comment.id);
     }
 
-    public regenerateComments(): void {
-        this.allThreads.splice(0, this.allThreads.length);
-
-        const commentsPerThread = new RandomIntegerDistribution([0, 1, 2, 3, 4, 5], [0.35, 0.2, 0.15, 0.05, 0.1, 0.15]);
-        const threadsPerTimeslot = new RandomIntegerDistribution([0, 1, 2, 3, 4, 5], [0.4, 0.15, 0.1, 0.1, 0.1, 0.15]);
-        const nestedness = 1;
-        const maxAudioDuration = 5403;
-        const chanceForNested = 0.15;
-        const timeslotDuration = 12;
-        for (let t = 0; t < maxAudioDuration; t += timeslotDuration) {
-            const threadsInSlot = threadsPerTimeslot.sample();
-            for (let i = 0; i < threadsInSlot; i++) {
-                let newThread: CommentThread;
-                const commentsForCurrentThread = commentsPerThread.sample();
-                if (Math.random() <= chanceForNested) {
-                    newThread = CommentThread.generateRandomThreadWithChildren(commentsForCurrentThread, nestedness);
-                } else {
-                    newThread = CommentThread.generateRandomThread(commentsForCurrentThread);
-                }
-                newThread.timepoint.seconds = MathHelpers.randInRange(t, t + timeslotDuration);
-                this.allThreads.push(newThread);
-            }
-        }
-    }
-
-    // Internal API
-    private makeComment(content: string): Comment {
-        const comment = new Comment();
-        comment.author = store.state.user.info.shortName;
-        comment.content = content;
-        comment.date = new Date();
-        return comment;
-    }
-
-    private createComments(episodeKey: string): void {
-        this.currentEpisodeKey = episodeKey;
-        const commentData: string | null = localStorage.getItem(LOCAL_STORAGE_KEY + episodeKey);
-        const rawCommentThreads: RawThread[]|undefined = JSON.parse(commentData || "{}");
-        if (rawCommentThreads) {
-            this.loadCommentsFromJSON(rawCommentThreads);
-        } else {
-            // TODO: don't need to prune everything
-            localStorage.clear();
-            this.regenerateComments();
-        }
-    }
-
-    private loadCommentsFromJSON(rawCommentThreads: RawThread[]): void {
-        const loadComment = (rawComment: RawComment) => {
-            const comment = new Comment();
-            comment.id = ~~rawComment.id;
-            comment.author = rawComment.author;
-            comment.content = rawComment.content;
-            comment.date = new Date(rawComment.date);
-            comment.upVotes = ~~rawComment.upVotes;
-            comment.downVotes = ~~rawComment.downVotes;
-            return comment;
+    public async loadCommentData(episode: Episode): Promise<FullCommentData> {
+        console.log(`Fetching ALL comments for episode ${episode.id}`);
+        const loadCommentsURL: string = `${CommonParams.APIServerRootURL}/comments/${episode.id}/${0}-${episode.durationInSeconds}`;
+        const query_comments = AsyncLoader.makeRestRequest(loadCommentsURL, HTTPVerb.Get, null, Comment) as Promise<Comment[]>;
+        const loadHistogramURL: string = `${CommonParams.APIServerRootURL}/comments/histogram/${episode.id}`;
+        const query_histogram = AsyncLoader.makeRestRequest(loadHistogramURL, HTTPVerb.Get, null) as Promise<Histogram>;
+        return {
+            allComments: await query_comments,
+            commentDensityHistogram: await query_histogram
         };
-        const loadThread = (rawThread: RawThread) => {
-            const newThread = new CommentThread();
-            newThread.timepoint = new Timepoint(~~rawThread.timepoint.seconds);
-            newThread.id = ~~rawThread.id;
-            newThread.threadHead = loadComment(rawThread.threadHead);
-            newThread.threadTail = [];
-            for (let i = 0; i < rawThread.threadTail.length; i++) {
-                const rawCommentPrimitive: RawComment | RawThread = rawThread.threadTail[i];
-                if ("author" in rawCommentPrimitive) {
-                    newThread.threadTail.push(loadComment(rawCommentPrimitive));
-                } else {
-                    newThread.threadTail.push(loadThread(rawCommentPrimitive));
-                }
-            }
-            return newThread;
-        };
-
-        this.allThreads.splice(0, this.allThreads.length);
-        for (let i = 0; i < rawCommentThreads.length; i++) {
-            this.allThreads.push(loadThread(rawCommentThreads[i]));
-        }
-        this.saveCommentsToLocalStorage();
     }
 
-    private saveCommentsToLocalStorage(): void {
-        localStorage.setItem(LOCAL_STORAGE_KEY + this.currentEpisodeKey, JSON.stringify(this.allThreads));
+    public async storeServerVote(comment: Comment, wasVotePositive: boolean): Promise<void> {
+        const URL: string = `${CommonParams.APIServerRootURL}/comments/vote/`;
+        const requestBody = {
+            commentId: comment.id,
+            wasVotePositive: wasVotePositive
+        };
+        const query_storeVote = AsyncLoader.makeRestRequest(URL, HTTPVerb.Post, requestBody) as Promise<void>;
+        return query_storeVote;
+    }
+
+    public async storeServerVoteRevert(comment: Comment): Promise<void> {
+        const URL: string = `${CommonParams.APIServerRootURL}/comments/vote/`;
+        const requestBody = {
+            commentId: comment.id
+        };
+        const query_revertVote = AsyncLoader.makeRestRequest(URL, HTTPVerb.Delete, requestBody) as Promise<void>;
+        return query_revertVote;
+    }
+
+    public async storeServerNewComment(commentToReply: Comment|undefined, content: string): Promise<void> {
+        const URL: string = `${CommonParams.APIServerRootURL}/comments/`;
+        const requestBody = {
+            commentToReplyToId: commentToReply?.id || null,
+            episodeId: this.activeEpisode.id,
+            timepointSeconds: this.audioPos.seconds,
+            content: content
+        };
+        const query_postNewComment = AsyncLoader.makeRestRequest(URL, HTTPVerb.Post, requestBody) as Promise<void>;
+        return query_postNewComment;
     }
 }
 
@@ -233,8 +207,21 @@ export default {
     namespaced: true as true,
     state: listenModule,
     mutations: {
-        setActiveEpisode: (state: StoreListenViewModel, episode: Episode): void => {
+        // Should only be called by the loadEpisode action
+        internalSetActiveEpisode: (state: StoreListenViewModel, episode: Episode): void => {
             state.setActiveEpisode(episode);
+        },
+        internalSetActiveEpisodeComments: (state: StoreListenViewModel, commentData: FullCommentData): void => {
+            state.setActiveEpisodeComments(commentData);
+        },
+        internalLocalPostNewComment: (state: StoreListenViewModel, payload: { commentToReplyTo: Comment|undefined; content: string }): void => {
+            state.localPostNewComment(payload.commentToReplyTo, payload.content);
+        },
+        internalLocalVote: (state: StoreListenViewModel, payload: { comment: Comment; isVotePositive: boolean}): void => {
+            state.vote(payload.comment, payload.isVotePositive);
+        },
+        internalLocalRevertVote: (state: StoreListenViewModel, comment: Comment): void => {
+            state.revertVote(comment);
         },
         resizeAudioWindow: (state: StoreListenViewModel, newDuration: number): void => {
             state.resizeAudioWindow(newDuration);
@@ -250,21 +237,35 @@ export default {
         },
         updateTimeslotCount: (state: StoreListenViewModel, appMode: ActiveAppMode): void => {
             state.updateTimeslotCount(appMode);
+        }
+    },
+    actions: {
+        loadEpisode: (context: ActionContext<StoreListenViewModel, StoreListenViewModel>, episode: Episode): Promise<void> => {
+            context.commit("internalSetActiveEpisode", episode);
+
+            return context.state.loadCommentData(episode)
+                .then((commentData: FullCommentData) => {
+                    context.commit("internalSetActiveEpisodeComments", commentData);
+                });
         },
-        postNewCommentThread: (state: StoreListenViewModel, content: string): void => {
-            state.postNewCommentThread(content);
+        postComment: (context: ActionContext<StoreListenViewModel, StoreListenViewModel>, payload: { commentToReplyTo: Comment|undefined; content: string }): Promise<void> => {
+            context.commit("internalLocalPostNewComment", payload);
+            return context.state.storeServerNewComment(payload.commentToReplyTo, payload.content);
         },
-        postReply: (state: StoreListenViewModel, payload: { parentThread: CommentThread; commentToReplyTo: Comment; content: string }): void => {
-            state.postReply(payload.parentThread, payload.commentToReplyTo, payload.content);
+        vote: (context: ActionContext<StoreListenViewModel, StoreListenViewModel>, payload: { comment: Comment; isVotePositive: boolean}): Promise<void> => {
+            if (context.state.isVoteValid(payload.comment, payload.isVotePositive)) {
+                // Commit locally to update the UI immediately
+                context.commit("internalLocalVote", payload);
+                return context.state.storeServerVote(payload.comment, payload.isVotePositive);
+            }
+            return Promise.resolve();
         },
-        vote: (state: StoreListenViewModel, payload: { comment: Comment; isVotePositive: boolean}): void => {
-            state.vote(payload.comment, payload.isVotePositive);
-        },
-        revertVote: (state: StoreListenViewModel, comment: Comment): void => {
-            state.revertVote(comment);
-        },
-        regenerateComments: (state: StoreListenViewModel): void => {
-            state.regenerateComments();
+        revertVote: (context: ActionContext<StoreListenViewModel, StoreListenViewModel>, comment: Comment): Promise<void> => {
+            if (context.state.isVoteValid(comment, undefined)) {
+                context.commit("internalLocalRevertVote", comment);
+                return context.state.storeServerVoteRevert(comment);
+            }
+            return Promise.resolve();
         }
     }
 };
