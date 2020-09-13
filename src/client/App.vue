@@ -8,12 +8,11 @@
     </div>
 </template>
 
-
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 
 import VButton from "@/client/components/primitives/VButton.vue";
-import store from './store';
+import store from "./store";
 
 @Component({
     components: {

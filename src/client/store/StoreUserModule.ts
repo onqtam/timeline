@@ -1,11 +1,9 @@
 import User from "@/logic/entities/User";
-import VoteCommentRecord from '@/logic/entities/UserRecords';
-import UserActivity from '@/logic/entities/UserActivity';
-import { ActionContext } from 'vuex';
-import CommonParams from '@/logic/CommonParams';
-import AsyncLoader from '../utils/AsyncLoader';
-import { HTTPVerb } from '@/logic/HTTPVerb';
-import { isNumber } from 'util';
+import VoteCommentRecord from "@/logic/entities/UserRecords";
+import { ActionContext } from "vuex";
+import CommonParams from "@/logic/CommonParams";
+import AsyncLoader from "../utils/AsyncLoader";
+import { HTTPVerb } from "@/logic/HTTPVerb";
 
 export interface IStoreUserModule {
     info: User;
@@ -15,14 +13,14 @@ export interface IStoreUserModule {
 export class StoreUserViewModel implements IStoreUserModule {
     public info: User;
     public get isAuthenticated(): boolean {
-        return isNumber(this.info.id);
+        return Number.isInteger(this.info.id);
     }
     constructor() {
         this.info = new User();
     }
 
     // Should only be called by other modules!
-    public recordVote(votedComment: {commentId: number, wasVotePositive: boolean}): void {
+    public recordVote(votedComment: {commentId: number; wasVotePositive: boolean}): void {
         // TODO: move to a map and don't bother with management of existing keys
         const record = this.info.activity.voteRecords.find(record => record.commentId === votedComment.commentId);
         if (record) {
@@ -39,7 +37,7 @@ export class StoreUserViewModel implements IStoreUserModule {
         }
     }
     public loadUser(): Promise<User> {
-        console.log(`Fetching user data`);
+        console.log("Fetching user data");
         const restURL: string = `${CommonParams.APIServerRootURL}\\user\\`;
         const query_user = AsyncLoader.makeRestRequest(restURL, HTTPVerb.Get, null, User) as Promise<User>;
         return query_user;
@@ -58,7 +56,7 @@ export default {
     namespaced: true as true,
     state: userModule,
     mutations: {
-        localRecordVote: (state: StoreUserViewModel, votedComment: {commentId: number, wasVotePositive: boolean}): void => {
+        localRecordVote: (state: StoreUserViewModel, votedComment: {commentId: number; wasVotePositive: boolean}): void => {
             state.recordVote(votedComment);
         },
         localRevertVote: (state: StoreUserViewModel, commentId: number): void => {

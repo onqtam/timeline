@@ -1,8 +1,8 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from "typeorm";
 
 import { Episode, AgendaItem } from "./Episode";
-import CommonParams from '../CommonParams';
-import EncodingUtils, { IReviveFromJSON } from '../EncodingUtils';
+import CommonParams from "../CommonParams";
+import EncodingUtils, { IReviveFromJSON } from "../EncodingUtils";
 
 export { Episode, AgendaItem };
 
@@ -45,7 +45,7 @@ export class Podcast implements IReviveFromJSON {
 
     public reviveSubObjects(): void {
         // We only need to update the prototypes of our episodes
-        for (let episode of this.episodes) {
+        for (const episode of this.episodes) {
             EncodingUtils.reviveObjectAs(episode, Episode);
         }
     }

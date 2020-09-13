@@ -3,13 +3,12 @@ import Timepoint from "@/logic/entities/Timepoint";
 import { default as AudioFile, AudioWindow } from "@/logic/AudioFile";
 import Comment from "@/logic/entities/Comments";
 import MathHelpers from "@/logic/MathHelpers";
-import { RandomIntegerDistribution } from "@/logic/RandomHelpers";
 import { Episode } from "@/logic/entities/Podcast";
 import { ActiveAppMode } from "./StoreDeviceInfoModule";
-import AsyncLoader from '../utils/AsyncLoader';
-import CommonParams from '@/logic/CommonParams';
-import { HTTPVerb } from '@/logic/HTTPVerb';
-import { ActionContext } from 'vuex';
+import AsyncLoader from "../utils/AsyncLoader";
+import CommonParams from "@/logic/CommonParams";
+import { HTTPVerb } from "@/logic/HTTPVerb";
+import { ActionContext } from "vuex";
 
 export interface IStoreListenModule {
     audioFile: AudioFile;
@@ -20,17 +19,15 @@ export interface IStoreListenModule {
 }
 
 type Histogram = {
-    xAxis: number[],
-    yAxis: number[],
-    xAxisDistance: number
+    xAxis: number[];
+    yAxis: number[];
+    xAxisDistance: number;
 };
 
 type FullCommentData = {
-    allComments: Comment[],
-    commentDensityHistogram: Histogram
+    allComments: Comment[];
+    commentDensityHistogram: Histogram;
 }
-
-const LOCAL_STORAGE_KEY = "comment-data-per-episode";
 class StoreListenViewModel implements IStoreListenModule {
     public audioFile!: AudioFile;
     public audioPos!: Timepoint;
@@ -183,7 +180,7 @@ class StoreListenViewModel implements IStoreListenModule {
     public async storeServerVoteRevert(comment: Comment): Promise<void> {
         const URL: string = `${CommonParams.APIServerRootURL}/comments/vote/`;
         const requestBody = {
-            commentId: comment.id,
+            commentId: comment.id
         };
         const query_revertVote = AsyncLoader.makeRestRequest(URL, HTTPVerb.Delete, requestBody) as Promise<void>;
         return query_revertVote;

@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { HTTPVerb } from '../logic/HTTPVerb';
+import { HTTPVerb } from "../logic/HTTPVerb";
 
 export type RouteCallback = (request: Request, response: Response) => Promise<void>;
 

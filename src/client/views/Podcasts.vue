@@ -26,7 +26,7 @@ import PodcastComponent from "@/client/components/Podcast.vue";
     },
     beforeRouteEnter(to: Route, from: Route, next: NavigationGuardNext<PodcastsView>) {
         store.dispatch.podcast.initPodcastData().finally(next);
-    },
+    }
 })
 export default class PodcastsView extends Vue {
     public get podcasts(): Podcast[] {

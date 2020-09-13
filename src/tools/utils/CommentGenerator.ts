@@ -1,10 +1,10 @@
-import User from '../../logic/entities/User';
-import Comment from '../../logic/entities/Comments';
-import { RandomIntegerDistribution, RandomString } from '../../logic/RandomHelpers';
-import MathHelpers from '../../logic/MathHelpers';
-import Timepoint from '../../logic/entities/Timepoint';
-import { Episode } from '../../logic/entities/Episode';
-import VoteCommentRecord from '../../logic/entities/UserRecords';
+import User from "../../logic/entities/User";
+import Comment from "../../logic/entities/Comments";
+import { RandomIntegerDistribution, RandomString } from "../../logic/RandomHelpers";
+import MathHelpers from "../../logic/MathHelpers";
+import Timepoint from "../../logic/entities/Timepoint";
+import { Episode } from "../../logic/entities/Episode";
+import VoteCommentRecord from "../../logic/entities/UserRecords";
 
 export default class CommentGenerator {
     public users: User[];

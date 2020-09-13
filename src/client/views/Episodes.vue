@@ -31,7 +31,7 @@ const beforeRouteChange = (to: Route, from: Route, next: NavigationGuardNext<Epi
         } else {
             next(view => {
                 console.log(view);
-                Object.assign(view.podcast, podcast)
+                Object.assign(view.podcast, podcast);
             });
         }
     };

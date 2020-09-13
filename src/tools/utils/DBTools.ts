@@ -1,4 +1,4 @@
-import { getConnectionOptions, Connection, createConnection, getConnection, DeleteResult, InsertResult } from "typeorm";
+import { getConnectionOptions, Connection, createConnection, getConnection } from "typeorm";
 import xmldom from "xmldom";
 import pgtools from "pgtools";
 
@@ -7,11 +7,11 @@ import Timepoint from "../../logic/entities/Timepoint";
 import AsyncLoader from "./AsyncLoader";
 import { RandomString } from "../../logic/RandomHelpers";
 import { PostgresConnectionOptions } from "typeorm/driver/postgres/PostgresConnectionOptions";
-import CommentGenerator from './CommentGenerator';
-import User from '../../logic/entities/User';
+import CommentGenerator from "./CommentGenerator";
+import User from "../../logic/entities/User";
 import UserActivity from "../../logic/entities/UserActivity";
 import Comment from "../../logic/entities/Comments";
-import VoteCommentRecord from '../../logic/entities/UserRecords';
+import VoteCommentRecord from "../../logic/entities/UserRecords";
 
 // Podcast Info handling
 class ElementParserHelper {
@@ -78,7 +78,8 @@ function parsePodcastFromRSS(rssContent: string): Podcast | null {
         const episode = new Episode();
 
         // force set owningPodcast; cast to any as the prop is normally readonly but in this case it's appropriate to set it
-        (episode as any).owningPodcast = podcast;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (episode as unknown as any).owningPodcast = podcast;
         episode.title = episodeItem.firstChild("title").getText();
         episode.description = episodeItem.firstChild("description").getText();
         episode.publicationDate = new Date(episodeItem.firstChild("pubDate").getText());
@@ -225,20 +226,20 @@ export default class DBTools {
         // Can't delete the records in the table through the treeRepository (see issue #193 in typeorm)
         // so run some SQL
         await connection.createQueryBuilder()
-                .from("comment_closure", "comment_closure")
-                .delete()
-                .execute();
+            .from("comment_closure", "comment_closure")
+            .delete()
+            .execute();
         await connection.createQueryBuilder()
-                .from(Comment, "comment")
-                .delete()
-                .execute();
+            .from(Comment, "comment")
+            .delete()
+            .execute();
     }
 
     static async randomizeUsers(): Promise<User[]> {
         console.log("Inserting new data");
         const names = ["Nikola", "Viktor", "Dimitroff", "Kirilov", "onqtam", "podcastfan99"];
         const users: User[] = [];
-        for (let name of names) {
+        for (const name of names) {
             const user = new User();
             user.shortName = name;
             user.activity = new UserActivity();
@@ -272,9 +273,9 @@ export default class DBTools {
         const generator: CommentGenerator = new CommentGenerator(users, episode);
         const topLevelThreads: Comment[] = generator.generateRandomComments();
 
-        let allComments: Comment[] = [];
+        const allComments: Comment[] = [];
         let currentLevelComments: Comment[] = topLevelThreads;
-        while (currentLevelComments.length != 0) {
+        while (currentLevelComments.length !== 0) {
             await connection.getTreeRepository(Comment).save(currentLevelComments);
             currentLevelComments = currentLevelComments.flatMap(c => c.replies || []);
             allComments.splice(allComments.length - 1, 0, ...currentLevelComments);

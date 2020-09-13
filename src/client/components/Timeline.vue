@@ -63,9 +63,8 @@ import { AudioWindow } from "@/logic/AudioFile";
 import MathHelpers from "@/logic/MathHelpers";
 
 import VChart, { ChartType } from "./primitives/VChart.vue";
-import { IChartistData, IChartOptions, ILineChartOptions } from "chartist";
-import store from '../store';
-import Chartist from 'chartist';
+import Chartist, { IChartistData, ILineChartOptions } from "chartist";
+import store from "../store";
 
 export enum TimelineMode {
     Standard,
@@ -113,16 +112,15 @@ export default class Timeline extends Vue {
 
     public get chartData(): IChartistData {
         const histogram = store.state.listen.commentDensityHistogram;
-        if (this.$refs["chart"]) {
+        if (this.$refs.chart) {
             // Force update the chart element as Vue doesn't pick the changes for some reason
-            (this.$refs["chart"] as Vue).$forceUpdate();
+            (this.$refs.chart as Vue).$forceUpdate();
         }
         return {
             labels: histogram.xAxis,
-            series: [histogram.yAxis],
+            series: [histogram.yAxis]
         };
     }
-
 
     public get chartOptions(): ILineChartOptions {
         const histogram = store.state.listen.commentDensityHistogram;
@@ -140,7 +138,7 @@ export default class Timeline extends Vue {
             },
             axisY: {
                 showGrid: false,
-                offset: 0,
+                offset: 0
             }
         };
     }
