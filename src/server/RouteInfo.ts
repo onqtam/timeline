@@ -8,3 +8,10 @@ export default class RouteInfo {
     public verb!: HTTPVerb;
     public callback!: RouteCallback;
 }
+
+export type AuthRouteCallback = (request: Request, response: Response, next: Function) => Promise<void>;
+export class AuthRouteInfo {
+    public path!: string;
+    public verb!: HTTPVerb;
+    public callback!: AuthRouteCallback;
+}

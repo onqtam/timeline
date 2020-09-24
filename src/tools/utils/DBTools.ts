@@ -225,10 +225,13 @@ export default class DBTools {
 
         // Can't delete the records in the table through the treeRepository (see issue #193 in typeorm)
         // so run some SQL
-        await connection.createQueryBuilder()
-            .from("comment_closure", "comment_closure")
-            .delete()
-            .execute();
+        try {
+            // It's possible comment_closure doesn't exist yet, ignore the exception
+            await connection.createQueryBuilder()
+                .from("comment_closure", "comment_closure")
+                .delete()
+                .execute();
+        } catch(err) {}
         await connection.createQueryBuilder()
             .from(Comment, "comment")
             .delete()
@@ -242,6 +245,7 @@ export default class DBTools {
         for (const name of names) {
             const user = new User();
             user.shortName = name;
+            user.email = `${name}@gmail.com`;
             user.activity = new UserActivity();
             user.activity.internalDBDummyValue = ~~(Math.random() * Number.MAX_SAFE_INTEGER);
             users.push(user);

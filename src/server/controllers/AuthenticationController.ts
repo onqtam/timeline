@@ -1,0 +1,119 @@
+import { Request, Response } from "express";
+import passport from 'passport';
+import { OAuth2Strategy as GoogleStrategy } from "passport-google-oauth"
+import { getConnection } from "typeorm";
+import { AuthRouteInfo } from '../RouteInfo';
+import { HTTPVerb } from '../../logic/HTTPVerb';
+import User from '../../logic/entities/User';
+import UserActivity from '../../logic/entities/UserActivity';
+import CommonParams from '../../logic/CommonParams';
+
+
+type PassportVerifyOptions = { message: string; }
+type PassportVerifyFunction = (error: any, user?: any, msg?: PassportVerifyOptions) => void;
+interface IRedirectableSession extends Express.Session {
+    returnTo: string|undefined;
+}
+
+export default class AuthenticationController {
+    // Temporary testing credentials
+    public static readonly sessionSecret: string = "unpinch";
+    public static readonly googleClientID: string = "820058663273-0rnloh0gt9b8hhtukbn21s8v9fn3aj3i.apps.googleusercontent.com";
+    public static readonly googleClientSecret: string = "QsG90MiqmRgYlQArpk3qFTE8";
+
+    public static getRoutes(): AuthRouteInfo[] {
+        // Here's the sequence for Google authentication
+        // 1. Client calls /auth/google and passes a returnTo URL
+        // 2. Server redirects to Google's OAuth screen
+        // 3. Google redirects to /auth/google/callback
+        // 4. Server tells client where to redirect (returnTo URL)
+        return [{
+            path: "/auth/google",
+            verb: HTTPVerb.Get,
+            callback: AuthenticationController.beginGoogleAuth
+        }, {
+            path: "/auth/google/callback",
+            verb: HTTPVerb.Get,
+            callback: AuthenticationController.finishGoogleAuth
+        }, {
+            path: "/auth/google/callback",
+            verb: HTTPVerb.Get,
+            callback: AuthenticationController.redirectPostAuth
+        }];
+    }
+
+    public static setupPassport(): void {
+        passport.use(new GoogleStrategy({
+            clientID: AuthenticationController.googleClientID,
+            clientSecret: AuthenticationController.googleClientSecret,
+            callbackURL: "callback",
+          },
+          AuthenticationController.verifyUserCredentials
+        ));
+        passport.serializeUser(function(user: User, done: PassportVerifyFunction): void {
+            done(null, user.id);
+        });
+        passport.deserializeUser(function(id: number, done: PassportVerifyFunction): void {
+            getConnection()
+            .createQueryBuilder(User, "user")
+            .select()
+            .whereInIds([id])
+            .getOne()
+            .then(
+                (user: User|undefined) => done(null, user!),
+                (err: any) => done(err, null)
+            );
+        });
+    }
+
+    public static async verifyUserCredentials(token: string, tokenSecret: string, profile: passport.Profile, done: PassportVerifyFunction): Promise<void> {
+        const newUser = new User();
+        newUser.shortName = profile.displayName;
+        newUser.email = "test@test.com";
+        newUser.externalProviderId = `${profile.provider}_${profile.id}`;
+        newUser.activity = new UserActivity();
+        newUser.activity.internalDBDummyValue = ~~(Math.random() * Number.MAX_SAFE_INTEGER);
+
+        await getConnection()
+            .createQueryBuilder(User, "user")
+            .insert()
+            .values(newUser)
+            .onConflict(`("externalProviderId") DO NOTHING`)
+            .execute();
+        const user: User|undefined = await getConnection()
+            .createQueryBuilder(User, "user")
+            .select()
+            .where(`"user"."externalProviderId" = :externalProviderId`, newUser)
+            .getOne();
+        console.log("Logged in user: ", user);
+        done(undefined, user!);
+    }
+    public static async beginGoogleAuth(request: Request, response: Response, next: Function): Promise<void> {
+        const params = {
+            returnTo: request.query["returnTo"] as string
+        };
+        if (params.returnTo) {
+            request.session = request.session || {} as Express.Session;
+            (request.session! as IRedirectableSession).returnTo = params.returnTo;
+            console.log("will redirect back to ", params.returnTo);
+        }
+        const passportAuthRule = passport.authenticate("google", {
+            scope: ['https://www.googleapis.com/auth/plus.login'],
+        });
+        passportAuthRule(request, response, next);
+    }
+    public static async finishGoogleAuth(request: Request, response: Response, next: Function): Promise<void> {
+        const passportAuthRule = passport.authenticate('google', {
+            failureRedirect: '/login/failed',
+        });
+        passportAuthRule(request, response, next);
+    }
+    public static async redirectPostAuth(request: Request, response: Response, next: Function): Promise<void> {
+        const session = (request.session! as IRedirectableSession);
+        const returnURL = session.returnTo || "/";
+        // Our own redirect as the standard response.redirect doesn't work with other domains
+        // because it tries to URL encode the target URL
+        response.status(307).set("Location", returnURL);
+        response.end();
+    }
+}

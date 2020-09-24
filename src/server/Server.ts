@@ -1,12 +1,15 @@
 import express, { Request, Response } from "express";
 import bodyParser from "body-parser";
+import expressSession from "express-session"
 import { createConnection } from "typeorm";
+import passport from "passport";
 
 import CommonParams from "../logic/CommonParams";
 import RouteInfo from "./RouteInfo";
 import CommentController from "./controllers/CommentController";
 import PodcastController from "./controllers/PodcastController";
 import UserController from "./controllers/UserController";
+import AuthenticationController from './controllers/AuthenticationController';
 
 export default class Server {
     public app: express.Application;
@@ -14,10 +17,15 @@ export default class Server {
     constructor() {
         this.app = express();
         this.app.use(bodyParser.json());
+        this.app.use(expressSession({ secret: AuthenticationController.sessionSecret }));
+        this.app.use(passport.initialize());
+        this.app.use(passport.session());
+        AuthenticationController.setupPassport();
         // Enable CORS in dev environment
         // TODO: Block this in production
         this.app.use((req, res, next) => {
             res.header("Access-Control-Allow-Origin", "*");
+            res.header("Access-Control-Allow-Methods", "*");
             res.header("Access-Control-Allow-Headers", "*");
             next();
         });
@@ -28,6 +36,11 @@ export default class Server {
         const dbConnection = createConnection();
 
         // Ask all controllers for routes and register them
+        const authRoutes = AuthenticationController.getRoutes();
+        for (const route of authRoutes) {
+            this.app[route.verb](route.path, route.callback);
+        }
+
         let routes: RouteInfo[] = [];
         routes = routes.concat(CommentController.getRoutes());
         routes = routes.concat(PodcastController.getRoutes());
@@ -35,12 +48,15 @@ export default class Server {
 
         for (const route of routes) {
             this.app[route.verb](route.path, (request: Request, response: Response, next: Function) => {
-                response.setHeader("Content-Type", "application/json");
                 route.callback(request, response)
                     .then(() => next)
                     .catch(err => next(err));
             });
         }
+        // Catch-all, error reporter
+        this.app.use((err: any, req: any, res: any, next: any) => {
+            console.log(err);
+        });
 
         // Initialization is done, start listening
         this.app.listen(CommonParams.APIServerPort, CommonParams.APIServerIP, () => {
