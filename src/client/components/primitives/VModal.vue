@@ -13,12 +13,12 @@ import { Component, Vue } from "vue-property-decorator";
 @Component
 export default class VModal extends Vue {
     public show(): void {
-        const overlay = (this.$refs["overlay"] as HTMLElement);
+        const overlay = (this.$refs.overlay as HTMLElement);
         overlay.classList.remove("hidden-overlay");
         overlay.classList.add("visible-overlay");
     }
     public hide(): void {
-        const overlay = (this.$refs["overlay"] as HTMLElement);
+        const overlay = (this.$refs.overlay as HTMLElement);
         overlay.classList.remove("visible-overlay");
         overlay.classList.add("hidden-overlay");
     }

@@ -16,7 +16,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue, Prop } from "vue-property-decorator";
+import { Component, Vue } from "vue-property-decorator";
 import store from "@/client/store";
 
 import VButton from "@/client/components/primitives/VButton.vue";
@@ -26,7 +26,7 @@ import VModal from "@/client/components/primitives/VModal.vue";
     components: {
         VButton,
         VModal
-    },
+    }
 })
 export default class LoginModal extends Vue {
     public get modal(): VModal {

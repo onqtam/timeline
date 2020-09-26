@@ -13,4 +13,3 @@ export default class CommonParams {
     // TODO: Move to a compile time constant?
     public static readonly IsRunningOnClient: boolean = "document" in globalThis;
 }
-

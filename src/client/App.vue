@@ -29,7 +29,7 @@ export default class App extends Vue {
     }
 
     public login(): void {
-        (this.$refs["login"] as LoginModal).modal.show();
+        (this.$refs.login as LoginModal).modal.show();
     }
 }
 </script>

@@ -231,7 +231,7 @@ export default class DBTools {
                 .from("comment_closure", "comment_closure")
                 .delete()
                 .execute();
-        } catch(err) {}
+        } catch (err) {}
         await connection.createQueryBuilder()
             .from(Comment, "comment")
             .delete()
