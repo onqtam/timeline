@@ -4,8 +4,7 @@ import { ActionContext } from "vuex";
 import CommonParams from "@/logic/CommonParams";
 import AsyncLoader from "../utils/AsyncLoader";
 import { HTTPVerb } from "@/logic/HTTPVerb";
-import VueRouter from 'vue-router';
-import router from '../router';
+import router from "../router";
 
 export interface IStoreUserModule {
     info: User;

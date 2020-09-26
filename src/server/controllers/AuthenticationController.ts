@@ -1,16 +1,14 @@
-import { Request, Response } from "express";
-import passport from 'passport';
-import { Strategy as CustomStrategy, VerifiedCallback } from "passport-custom";
-import { OAuth2Strategy as GoogleStrategy } from "passport-google-oauth"
-import { getConnection, InsertResult } from "typeorm";
-import { AuthRouteInfo } from '../RouteInfo';
-import { HTTPVerb } from '../../logic/HTTPVerb';
-import User from '../../logic/entities/User';
-import UserActivity from '../../logic/entities/UserActivity';
-import CommonParams from '../../logic/CommonParams';
+import express, { Request, Response } from "express";
+import passport from "passport";
+import { OAuth2Strategy as GoogleStrategy } from "passport-google-oauth";
+import { getConnection } from "typeorm";
+import { AuthRouteInfo } from "../RouteInfo";
+import { HTTPVerb } from "../../logic/HTTPVerb";
+import User from "../../logic/entities/User";
+import UserActivity from "../../logic/entities/UserActivity";
 
-
-type PassportVerifyOptions = { message: string; }
+type PassportVerifyOptions = { message: string }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type PassportVerifyFunction = (error: any, user?: any, msg?: PassportVerifyOptions) => void;
 interface IUnpinchSession extends Express.Session {
     returnTo: string|undefined;
@@ -47,32 +45,33 @@ export default class AuthenticationController {
         passport.use(new GoogleStrategy({
             clientID: AuthenticationController.googleClientID,
             clientSecret: AuthenticationController.googleClientSecret,
-            callbackURL: "callback",
-          },
-          AuthenticationController.verifyGoogleCredentials
+            callbackURL: "callback"
+        },
+        AuthenticationController.verifyGoogleCredentials
         ));
-        passport.serializeUser(function(user: User, done: PassportVerifyFunction): void {
+        passport.serializeUser(function (user: User, done: PassportVerifyFunction): void {
             done(null, user.id);
         });
-        passport.deserializeUser(function(id: number, done: PassportVerifyFunction): void {
+        passport.deserializeUser(function (id: number, done: PassportVerifyFunction): void {
             getConnection()
-            .createQueryBuilder(User, "user")
-            .select()
-            .whereInIds([id])
-            .leftJoinAndSelect("user.activity", "activity")
-            .getOne()
-            .then(
-                (user: User|undefined) => {
-                    done(null, user!);
-                },
-                (err: any) => {
-                    done(err, null)
-                }
-            );
+                .createQueryBuilder(User, "user")
+                .select()
+                .whereInIds([id])
+                .leftJoinAndSelect("user.activity", "activity")
+                .getOne()
+                .then(
+                    (user: User|undefined) => {
+                        done(null, user!);
+                    },
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    (err: any) => {
+                        done(err, null);
+                    }
+                );
         });
     }
 
-    public static getAuthorizationMiddleware(): Function {
+    public static getAuthorizationMiddleware(): express.RequestHandler {
         return (request: Request, response: Response, next: Function) => {
             if (request.isAuthenticated()) {
                 next();
@@ -87,7 +86,7 @@ export default class AuthenticationController {
         const existingUser: User|undefined = await getConnection()
             .createQueryBuilder(User, "user")
             .leftJoinAndSelect("user.activity", "activity")
-            .where(`"user"."externalProviderId" = :providerId`, { providerId: googleProviderId })
+            .where("\"user\".\"externalProviderId\" = :providerId", { providerId: googleProviderId })
             .getOne();
 
         if (!existingUser) {
@@ -113,7 +112,7 @@ export default class AuthenticationController {
         const user: User|undefined = existingUser || await getConnection()
             .createQueryBuilder(User, "user")
             .leftJoinAndSelect("user.activity", "activity")
-            .where(`"user"."externalProviderId" = :providerId`, { providerId: googleProviderId })
+            .where("\"user\".\"externalProviderId\" = :providerId", { providerId: googleProviderId })
             .getOne();
         console.log("Logged in user: ", user);
         done(undefined, user!);
@@ -121,7 +120,7 @@ export default class AuthenticationController {
 
     public static async beginGoogleAuth(request: Request, response: Response, next: Function): Promise<void> {
         const params = {
-            returnTo: request.query["returnTo"] as string
+            returnTo: request.query.returnTo as string
         };
         if (params.returnTo) {
             request.session = request.session || {} as Express.Session;
@@ -129,20 +128,20 @@ export default class AuthenticationController {
         }
         const passportAuthRule = passport.authenticate("google", {
             session: true,
-            scope: ['https://www.googleapis.com/auth/plus.login'],
+            scope: ["https://www.googleapis.com/auth/plus.login"]
         });
         passportAuthRule(request, response, next);
     }
 
     public static async finishGoogleAuth(request: Request, response: Response, next: Function): Promise<void> {
-        const passportAuthRule = passport.authenticate('google', {
-            failureRedirect: '/login/failed',
+        const passportAuthRule = passport.authenticate("google", {
+            failureRedirect: "/login/failed",
             session: true
         });
         passportAuthRule(request, response, next);
     }
 
-    public static async redirectPostAuth(request: Request, response: Response, next: Function): Promise<void> {
+    public static async redirectPostAuth(request: Request, response: Response, _: Function): Promise<void> {
         const session = (request.session! as IUnpinchSession);
         const returnURL = session.returnTo || "/";
         // Our own redirect as the standard response.redirect doesn't work with other domains

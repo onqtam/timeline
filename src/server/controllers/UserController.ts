@@ -1,9 +1,7 @@
 import { Request, Response } from "express";
-import { getConnection } from "typeorm";
 import RouteInfo from "../RouteInfo";
 import EncodingUtils from "../../logic/EncodingUtils";
 import { HTTPVerb } from "../../logic/HTTPVerb";
-import User from "../../logic/entities/User";
 
 export default class UserController {
     public static getRoutes(): RouteInfo[] {

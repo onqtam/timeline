@@ -5,7 +5,7 @@ module.exports = {
     configureWebpack: {
         devtool: "source-map",
         devServer: {
-            disableHostCheck: true,
+            disableHostCheck: true
         }
     },
     // This overrides some default configs of the vue-cli

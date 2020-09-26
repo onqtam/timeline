@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import bodyParser from "body-parser";
-import expressSession from "express-session"
+import expressSession from "express-session";
 import { createConnection } from "typeorm";
 import passport from "passport";
 
@@ -9,7 +9,7 @@ import RouteInfo from "./RouteInfo";
 import CommentController from "./controllers/CommentController";
 import PodcastController from "./controllers/PodcastController";
 import UserController from "./controllers/UserController";
-import AuthenticationController from './controllers/AuthenticationController';
+import AuthenticationController from "./controllers/AuthenticationController";
 
 export default class Server {
     public app: express.Application;
@@ -56,9 +56,8 @@ export default class Server {
         routes = routes.concat(PodcastController.getRoutes());
         routes = routes.concat(UserController.getRoutes());
 
-        type RouteMiddleware = any;
         for (const route of routes) {
-            let routeMiddlewares: Array<RouteMiddleware> = [];
+            const routeMiddlewares: Array<express.RequestHandler> = [];
             if (route.requiresAuthentication) {
                 routeMiddlewares.push(AuthenticationController.getAuthorizationMiddleware());
             }
@@ -70,7 +69,8 @@ export default class Server {
             this.app[route.verb](fixRoutePath(route.path), ...routeMiddlewares);
         }
         // Catch-all, error reporter
-        this.app.use((err: any, req: any, res: any, next: any) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        this.app.use((err: any, _req: any, _res: any, _next: Function) => {
             console.log(err);
         });
 

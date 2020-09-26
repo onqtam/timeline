@@ -1,6 +1,5 @@
 import { HTTPVerb } from "@/logic/HTTPVerb";
 import EncodingUtils from "../../logic/EncodingUtils";
-import store from "../store";
 
 interface IConstructable<T> {
     new (): T;
