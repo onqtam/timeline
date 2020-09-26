@@ -1,6 +1,5 @@
 import { HTTPVerb } from "@/logic/HTTPVerb";
 import EncodingUtils from "../../logic/EncodingUtils";
-import store from "../store";
 
 interface IConstructable<T> {
     new (): T;
@@ -55,9 +54,7 @@ export default class AsyncLoader {
         xhr.open(verb, url, true);
 
         xhr.setRequestHeader("Content-Type", "application/json");
-        if (store.state.user.isAuthenticated) {
-            xhr.setRequestHeader("Timeline-User-Id", store.state.user.info.id.toString());
-        }
+        xhr.withCredentials = true;
 
         xhr.send(JSON.stringify(body));
         return promise;

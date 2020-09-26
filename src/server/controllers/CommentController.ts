@@ -16,22 +16,27 @@ export default class CommentController {
         return [{
             path: "/comments/:episodeId/:intervalStart-:intervalEnd",
             verb: HTTPVerb.Get,
+            requiresAuthentication: false,
             callback: CommentController.getCommentThreadsFor
         }, {
             path: "/comments/histogram/:episodeId/",
             verb: HTTPVerb.Get,
+            requiresAuthentication: false,
             callback: CommentController.getCommentDensityChartData
         }, {
             path: "/comments/",
             verb: HTTPVerb.Post,
+            requiresAuthentication: true,
             callback: CommentController.postComment
         }, {
             path: "/comments/vote/",
             verb: HTTPVerb.Post,
+            requiresAuthentication: true,
             callback: CommentController.recordVote
         }, {
             path: "/comments/vote/",
             verb: HTTPVerb.Delete,
+            requiresAuthentication: true,
             callback: CommentController.revertVote
         }];
     }
@@ -114,17 +119,13 @@ export default class CommentController {
 
     private static async recordVote(request: Request, response: Response): Promise<void> {
         const params = {
-            userId: ~~request.header("Timeline-User-Id")!,
             commentId: ~~request.body.commentId,
             wasVotePositive: request.body.wasVotePositive
         };
         console.log("Received params: ", JSON.stringify(params));
 
-        // TODO: avoid looking up the activity id by changing the DB Schema to include the user directly
-        const user: User = await getConnection()
-            .createQueryBuilder(User, "user")
-            .whereInIds([params.userId])
-            .execute();
+        const user: User = request.user! as User;
+        console.assert(user);
 
         const query_existingRecord: Promise<VoteCommentRecord | undefined> = getConnection()
             .createQueryBuilder(VoteCommentRecord, "voteRecord")
@@ -196,16 +197,12 @@ export default class CommentController {
 
     private static async revertVote(request: Request, response: Response): Promise<void> {
         const params = {
-            userId: ~~request.header("Timeline-User-Id")!,
             commentId: ~~request.body.commentId
         };
         console.log("Received params: ", JSON.stringify(params));
 
-        // TODO: avoid looking up the user & activity id by changing the DB Schema to include the user directly
-        const user: User = await getConnection()
-            .createQueryBuilder(User, "user")
-            .whereInIds([params.userId])
-            .execute();
+        const user: User = request.user! as User;
+        console.assert(user);
 
         const existingRecord: VoteCommentRecord = await getConnection()
             .createQueryBuilder(VoteCommentRecord, "voteRecord")
@@ -238,9 +235,7 @@ export default class CommentController {
     }
 
     private static async postComment(request: Request, response: Response): Promise<void> {
-        console.log("ma h ", request.body);
         const params = {
-            userId: ~~request.header("Timeline-User-Id")!,
             episodeId: request.body.episodeId as number,
             commentToReplyToId: request.body.commentToReplyToId as number | null,
             timepointSeconds: ~~request.body.timepointSeconds as number,
@@ -248,14 +243,13 @@ export default class CommentController {
         };
         console.log("Received params: ", JSON.stringify(params));
 
-        const query_user: Promise<User | undefined> = getConnection()
-            .createQueryBuilder(User, "user")
-            .whereInIds([params.userId])
-            .getOne();
         const query_episode: Promise<Episode | undefined> = getConnection()
             .createQueryBuilder(Episode, "episode")
             .whereInIds([params.episodeId])
             .getOne();
+
+        const user: User = request.user! as User;
+        console.assert(user);
 
         const newComment = new Comment();
         newComment.content = params.content;
@@ -263,7 +257,7 @@ export default class CommentController {
         newComment.downVotes = 0;
         newComment.upVotes = 0;
         newComment.timepoint = new Timepoint(params.timepointSeconds);
-        newComment.author = (await query_user)!;
+        newComment.author = user;
         newComment.episode = (await query_episode)!;
         newComment.replies = [];
 

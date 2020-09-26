@@ -31,6 +31,7 @@ module.exports = {
     }],
     // Can't enable this rule since we want to use patterns like myVarName_ImportantNote
     "@typescript-eslint/camelcase": "off",
+    "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
     "import/no-named-default": "off",
   },
 };
