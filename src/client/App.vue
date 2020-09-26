@@ -3,7 +3,9 @@
         <div id="nav">
             <router-link to="/">Home</router-link> |
             <router-link to="/about">About</router-link>
+            <VButton @click=login>Login</VButton>
         </div>
+        <LoginModal ref="login"></LoginModal>
         <router-view/>
     </div>
 </template>
@@ -12,16 +14,22 @@
 import { Component, Vue } from "vue-property-decorator";
 
 import VButton from "@/client/components/primitives/VButton.vue";
+import LoginModal from "@/client/views/Login.vue";
 import store from "./store";
 
 @Component({
     components: {
-        VButton
+        VButton,
+        LoginModal
     }
 })
 export default class App extends Vue {
     public beforeMount(): void {
         store.dispatch.user.loadUser();
+    }
+
+    public login(): void {
+        (this.$refs.login as LoginModal).modal.show();
     }
 }
 </script>

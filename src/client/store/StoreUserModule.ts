@@ -4,6 +4,7 @@ import { ActionContext } from "vuex";
 import CommonParams from "@/logic/CommonParams";
 import AsyncLoader from "../utils/AsyncLoader";
 import { HTTPVerb } from "@/logic/HTTPVerb";
+import router from "../router";
 
 export interface IStoreUserModule {
     info: User;
@@ -36,15 +37,22 @@ export class StoreUserViewModel implements IStoreUserModule {
             this.info.activity.voteRecords.splice(recordIndex, 1);
         }
     }
-    public loadUser(): Promise<User> {
+    public async loadUser(): Promise<User> {
         console.log("Fetching user data");
-        const restURL: string = `${CommonParams.APIServerRootURL}\\user\\`;
+        const restURL: string = `${CommonParams.APIServerRootURL}/user/`;
         const query_user = AsyncLoader.makeRestRequest(restURL, HTTPVerb.Get, null, User) as Promise<User>;
         return query_user;
     }
     public internalSetActiveUser(user: User): void {
         this.info = user;
         console.log("User data loaded from the server");
+    }
+    public async loginGoogle(): Promise<void> {
+        console.log("Sending login request");
+        const routeToReturnTo: string = router.currentRoute.fullPath;
+        const fullReturnURL: string = encodeURIComponent(`${CommonParams.ClientServerRootURL}/#${routeToReturnTo}`);
+        const restURL: string = `${CommonParams.APIServerRootURL}/auth/google/?returnTo=${fullReturnURL}`;
+        window.location.href = restURL;
     }
 }
 
@@ -72,6 +80,9 @@ export default {
                 .then(user => {
                     context.commit("internalSetActiveUser", user);
                 });
+        },
+        login: (context: ActionContext<StoreUserViewModel, StoreUserViewModel>): Promise<void> => {
+            return context.state.loginGoogle();
         }
     }
 };

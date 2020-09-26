@@ -22,6 +22,10 @@ export default class UserActivity implements IReviveFromJSON {
     }
 
     public reviveSubObjects(): void {
-        EncodingUtils.reviveObjectAs(this.voteRecords, VoteCommentRecord);
+        if (this.voteRecords) {
+            EncodingUtils.reviveObjectAs(this.voteRecords, VoteCommentRecord);
+        } else {
+            this.voteRecords = [];
+        }
     }
 }

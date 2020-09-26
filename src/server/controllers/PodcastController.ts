@@ -10,10 +10,12 @@ export default class PodcastController {
         return [{
             path: "/podcasts",
             verb: HTTPVerb.Get,
+            requiresAuthentication: false,
             callback: PodcastController.getAllPodcasts
         }, {
             path: "/episodes/:podcastId",
             verb: HTTPVerb.Get,
+            requiresAuthentication: false,
             callback: PodcastController.getEpisodesFor
         }];
     }

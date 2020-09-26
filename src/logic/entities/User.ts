@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn } from "typeorm";
+import { Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn, Index } from "typeorm";
+import { IsEmail } from "class-validator";
 import UserActivity from "./UserActivity";
 import EncodingUtils, { IReviveFromJSON } from "../EncodingUtils";
 
@@ -8,6 +9,12 @@ export default class User implements IReviveFromJSON {
     public id!: number;
     @Column()
     public shortName!: string;
+    @Column()
+    @IsEmail()
+    public email!: string;
+    @Column({ type: "varchar", nullable: true })
+    @Index({ unique: true })
+    public externalProviderId!: string|null;
     @OneToOne(() => UserActivity)
     @JoinColumn()
     public activity!: UserActivity;
