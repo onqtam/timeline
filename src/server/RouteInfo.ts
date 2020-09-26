@@ -6,6 +6,7 @@ export type RouteCallback = (request: Request, response: Response) => Promise<vo
 export default class RouteInfo {
     public path!: string;
     public verb!: HTTPVerb;
+    public requiresAuthentication!: boolean;
     public callback!: RouteCallback;
 }
 
