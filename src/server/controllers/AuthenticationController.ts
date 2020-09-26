@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
 import passport from 'passport';
+import { Strategy as CustomStrategy, VerifiedCallback } from "passport-custom";
 import { OAuth2Strategy as GoogleStrategy } from "passport-google-oauth"
-import { getConnection } from "typeorm";
+import { getConnection, InsertResult } from "typeorm";
 import { AuthRouteInfo } from '../RouteInfo';
 import { HTTPVerb } from '../../logic/HTTPVerb';
 import User from '../../logic/entities/User';
@@ -11,7 +12,7 @@ import CommonParams from '../../logic/CommonParams';
 
 type PassportVerifyOptions = { message: string; }
 type PassportVerifyFunction = (error: any, user?: any, msg?: PassportVerifyOptions) => void;
-interface IRedirectableSession extends Express.Session {
+interface IUnpinchSession extends Express.Session {
     returnTo: string|undefined;
 }
 
@@ -48,7 +49,7 @@ export default class AuthenticationController {
             clientSecret: AuthenticationController.googleClientSecret,
             callbackURL: "callback",
           },
-          AuthenticationController.verifyUserCredentials
+          AuthenticationController.verifyGoogleCredentials
         ));
         passport.serializeUser(function(user: User, done: PassportVerifyFunction): void {
             done(null, user.id);
@@ -58,58 +59,91 @@ export default class AuthenticationController {
             .createQueryBuilder(User, "user")
             .select()
             .whereInIds([id])
+            .leftJoinAndSelect("user.activity", "activity")
             .getOne()
             .then(
-                (user: User|undefined) => done(null, user!),
-                (err: any) => done(err, null)
+                (user: User|undefined) => {
+                    done(null, user!);
+                },
+                (err: any) => {
+                    done(err, null)
+                }
             );
         });
     }
 
-    public static async verifyUserCredentials(token: string, tokenSecret: string, profile: passport.Profile, done: PassportVerifyFunction): Promise<void> {
-        const newUser = new User();
-        newUser.shortName = profile.displayName;
-        newUser.email = "test@test.com";
-        newUser.externalProviderId = `${profile.provider}_${profile.id}`;
-        newUser.activity = new UserActivity();
-        newUser.activity.internalDBDummyValue = ~~(Math.random() * Number.MAX_SAFE_INTEGER);
+    public static getAuthorizationMiddleware(): Function {
+        return (request: Request, response: Response, next: Function) => {
+            if (request.isAuthenticated()) {
+                next();
+            } else {
+                response.status(403).end();
+            }
+        };
+    }
 
-        await getConnection()
+    public static async verifyGoogleCredentials(token: string, tokenSecret: string, profile: passport.Profile, done: PassportVerifyFunction): Promise<void> {
+        const googleProviderId: string = `${profile.provider}_${profile.id}`;
+        const existingUser: User|undefined = await getConnection()
             .createQueryBuilder(User, "user")
-            .insert()
-            .values(newUser)
-            .onConflict(`("externalProviderId") DO NOTHING`)
-            .execute();
-        const user: User|undefined = await getConnection()
+            .leftJoinAndSelect("user.activity", "activity")
+            .where(`"user"."externalProviderId" = :providerId`, { providerId: googleProviderId })
+            .getOne();
+
+        if (!existingUser) {
+            const newUser = new User();
+            newUser.shortName = profile.displayName;
+            newUser.email = "test@test.com";
+            newUser.externalProviderId = googleProviderId;
+            newUser.activity = new UserActivity();
+            newUser.activity.internalDBDummyValue = ~~(Math.random() * Number.MAX_SAFE_INTEGER);
+
+            await getConnection()
+                .createQueryBuilder(UserActivity, "activity")
+                .insert()
+                .values(newUser.activity)
+                .execute();
+            await getConnection()
+                .createQueryBuilder(User, "user")
+                .insert()
+                .values(newUser)
+                .execute();
+        }
+
+        const user: User|undefined = existingUser || await getConnection()
             .createQueryBuilder(User, "user")
-            .select()
-            .where(`"user"."externalProviderId" = :externalProviderId`, newUser)
+            .leftJoinAndSelect("user.activity", "activity")
+            .where(`"user"."externalProviderId" = :providerId`, { providerId: googleProviderId })
             .getOne();
         console.log("Logged in user: ", user);
         done(undefined, user!);
     }
+
     public static async beginGoogleAuth(request: Request, response: Response, next: Function): Promise<void> {
         const params = {
             returnTo: request.query["returnTo"] as string
         };
         if (params.returnTo) {
             request.session = request.session || {} as Express.Session;
-            (request.session! as IRedirectableSession).returnTo = params.returnTo;
-            console.log("will redirect back to ", params.returnTo);
+            (request.session! as IUnpinchSession).returnTo = params.returnTo;
         }
         const passportAuthRule = passport.authenticate("google", {
+            session: true,
             scope: ['https://www.googleapis.com/auth/plus.login'],
         });
         passportAuthRule(request, response, next);
     }
+
     public static async finishGoogleAuth(request: Request, response: Response, next: Function): Promise<void> {
         const passportAuthRule = passport.authenticate('google', {
             failureRedirect: '/login/failed',
+            session: true
         });
         passportAuthRule(request, response, next);
     }
+
     public static async redirectPostAuth(request: Request, response: Response, next: Function): Promise<void> {
-        const session = (request.session! as IRedirectableSession);
+        const session = (request.session! as IUnpinchSession);
         const returnURL = session.returnTo || "/";
         // Our own redirect as the standard response.redirect doesn't work with other domains
         // because it tries to URL encode the target URL

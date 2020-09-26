@@ -55,9 +55,7 @@ export default class AsyncLoader {
         xhr.open(verb, url, true);
 
         xhr.setRequestHeader("Content-Type", "application/json");
-        if (store.state.user.isAuthenticated) {
-            xhr.setRequestHeader("Timeline-User-Id", store.state.user.info.id.toString());
-        }
+        xhr.withCredentials = true;
 
         xhr.send(JSON.stringify(body));
         return promise;

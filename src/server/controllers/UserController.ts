@@ -10,16 +10,12 @@ export default class UserController {
         return [{
             path: "/user",
             verb: HTTPVerb.Get,
+            requiresAuthentication: true,
             callback: UserController.getActiveUser
         }];
     }
 
     private static async getActiveUser(request: Request, response: Response): Promise<void> {
-        const defaultUser: User|undefined = await getConnection()
-            .createQueryBuilder(User, "user")
-            .leftJoinAndSelect("user.activity", "activity")
-            .leftJoinAndSelect("activity.voteRecords", "voteRecords")
-            .getOne();
-        response.end(EncodingUtils.jsonify(defaultUser!));
+        response.end(EncodingUtils.jsonify(request.user!));
     }
 }

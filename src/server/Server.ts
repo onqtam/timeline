@@ -17,18 +17,26 @@ export default class Server {
     constructor() {
         this.app = express();
         this.app.use(bodyParser.json());
-        this.app.use(expressSession({ secret: AuthenticationController.sessionSecret }));
-        this.app.use(passport.initialize());
-        this.app.use(passport.session());
-        AuthenticationController.setupPassport();
         // Enable CORS in dev environment
         // TODO: Block this in production
         this.app.use((req, res, next) => {
-            res.header("Access-Control-Allow-Origin", "*");
+            res.header("Access-Control-Allow-Origin", "http://lvh.me:8080");
             res.header("Access-Control-Allow-Methods", "*");
-            res.header("Access-Control-Allow-Headers", "*");
+            res.header("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
+            res.header("Access-Control-Allow-Credentials", "true");
             next();
         });
+        const expirationDate = new Date();
+        expirationDate.setHours(expirationDate.getHours() + 1);
+        this.app.use(expressSession({
+            secret: AuthenticationController.sessionSecret,
+            cookie: { expires: expirationDate, secure: false },
+            resave: true,
+            saveUninitialized: true
+        }));
+        this.app.use(passport.initialize());
+        this.app.use(passport.session());
+        AuthenticationController.setupPassport();
     }
 
     public async init(): Promise<void> {
@@ -37,8 +45,10 @@ export default class Server {
 
         // Ask all controllers for routes and register them
         const authRoutes = AuthenticationController.getRoutes();
+        // Appends the root route to the given one
+        const fixRoutePath = (path: string) => CommonParams.APIRouteName + path;
         for (const route of authRoutes) {
-            this.app[route.verb](route.path, route.callback);
+            this.app[route.verb](fixRoutePath(route.path), route.callback);
         }
 
         let routes: RouteInfo[] = [];
@@ -46,12 +56,18 @@ export default class Server {
         routes = routes.concat(PodcastController.getRoutes());
         routes = routes.concat(UserController.getRoutes());
 
+        type RouteMiddleware = any;
         for (const route of routes) {
-            this.app[route.verb](route.path, (request: Request, response: Response, next: Function) => {
+            let routeMiddlewares: Array<RouteMiddleware> = [];
+            if (route.requiresAuthentication) {
+                routeMiddlewares.push(AuthenticationController.getAuthorizationMiddleware());
+            }
+            routeMiddlewares.push((request: Request, response: Response, next: Function) => {
                 route.callback(request, response)
                     .then(() => next)
                     .catch(err => next(err));
             });
+            this.app[route.verb](fixRoutePath(route.path), ...routeMiddlewares);
         }
         // Catch-all, error reporter
         this.app.use((err: any, req: any, res: any, next: any) => {
