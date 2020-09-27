@@ -74,6 +74,7 @@ export default class CommentGenerator {
         const comment = new Comment();
         comment.episode = this.episode;
         comment.author = this.users[Math.floor(Math.random() * this.users.length)];
+        comment.authorName = comment.author.shortName;
         comment.timepoint = timepoint;
         // Pick a random date earlier in 2020
         const now = new Date();

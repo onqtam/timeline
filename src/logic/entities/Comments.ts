@@ -15,6 +15,11 @@ export default class Comment {
     public episode!: Episode;
     @ManyToOne(() => User, { nullable: false })
     public author!: User;
+    // This is a duplicate of this.author.name
+    // It exists for the sole purpose of removing the necessity of making a join
+    // when fetching comments
+    @Column()
+    public authorName!: string;
     @Column()
     public content!: string;
     @Column()
@@ -70,6 +75,8 @@ export default class Comment {
         for (const reply of this.replies) {
             EncodingUtils.reviveObjectAs(reply, Comment);
         }
-        EncodingUtils.reviveObjectAs(this.author, User);
+        if (this.author) {
+            EncodingUtils.reviveObjectAs(this.author, User);
+        }
     }
 }

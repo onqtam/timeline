@@ -117,6 +117,7 @@ class StoreListenViewModel implements IStoreListenModule {
         const comment = new Comment();
         comment.id = ~~(Math.random() * 99999); // Generate a random id to avoid conflicting keys in vue
         comment.author = store.state.user.info;
+        comment.authorName = comment.author.shortName;
         comment.episode = this.activeEpisode;
         comment.content = content;
         comment.date = new Date();
