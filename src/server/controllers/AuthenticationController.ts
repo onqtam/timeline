@@ -66,7 +66,8 @@ export default class AuthenticationController {
                     },
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     (err: any) => {
-                        done(err, null);
+                        console.error(err);
+                        done(null, null);
                     }
                 );
         });

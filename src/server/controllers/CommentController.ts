@@ -59,22 +59,8 @@ export default class CommentController {
             .getMany();
 
         const getTreeOfRoot = async (c: Comment): Promise<Comment> => {
-            // Normally we would to want to call commentRepository.findDescendantsTree to map the tree and be done...
-            // but of course TypeORM doesn't allow one to simultaneously map the tree and join on another table
-            // so we do this incredibly ugly thing (the part after getRawEntities) which was simply copied from the impl
-            // of findDescendantsTree
             const commentRepository = getConnection().getTreeRepository(Comment);
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const commentRepoAsAny = commentRepository as any;
-            return commentRepository
-                .createDescendantsQueryBuilder("comment", "commentClosure", c)
-                .leftJoinAndSelect("comment.author", "author")
-                .getRawAndEntities()
-                .then(entitiesAndScalars => {
-                    const relationMaps = commentRepoAsAny.createRelationMaps("comment", entitiesAndScalars.raw);
-                    commentRepoAsAny.buildChildrenEntityTree(c, entitiesAndScalars.entities, relationMaps);
-                    return c;
-                });
+            return commentRepository.findDescendantsTree(c);
         };
         const query_completeTrees: Promise<Comment[]> = Promise.all(rootsWithinInterval.map(getTreeOfRoot));
         const completeTrees: Comment[] = await query_completeTrees;
@@ -258,6 +244,7 @@ export default class CommentController {
         newComment.upVotes = 0;
         newComment.timepoint = new Timepoint(params.timepointSeconds);
         newComment.author = user;
+        newComment.authorName = newComment.author.shortName;
         newComment.episode = (await query_episode)!;
         newComment.replies = [];
 

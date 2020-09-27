@@ -7,7 +7,7 @@
         />
         <!-- Set the comment id as element id to be able to find comment's DOM element from other systems  -->
         <div class="comment-content" :id=comment.id>
-            <span class="author">{{ comment.author.shortName }}</span>
+            <span class="author">{{ comment.authorName }}</span>
             <span class="separator"> · </span>
             <span class="votes">
                 {{ comment.totalVotes }} points
