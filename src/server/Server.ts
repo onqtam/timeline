@@ -10,6 +10,7 @@ import CommentController from "./controllers/CommentController";
 import PodcastController from "./controllers/PodcastController";
 import UserController from "./controllers/UserController";
 import AuthenticationController from "./controllers/AuthenticationController";
+import User from '../logic/entities/User';
 
 export default class Server {
     public app: express.Application;
@@ -42,6 +43,7 @@ export default class Server {
     public async init(): Promise<void> {
         // Init connection as early as possible
         const dbConnection = createConnection();
+        User.initGuestUser();
 
         // Ask all controllers for routes and register them
         const authRoutes = AuthenticationController.getRoutes();

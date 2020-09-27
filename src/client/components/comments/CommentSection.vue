@@ -1,9 +1,14 @@
 <template>
     <div class="comment-section-root">
         <div class="new-thread-container">
-            <label>Start a new thread at current time: </label>
-            <input type="text" minlength="3" ref="new-comment-thread-content">
-            <VButton @click=startNewCommentThread>Submit</VButton>
+            <template v-if="!isUserGuest">
+                <label>Start a new thread at current time: </label>
+                <input type="text" minlength="3" ref="new-comment-thread-content">
+                <VButton @click=startNewCommentThread>Submit</VButton>
+            </template>
+            <template v-if="isUserGuest">
+                <label>You need to be logged in to write or vote on comments!</label>
+            </template>
         </div>
         <div class="comment-management-panel">
             <VToggleButton
@@ -63,6 +68,7 @@ import MathHelpers from "@/logic/MathHelpers";
 import VButton from "@/client/components/primitives/VButton.vue";
 import VToggleButton from "@/client/components//primitives/VToggleButton.vue";
 import CommentThreadComponent from "./CommentThread.vue";
+import User from '@/logic/entities/User';
 
 class Timeslot {
     public timepoint!: Timepoint;
@@ -93,6 +99,9 @@ export default class CommentSection extends Vue {
     }
     public get audioPos(): Timepoint {
         return store.state.listen.audioPos;
+    }
+    public get isUserGuest(): boolean {
+        return store.state.user.info.isGuest;
     }
 
     public get activeTimeslots(): Timeslot[] {
