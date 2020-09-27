@@ -16,7 +16,7 @@
             <span class="date">{{ formatCommentDate() }}</span>
             <span class="separator"> · </span>
             <!-- TODO Create a button component -->
-            <a class="start-reply-button" @click=toggleIsReplyingTo>
+            <a v-if="isUserGuest" class="start-reply-button" @click=toggleIsReplyingTo>
                 <i class="fa fa-reply" aria-hidden="true"></i> Reply
             </a>
             <div v-if=isReplyingTo>
@@ -60,6 +60,9 @@ export default class CommentComponent extends Vue {
     }
     public get hasVotedDown(): boolean {
         return store.state.user.info.activity.getVoteOnComment(this.comment.id) === false;
+    }
+    public get isUserGuest(): boolean {
+        return store.state.user.info.isGuest;
     }
 
     public get contentToDisplay(): string {

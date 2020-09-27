@@ -8,14 +8,10 @@ import router from "../router";
 
 export interface IStoreUserModule {
     info: User;
-    isAuthenticated: boolean;
 }
 
 export class StoreUserViewModel implements IStoreUserModule {
     public info: User;
-    public get isAuthenticated(): boolean {
-        return Number.isInteger(this.info.id);
-    }
     constructor() {
         this.info = new User();
     }
@@ -76,6 +72,8 @@ export default {
     },
     actions: {
         loadUser: (context: ActionContext<StoreUserViewModel, StoreUserViewModel>): Promise<void> => {
+            context.commit("internalSetActiveUser", User.guestUser);
+            // TODO: Don't fetch the current user if there's no cookie
             return context.state.loadUser()
                 .then(user => {
                     context.commit("internalSetActiveUser", user);

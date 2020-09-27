@@ -16,6 +16,7 @@ import { Component, Vue } from "vue-property-decorator";
 import VButton from "@/client/components/primitives/VButton.vue";
 import LoginModal from "@/client/views/Login.vue";
 import store from "./store";
+import User from '@/logic/entities/User';
 
 @Component({
     components: {
@@ -25,6 +26,7 @@ import store from "./store";
 })
 export default class App extends Vue {
     public beforeMount(): void {
+        User.initGuestUser();
         store.dispatch.user.loadUser();
     }
 
