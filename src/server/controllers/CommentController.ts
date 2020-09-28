@@ -117,7 +117,7 @@ export default class CommentController {
             .createQueryBuilder(VoteCommentRecord, "voteRecord")
             .select()
             .where(
-                "voteRecord.\"owningActivityId\" = :activityId AND voteRecord.\"commentId\" = :commentId",
+                "\"voteRecord\".\"owningActivityId\" = :activityId AND \"voteRecord\".\"commentId\" = :commentId",
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 { activityId: (user as any).activity_id, commentId: params.commentId }
             )
@@ -155,7 +155,7 @@ export default class CommentController {
                 .createQueryBuilder(VoteCommentRecord, "voteRecord")
                 .update()
                 .where(
-                    "voteRecord.\"owningActivityId\" = :activityId AND voteRecord.\"commentId\" = :commentId",
+                    "\"voteRecord\".\"owningActivityId\" = :activityId AND \"voteRecord\".\"commentId\" = :commentId",
                     { activityId: user.activity.id, commentId: params.commentId }
                 )
                 .set({ wasVotePositive: params.wasVotePositive })
@@ -194,7 +194,7 @@ export default class CommentController {
             .createQueryBuilder(VoteCommentRecord, "voteRecord")
             .delete()
             .where(
-                "voteRecord.\"owningActivityId\" = :activityId AND voteRecord.\"commentId\" = :commentId",
+                "\"voteRecord\".\"owningActivityId\" = :activityId AND \"voteRecord\".\"commentId\" = :commentId",
                 { activityId: user.activity.id, commentId: params.commentId }
             )
             .returning("voteRecord")
@@ -248,10 +248,8 @@ export default class CommentController {
         newComment.episode = (await query_episode)!;
         newComment.replies = [];
 
-        const commentRepo = getConnection().getTreeRepository(Comment);
-
-        // TODO: Rework the calls to treeRepo.save as SQL queries
         if (params.commentToReplyToId) {
+            const commentRepo = getConnection().getTreeRepository(Comment);
             const query_parentComment: Promise<Comment | undefined> = commentRepo.findOne(params.commentToReplyToId);
             const parentComment = await commentRepo.findDescendantsTree((await query_parentComment)!);
             if (parentComment.replies === undefined) {
@@ -259,9 +257,26 @@ export default class CommentController {
             }
             newComment.parentComment = parentComment;
             parentComment.replies.push(newComment);
-            await commentRepo.save(parentComment);
+
+            commentRepo.save(parentComment);
+
+            // this doesn't work because there is no 'replies' column - typeorm
+            // implements trees with paths and the replies [] is just for convenience
+            // await getConnection()
+            //     .createQueryBuilder()
+            //     .update(Comment)
+            //     // .where("id = :id", { id: parentComment.id })
+            //     .whereInIds([params.commentToReplyToId])
+            //     .set({ replies: parentComment.replies })
+            //     .execute();
         }
-        await commentRepo.save(newComment);
+
+        await getConnection()
+            .createQueryBuilder()
+            .insert()
+            .into(Comment)
+            .values(newComment)
+            .execute();
 
         response.end();
     }

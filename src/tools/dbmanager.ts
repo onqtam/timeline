@@ -1,4 +1,4 @@
-import DBTools from "./utils/dbtools";
+import DBTools from "./utils/DBTools";
 import yargs from "yargs";
 import User from "@/logic/entities/User";
 

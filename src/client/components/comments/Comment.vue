@@ -16,7 +16,7 @@
             <span class="date">{{ formatCommentDate() }}</span>
             <span class="separator"> · </span>
             <!-- TODO Create a button component -->
-            <a v-if="isUserGuest" class="start-reply-button" @click=toggleIsReplyingTo>
+            <a v-if="!isUserGuest" class="start-reply-button" @click=toggleIsReplyingTo>
                 <i class="fa fa-reply" aria-hidden="true"></i> Reply
             </a>
             <div v-if=isReplyingTo>
