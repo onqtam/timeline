@@ -48,7 +48,7 @@ const routes: Array<RouteConfig> = [
     {
         path: "/",
         // TODO: Obviously hard-coding a podcast isn't perfect but it's a necessity during development
-        redirect: "/episodes/the-portal"
+        redirect: "/episodes/The%20Portal"
     }
 ];
 

@@ -77,6 +77,9 @@ export default {
             return context.state.loadUser()
                 .then(user => {
                     context.commit("internalSetActiveUser", user);
+                })
+                .catch(reason => {
+                    console.error("Failed to load user: ", reason);
                 });
         },
         login: (context: ActionContext<StoreUserViewModel, StoreUserViewModel>): Promise<void> => {

@@ -25,9 +25,15 @@ export class StorePodcastViewModel implements IStorePodcastModule {
         this.allPodcasts.splice(0, this.allPodcasts.length, ...newPodcastData);
     }
 
-    public async fetchPodcastData(): Promise<Podcast[]> {
-        const restURL: string = `${CommonParams.APIServerRootURL}\\podcasts`;
+    public async loadPodcastData(): Promise<Podcast[]> {
+        const restURL: string = `${CommonParams.APIServerRootURL}/podcasts`;
         const fetchPromise = AsyncLoader.makeRestRequest(restURL, HTTPVerb.Get, null, Podcast) as Promise<Podcast[]>;
+        return fetchPromise;
+    }
+
+    public async loadEpisodeData(podcastTitleURL: string, episodeTitleURL: string): Promise<Episode|undefined> {
+        const restURL: string = `${CommonParams.APIServerRootURL}/episodes/${podcastTitleURL}/${episodeTitleURL}`;
+        const fetchPromise = AsyncLoader.makeRestRequest(restURL, HTTPVerb.Get, null, Episode) as Promise<Episode|undefined>;
         return fetchPromise;
     }
 }
@@ -48,7 +54,7 @@ export default {
     },
     actions: {
         refreshPodcastData: async (context: ActionContext<StorePodcastViewModel, StorePodcastViewModel>): Promise<void> => {
-            return context.state.fetchPodcastData()
+            return context.state.loadPodcastData()
                 .then(podcasts => {
                     // Call the type-unsafe commit; We could call the function directly but this triggers
                     // warnings about modifying state outside of commits
@@ -60,6 +66,13 @@ export default {
                 return;
             }
             return context.dispatch("refreshPodcastData");
+        },
+        loadEpisodeData: async (context: ActionContext<StorePodcastViewModel, StorePodcastViewModel>, payload: { podcastURL: string, episodeURL: string }): Promise<Episode|undefined> => {
+            const episodeData: Episode|undefined = context.state.findEpisode(payload.podcastURL, payload.episodeURL);
+            if (episodeData) {
+                return episodeData;
+            }
+            return context.state.loadEpisodeData(payload.podcastURL, payload.episodeURL);
         }
     }
 };

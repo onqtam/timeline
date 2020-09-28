@@ -24,8 +24,10 @@ const beforeRouteChange = (to: Route, from: Route, next: NavigationGuardNext<Epi
     console.assert(podcastTitle !== undefined);
 
     const displayPage = () => {
-        const podcast: Podcast|undefined = store.state.podcast.allPodcasts.find(p => p.titleAsURL === podcastTitle);
+        // Important p.title === podcastTitle only works because Vue router automatically decodes the URL
+        const podcast: Podcast|undefined = store.state.podcast.allPodcasts.find(p => p.title === podcastTitle);
         // TODO: handle not found case
+        // TODO: handle data not yet loaded case
         if (existingView) {
             Object.assign(existingView.podcast, podcast);
         } else {

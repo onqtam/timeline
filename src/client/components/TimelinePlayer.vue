@@ -32,6 +32,7 @@
         </Timeline>
         <AgendaComponent
             class="agenda"
+            v-if=activeEpisode
             :agenda=activeEpisode.agenda
         >
         </AgendaComponent>

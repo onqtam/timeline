@@ -43,7 +43,6 @@ export default class Server {
     public async init(): Promise<void> {
         // Init connection as early as possible
         const dbConnection = createConnection();
-        User.initGuestUser();
 
         // Ask all controllers for routes and register them
         const authRoutes = AuthenticationController.getRoutes();
@@ -80,7 +79,8 @@ export default class Server {
         this.app.listen(CommonParams.APIServerPort, CommonParams.APIServerIP, () => {
             console.log(`API server is listening on http://localhost:${CommonParams.APIServerPort}`);
         });
+        await dbConnection;
         // Hide implementation details about the promise type
-        return dbConnection as unknown as Promise<void>;
+        return User.initGuestUser() as unknown as Promise<void>;
     }
 }
