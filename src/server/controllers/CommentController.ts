@@ -253,7 +253,7 @@ export default class CommentController {
         // array - it should be possible to just append to an array using SQL
         // and not think about if the array was empty/undefined or not
         if (params.commentToReplyToId) {
-            const commentRepo = getConnection().getTreeRepository(Comment);    
+            const commentRepo = getConnection().getTreeRepository(Comment);
             const query_parentComment: Promise<Comment | undefined> = commentRepo.findOne(params.commentToReplyToId);
             const parentComment = await commentRepo.findDescendantsTree((await query_parentComment)!);
             if (parentComment.replies === undefined) {
