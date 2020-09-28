@@ -6,9 +6,6 @@ import { Podcast } from "./Podcast";
 import CommonParams from "../CommonParams";
 import EncodingUtils, { IReviveFromJSON } from "../EncodingUtils";
 
-const convertTitleToURLSection = (title: string) => {
-    return title.toLowerCase().replace(/[\s,:&.-]+/g, "-");
-};
 export class AgendaItem implements IReviveFromJSON {
     public timestamp: Timepoint = new Timepoint(0);
     public text: string = "";

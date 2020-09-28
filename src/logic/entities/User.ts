@@ -2,7 +2,7 @@ import { Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn, Index, ge
 import { IsEmail } from "class-validator";
 import UserActivity from "./UserActivity";
 import EncodingUtils, { IReviveFromJSON } from "../EncodingUtils";
-import CommonParams from '../CommonParams';
+import CommonParams from "../CommonParams";
 
 const GUEST_USER_EMAIL: string = "guest@guest.guest";
 
@@ -44,7 +44,7 @@ export default class User implements IReviveFromJSON {
             const defaultUser: User = this.createGuestUser();
             this._guestUser = (await getConnection()
                 .createQueryBuilder(User, "user")
-                .where(`"user"."email" = :email`, defaultUser)
+                .where("\"user\".\"email\" = :email", defaultUser)
                 .getOne())!;
         }
     }

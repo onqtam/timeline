@@ -10,7 +10,7 @@ import CommentController from "./controllers/CommentController";
 import PodcastController from "./controllers/PodcastController";
 import UserController from "./controllers/UserController";
 import AuthenticationController from "./controllers/AuthenticationController";
-import User from '../logic/entities/User';
+import User from "../logic/entities/User";
 
 export default class Server {
     public app: express.Application;
