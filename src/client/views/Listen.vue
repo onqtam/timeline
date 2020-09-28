@@ -76,7 +76,7 @@ export default class ListenView extends Vue {
                 console.assert(episode, "No such episode exists!");
                 store.dispatch.listen.loadEpisode(episode!);
                 this.isDataLoaded = true;
-            })
+            });
     }
     public mounted(): void {
         if (this.initialTimepoint) {

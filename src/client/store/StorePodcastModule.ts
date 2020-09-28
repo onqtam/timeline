@@ -67,7 +67,7 @@ export default {
             }
             return context.dispatch("refreshPodcastData");
         },
-        loadEpisodeData: async (context: ActionContext<StorePodcastViewModel, StorePodcastViewModel>, payload: { podcastURL: string, episodeURL: string }): Promise<Episode|undefined> => {
+        loadEpisodeData: async (context: ActionContext<StorePodcastViewModel, StorePodcastViewModel>, payload: { podcastURL: string; episodeURL: string }): Promise<Episode|undefined> => {
             const episodeData: Episode|undefined = context.state.findEpisode(payload.podcastURL, payload.episodeURL);
             if (episodeData) {
                 return episodeData;

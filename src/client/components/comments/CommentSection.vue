@@ -68,7 +68,6 @@ import MathHelpers from "@/logic/MathHelpers";
 import VButton from "@/client/components/primitives/VButton.vue";
 import VToggleButton from "@/client/components//primitives/VToggleButton.vue";
 import CommentThreadComponent from "./CommentThread.vue";
-import User from '@/logic/entities/User';
 
 class Timeslot {
     public timepoint!: Timepoint;
