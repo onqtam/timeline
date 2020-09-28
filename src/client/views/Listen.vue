@@ -1,7 +1,7 @@
 <template>
     <div>
-        <TimelinePlayer ref="timeline-player" class="timeline-player" />
-        <CommentSection ref="comment-section" />
+        <TimelinePlayer v-if=isDataLoaded ref="timeline-player" class="timeline-player" />
+        <CommentSection v-if=isDataLoaded ref="comment-section" />
     </div>
 </template>
 
@@ -64,15 +64,19 @@ export default class ListenView extends Vue {
     public get audioWindow(): AudioWindow {
         return store.state.listen.audioWindow;
     }
+
+    public isDataLoaded: boolean = false;
+
     public beforeMount(): void {
         console.assert(this.podcastTitleURL !== undefined && this.episodeTitleURL !== undefined);
-        const episodeToPlay = store.state.podcast.findEpisode(this.podcastTitleURL, this.episodeTitleURL);
-
-        if (!episodeToPlay) {
-            console.error("No such episode exists!");
-            return;
-        }
-        store.dispatch.listen.loadEpisode(episodeToPlay);
+        const dispatchPayload = { podcastURL: this.podcastTitleURL, episodeURL: this.episodeTitleURL };
+        store.dispatch.podcast
+            .loadEpisodeData(dispatchPayload)
+            .then(episode => {
+                console.assert(episode, "No such episode exists!");
+                store.dispatch.listen.loadEpisode(episode!);
+                this.isDataLoaded = true;
+            })
     }
     public mounted(): void {
         if (this.initialTimepoint) {

@@ -56,7 +56,7 @@ export class Episode implements IReviveFromJSON {
     public readonly owningPodcast!: Podcast;
 
     public get titleAsURL(): string {
-        return convertTitleToURLSection(this.title);
+        return EncodingUtils.titleAsURL(this.title);
     }
     constructor() {
         if (CommonParams.IsRunningOnClient) {

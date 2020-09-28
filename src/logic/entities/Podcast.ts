@@ -6,10 +6,6 @@ import EncodingUtils, { IReviveFromJSON } from "../EncodingUtils";
 
 export { Episode, AgendaItem };
 
-const convertTitleToURLSection = (title: string) => {
-    return title.toLowerCase().replace(/[\s,:&.-]+/g, "-");
-};
-
 @Entity()
 export class Podcast implements IReviveFromJSON {
     @PrimaryGeneratedColumn()
@@ -28,7 +24,7 @@ export class Podcast implements IReviveFromJSON {
     public episodes!: Episode[];
 
     public get titleAsURL(): string {
-        return convertTitleToURLSection(this.title);
+        return EncodingUtils.titleAsURL(this.title);
     }
 
     constructor() {

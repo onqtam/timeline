@@ -30,4 +30,12 @@ export default class EncodingUtils {
             }
         }
     }
+
+    public static titleAsURL(title: string): string {
+        // TODO: Makes links readable again
+        return encodeURIComponent(title);
+    }
+    public static urlAsTitle(url: string): string {
+        return decodeURIComponent(url);
+    }
 }
