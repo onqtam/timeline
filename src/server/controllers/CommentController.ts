@@ -248,10 +248,6 @@ export default class CommentController {
         newComment.episode = (await query_episode)!;
         newComment.replies = [];
 
-        // TODO seems like overkill to get the whole comment entity & repository,
-        // update it's replies array and then push a new version of the entire
-        // array - it should be possible to just append to an array using SQL
-        // and not think about if the array was empty/undefined or not
         if (params.commentToReplyToId) {
             const commentRepo = getConnection().getTreeRepository(Comment);
             const query_parentComment: Promise<Comment | undefined> = commentRepo.findOne(params.commentToReplyToId);
@@ -262,12 +258,17 @@ export default class CommentController {
             newComment.parentComment = parentComment;
             parentComment.replies.push(newComment);
 
-            await getConnection()
-                .createQueryBuilder()
-                .update(Comment)
-                .whereInIds([params.commentToReplyToId])
-                .set({ replies: parentComment.replies })
-                .execute();
+            commentRepo.save(parentComment);
+
+            // this doesn't work because there is no 'replies' column - typeorm
+            // implements trees with paths and the replies [] is just for convenience
+            // await getConnection()
+            //     .createQueryBuilder()
+            //     .update(Comment)
+            //     // .where("id = :id", { id: parentComment.id })
+            //     .whereInIds([params.commentToReplyToId])
+            //     .set({ replies: parentComment.replies })
+            //     .execute();
         }
 
         await getConnection()
