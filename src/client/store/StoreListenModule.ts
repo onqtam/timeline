@@ -77,6 +77,11 @@ class StoreListenViewModel implements IStoreListenModule {
     public setAudioWindowSlots(newSlotCount: number): void {
         this.audioWindow.timeslotCount = newSlotCount;
     }
+
+    public setVolume(value: number): void {
+        this.volume = value;
+    }
+
     // Resizing the window will also move the start of the window
     // so that the old center of the window is the same as the new one if this possible.
     // If that's not possible (e.g. either side of the window has reached the respective audio file side)
@@ -236,6 +241,9 @@ export default {
         },
         internalLocalRevertVote: (state: StoreListenViewModel, comment: Comment): void => {
             state.revertVote(comment);
+        },
+        setVolume: (state: StoreListenViewModel, newVolume: number): void => {
+            state.setVolume(newVolume);
         },
         resizeAudioWindow: (state: StoreListenViewModel, newDuration: number): void => {
             state.resizeAudioWindow(newDuration);

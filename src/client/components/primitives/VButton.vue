@@ -21,8 +21,10 @@ export default class VButton extends Vue {
 @import "../../cssresources/theme.less";
 
 .v-button {
-    background: @theme-text-color;
-    color: @theme-background;
+    &, & > * {
+        background: @theme-text-color;
+        color: @theme-background;
+    }
     cursor: pointer;
     display: inline-block;
     padding: 0.4em;

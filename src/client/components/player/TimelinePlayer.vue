@@ -1,15 +1,24 @@
 <template>
     <div class="timeline-player">
         <div class="controls">
-            <VButton class="play-button" @click=togglePlay>
-                Play/Pause
-            </VButton>
-            <audio nocontrols
-                class="audio-element"
-                ref="audio-element"
-                :src=audio.filepath
-            >
-            </audio>
+            <div class="slider-controls">
+                <VButton class="play-button" @click=togglePlay>
+                    <i v-if=isPaused class="fa fa-play" aria-hidden="true"></i>
+                    <i v-if=!isPaused class="fa fa-pause" aria-hidden="true"></i>
+                </VButton>
+                <VButton class="mute-button" @click=toggleMute>
+                    <i v-if="!isMuted && volume > 0.5" class="fa fa-volume-up" aria-hidden="true"></i>
+                    <i v-if="!isMuted && volume <= 0.5 && volume > 0" class="fa fa-volume-down" aria-hidden="true"></i>
+                    <i v-if="isMuted || volume === 0" class="fa fa-volume-off" aria-hidden="true"></i>
+                </VButton>
+                <VSlider class="volume-slider" :min=0 :max=1 :step=0.01 :value.sync=volume></VSlider>
+                <audio nocontrols
+                    class="audio-element"
+                    ref="audio-element"
+                    :src=audio.filepath
+                >
+                </audio>
+            </div>
             <div class="slider-controls">
                 <label>Number Of Timeslots</label>
                 <VSlider class="timeslot-count-slider" :min=1 :max=5 :step=1 :value.sync=audioWindowTimeslotCount></VSlider>
@@ -93,8 +102,18 @@ export default class TimelinePlayer extends Vue {
     public get volume(): number {
         return store.state.listen.volume;
     }
+    public set volume(value: number) {
+        store.commit.listen.setVolume(value);
+        this.audioElement.volume = value;
+    }
+    public get isMuted(): boolean {
+        return !this.audioElement || this.audioElement.muted;
+    }
     public get audioPos(): Timepoint {
         return store.state.listen.audioPos;
+    }
+    public get isPaused(): boolean {
+        return !this.audioElement || this.audioElement.paused;
     }
     public get activeEpisode(): Episode {
         return store.state.listen.activeEpisode;
@@ -122,9 +141,13 @@ export default class TimelinePlayer extends Vue {
     private activeAppMode: ActiveAppMode = ActiveAppMode.StandardScreen;
 
     // Public API
+    public beforeCreate(): void {
+        this.$markRecomputable("audioElement");
+    }
     public mounted(): void {
         this.onWindowResized();
         store.commit.device.addOnAppModeChangedListener(this.onWindowResized.bind(this));
+        this.$recompute("audioElement");
     }
     public destroyed(): void {
         store.commit.device.removeOnAppModeChangedistener(this.onWindowResized.bind(this));
@@ -145,10 +168,17 @@ export default class TimelinePlayer extends Vue {
         this.audioElement.volume = this.volume;
         this.audioElement.play();
         this.audioPlayTimeIntervalId = window.setInterval(() => this.updateAudioPos(), 16);
+        this.$recompute("audioElement");
     }
     public pause(): void {
         this.audioElement.pause();
         clearInterval(this.audioPlayTimeIntervalId);
+        this.$recompute("audioElement");
+    }
+
+    public toggleMute(): void {
+        this.audioElement.muted = !this.audioElement.muted;
+        this.$recompute("audioElement");
     }
 
     // Private API
@@ -260,5 +290,10 @@ button {
     width: 20%;
     display: inline-block;
 }
-
+.volume-slider {
+    // TODO: This needs to go as it overrides the v-slider's display: flex
+    // may be wrap the vslider with another div so that it's not possible to be overriden?
+    display: inline-block;
+    width: 75%;
+}
 </style>

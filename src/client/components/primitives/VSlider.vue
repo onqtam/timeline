@@ -90,7 +90,9 @@ export default class VSlider extends Vue {
 <style scoped lang="less">
 @import "../../cssresources/theme.less";
 
-@slider-height: 0.4em;
+@meter-height: 0.4em;
+@meter-width: 50%;
+@slider-text-offset: 0.25em;
 @button-height: 1em;
 .v-slider {
     width: 100%;
@@ -98,15 +100,20 @@ export default class VSlider extends Vue {
     margin-top: 1.5em; // This is defined by the offset of the active text
     cursor: pointer;
     user-select: none;
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    justify-content: space-between;
 }
-@meter-width: 90%;
 .v-slider-meter {
     display: inline-block;
     position: relative;
     background-color: @theme-neutral-color;
     width: @meter-width;
-    height: @slider-height;
-    top: -0.3 + @slider-height / 2;
+    height: @meter-height;
+    top: -0.3 + @meter-height / 2;
+    margin: 0 @slider-text-offset;
+    flex: 1 1 50%;
 }
 .v-slider-button {
     background-color: @theme-text-color;
@@ -114,7 +121,7 @@ export default class VSlider extends Vue {
     height: @button-height;
     border-radius: 50%;
     position: absolute;
-    top: (@slider-height - @button-height)/2;
+    top: (@meter-height - @button-height)/2;
     &:hover {
         background-color: @theme-text-color-hover;
     }
@@ -133,11 +140,7 @@ export default class VSlider extends Vue {
     display: inline-block;
     user-select: auto;
 }
-@min-max-offset: 0.25em;
-.v-slider-min-text {
-    margin-right: @min-max-offset;
-}
-.v-slider-max-text {
-    margin-left: @min-max-offset;
+.v-slider-max-text, .v-slider-min-text {
+    flex: 0 1 auto;
 }
 </style>
