@@ -37,7 +37,7 @@ export default class AgendaComponent extends Vue {
 </script>
 
 <style scoped lang="less">
-@import "../cssresources/theme.less";
+@import "../../cssresources/theme.less";
 
 ul {
     list-style-type: none;

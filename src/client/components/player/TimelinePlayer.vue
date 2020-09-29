@@ -55,12 +55,12 @@ import store from "@/client/store";
 import { default as AudioFile, AudioWindow } from "@/logic/AudioFile";
 import Timepoint from "@/logic/entities/Timepoint";
 
-import VButton from "./primitives/VButton.vue";
-import VSlider from "./primitives/VSlider.vue";
+import VButton from "../primitives/VButton.vue";
+import VSlider from "../primitives/VSlider.vue";
 import { default as Timeline, TimelineMode } from "./Timeline.vue";
 import AgendaComponent from "./Agenda.vue";
-import { Episode } from "../../logic/entities/Episode";
-import { ActiveAppMode } from "../store/StoreDeviceInfoModule";
+import { Episode } from "@/logic/entities/Episode";
+import { ActiveAppMode } from "../../store/StoreDeviceInfoModule";
 
 @Component({
     components: {
@@ -199,7 +199,7 @@ export default class TimelinePlayer extends Vue {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="less">
-@import "../cssresources/theme.less";
+@import "../../cssresources/theme.less";
 
 h3 {
   margin: 40px 0 0;

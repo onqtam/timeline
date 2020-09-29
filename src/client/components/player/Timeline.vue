@@ -62,9 +62,9 @@ import Timepoint from "@/logic/entities/Timepoint";
 import { AudioWindow } from "@/logic/AudioFile";
 import MathHelpers from "@/logic/MathHelpers";
 
-import VChart, { ChartType } from "./primitives/VChart.vue";
+import VChart, { ChartType } from "../primitives/VChart.vue";
 import Chartist, { IChartistData, ILineChartOptions } from "chartist";
-import store from "../store";
+import store from "../../store";
 
 export enum TimelineMode {
     Standard,
@@ -210,7 +210,7 @@ export default class Timeline extends Vue {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="less">
-@import "../cssresources/theme.less";
+@import "../../cssresources/theme.less";
 
 .timeline-container {
     width: 100%;
