@@ -113,7 +113,7 @@ class StoreListenViewModel implements IStoreListenModule {
         }
     }
 
-    public localPostNewComment(commentToReplyTo: Comment|undefined, content: string): void {
+    public generateNewLocalComment(content: string): Comment {
         const comment = new Comment();
         comment.id = ~~(Math.random() * 99999); // Generate a random id to avoid conflicting keys in vue
         comment.author = store.state.user.info;
@@ -124,11 +124,21 @@ class StoreListenViewModel implements IStoreListenModule {
         comment.timepoint = new Timepoint(this.audioPos.seconds);
         comment.upVotes = 0;
         comment.downVotes = 0;
+
+        return comment;
+    }
+
+    public localPostNewComment(newLocalComment: Comment, commentToReplyTo: Comment|undefined): void {
         if (commentToReplyTo) {
-            commentToReplyTo.replies.push(comment);
+            commentToReplyTo.replies.push(newLocalComment);
         } else {
-            this.allThreads.push(comment);
+            this.allThreads.push(newLocalComment);
         }
+    }
+
+    // This trivial method only exists to cope with the rule of not modifying store data outside of z
+    public localUpdateCommentIdFromServer(comment: Comment, serverId: number): void {
+        comment.id = serverId;
     }
 
     public isVoteValid(comment: Comment, isVotePositive: boolean|undefined): boolean {
@@ -187,7 +197,7 @@ class StoreListenViewModel implements IStoreListenModule {
         return query_revertVote;
     }
 
-    public async storeServerNewComment(commentToReply: Comment|undefined, content: string): Promise<void> {
+    public async storeServerNewComment(commentToReply: Comment|undefined, content: string): Promise<{ commentId: number }> {
         const URL: string = `${CommonParams.APIServerRootURL}/comments/`;
         const requestBody = {
             commentToReplyToId: commentToReply?.id || null,
@@ -195,7 +205,7 @@ class StoreListenViewModel implements IStoreListenModule {
             timepointSeconds: this.audioPos.seconds,
             content: content
         };
-        const query_postNewComment = AsyncLoader.makeRestRequest(URL, HTTPVerb.Post, requestBody) as Promise<void>;
+        const query_postNewComment = AsyncLoader.makeRestRequest(URL, HTTPVerb.Post, requestBody) as Promise<{ commentId: number }>;
         return query_postNewComment;
     }
 }
@@ -215,8 +225,11 @@ export default {
         internalSetActiveEpisodeComments: (state: StoreListenViewModel, commentData: FullCommentData): void => {
             state.setActiveEpisodeComments(commentData);
         },
-        internalLocalPostNewComment: (state: StoreListenViewModel, payload: { commentToReplyTo: Comment|undefined; content: string }): void => {
-            state.localPostNewComment(payload.commentToReplyTo, payload.content);
+        internalLocalPostNewComment: (state: StoreListenViewModel, payload: { newLocalComment: Comment; commentToReplyTo: Comment|undefined }): void => {
+            state.localPostNewComment(payload.newLocalComment, payload.commentToReplyTo);
+        },
+        internalLocalUpdateCommentIdFromServer: (state: StoreListenViewModel, payload: { comment: Comment; serverId: number }): void => {
+            state.localUpdateCommentIdFromServer(payload.comment, payload.serverId);
         },
         internalLocalVote: (state: StoreListenViewModel, payload: { comment: Comment; isVotePositive: boolean}): void => {
             state.vote(payload.comment, payload.isVotePositive);
@@ -250,8 +263,19 @@ export default {
                 });
         },
         postComment: (context: ActionContext<StoreListenViewModel, StoreListenViewModel>, payload: { commentToReplyTo: Comment|undefined; content: string }): Promise<void> => {
-            context.commit("internalLocalPostNewComment", payload);
-            return context.state.storeServerNewComment(payload.commentToReplyTo, payload.content);
+            const newLocalComment: Comment = context.state.generateNewLocalComment(payload.content);
+            context.commit("internalLocalPostNewComment", {
+                newLocalComment: newLocalComment,
+                commentToReplyTo: payload.commentToReplyTo
+            });
+            const serverQuery = context.state.storeServerNewComment(payload.commentToReplyTo, payload.content);
+            serverQuery.then(commentResult => {
+                context.commit("internalLocalUpdateCommentIdFromServer", {
+                    comment: newLocalComment,
+                    serverId: commentResult.commentId
+                });
+            });
+            return serverQuery as unknown as Promise<void>;
         },
         vote: (context: ActionContext<StoreListenViewModel, StoreListenViewModel>, payload: { comment: Comment; isVotePositive: boolean}): Promise<void> => {
             if (context.state.isVoteValid(payload.comment, payload.isVotePositive)) {

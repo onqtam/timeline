@@ -51,8 +51,8 @@ export default class CommentController {
 
         const rootsWithinInterval: Comment[] = await getConnection()
             .createQueryBuilder(Comment, "comment")
-            .where("comment.\"parentId\" is NULL") // Roots
-            .where("comment.\"episodeId\" = :episodeId", params) // For this episode
+            .where("comment.\"parentCommentId\" is NULL") // Roots
+            .andWhere("comment.\"episodeId\" = :episodeId", params) // For this episode
             .andWhere("comment.\"timepointSeconds\" >= :intervalStart", params) // In the given interval
             .andWhere("comment.\"timepointSeconds\" <= :intervalEnd", params)
             .leftJoinAndSelect("comment.author", "author")
@@ -248,8 +248,11 @@ export default class CommentController {
         newComment.episode = (await query_episode)!;
         newComment.replies = [];
 
+        // This operation is impossible to write with SQL Builder
+        // unless we basically copy/paste the code from TypeORM here which would make it hardly readable
+        // Prefer repository.save instead
+        const commentRepo = getConnection().getTreeRepository(Comment);
         if (params.commentToReplyToId) {
-            const commentRepo = getConnection().getTreeRepository(Comment);
             const query_parentComment: Promise<Comment | undefined> = commentRepo.findOne(params.commentToReplyToId);
             const parentComment = await commentRepo.findDescendantsTree((await query_parentComment)!);
             if (parentComment.replies === undefined) {
@@ -258,26 +261,13 @@ export default class CommentController {
             newComment.parentComment = parentComment;
             parentComment.replies.push(newComment);
 
-            commentRepo.save(parentComment);
-
-            // this doesn't work because there is no 'replies' column - typeorm
-            // implements trees with paths and the replies [] is just for convenience
-            // await getConnection()
-            //     .createQueryBuilder()
-            //     .update(Comment)
-            //     // .where("id = :id", { id: parentComment.id })
-            //     .whereInIds([params.commentToReplyToId])
-            //     .set({ replies: parentComment.replies })
-            //     .execute();
+            await commentRepo.save(newComment);
+            await commentRepo.save(parentComment);
+        } else {
+            await commentRepo.save(newComment);
         }
 
-        await getConnection()
-            .createQueryBuilder()
-            .insert()
-            .into(Comment)
-            .values(newComment)
-            .execute();
-
-        response.end();
+        const returnValue = { commentId: newComment.id };
+        response.end(EncodingUtils.jsonify(returnValue));
     }
 }
