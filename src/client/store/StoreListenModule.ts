@@ -10,7 +10,7 @@ import AsyncLoader from "../utils/AsyncLoader";
 import CommonParams from "@/logic/CommonParams";
 import { HTTPVerb } from "@/logic/HTTPVerb";
 import { SettingPair } from "./StoreUserModule";
-import User from '@/logic/entities/User';
+import User from "@/logic/entities/User";
 
 export interface IStoreListenModule {
     audioFile: AudioFile;
@@ -71,6 +71,8 @@ class StoreListenViewModel implements IStoreListenModule {
         this.activeEpisode = episode;
         this.audioFile.filepath = episode.audioURL;
         this.audioFile.duration = episode.durationInSeconds;
+        // Force resize the audio window because it depends on the length of the audio
+        this.resizeAudioWindow(this.audioWindow.duration);
     }
 
     public setActiveEpisodeComments(commentData: FullCommentData): void {
@@ -99,7 +101,7 @@ class StoreListenViewModel implements IStoreListenModule {
     // we only resize in the direction it's possible to
     public resizeAudioWindow(newWindowDuration: number): void {
         const unclampedWindowStart: number = this.audioWindow.start.seconds - (newWindowDuration-this.audioWindow.duration)/2;
-        const maxWindowStart = this.audioFile.duration - newWindowDuration;
+        const maxWindowStart = Math.max(0, this.audioFile.duration - newWindowDuration);
         this.audioWindow.start.seconds = MathHelpers.clamp(unclampedWindowStart, 0, maxWindowStart);
         this.audioWindow.duration = newWindowDuration;
     }

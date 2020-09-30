@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
 import Comment from "../../logic/entities/Comments";
 import RouteInfo from "../RouteInfo";
@@ -10,7 +11,6 @@ import User from "../../logic/entities/User";
 import VoteCommentRecord from "../../logic/entities/UserRecords";
 import UserActivity from "../../logic/entities/UserActivity";
 import { Episode } from "../../logic/entities/Episode";
-import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 
 export default class CommentController {
     public static getRoutes(): RouteInfo[] {
@@ -279,7 +279,7 @@ export default class CommentController {
 
     private static async deleteComment(request: Request, response: Response): Promise<void> {
         const params = {
-            commentId: request.body.commentId as number,
+            commentId: request.body.commentId as number
         };
         console.log("Received params: ", JSON.stringify(params));
 
