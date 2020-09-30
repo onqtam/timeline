@@ -100,7 +100,7 @@ export default class Timeline extends Vue {
         if (!this.timepointMarks || this.timepointMarks.length !== this.numberOfMarks) {
             this.timepointMarks = [];
         }
-        for (let i = 0; i < this.numberOfMarks; i++) {
+        for (let i = 0; i < this.numberOfMarks + 1; i++) {
             const seconds = this.rangeStart + (i / this.numberOfMarks) * (this.rangeEnd - this.rangeStart);
             if (!this.timepointMarks[i]) {
                 this.timepointMarks[i] = new Timepoint(0);
