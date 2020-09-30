@@ -242,7 +242,8 @@ export default class DBTools {
     static async randomizeUsers(): Promise<User[]> {
         console.log("Inserting new data");
         const names = ["Nikola", "Viktor", "Dimitroff", "Kirilov", "onqtam", "podcastfan99"];
-        const users: User[] = [User.createGuestUser()];
+        const specialUsers: User[] = [User.createGuestUser(), User.createDeletedUser()];
+        const users: User[] = specialUsers.slice();
         for (const name of names) {
             const user = new User();
             user.shortName = name;
@@ -265,9 +266,9 @@ export default class DBTools {
             .into(User)
             .values(users)
             .execute();
-        // Before returning, remove index 0 as this is where the guest user was inserted
-        // and we don't want the guest user to be known as an actual user in other parts of the code
-        users.shift();
+        // Before returning, remove index 0 as this is where the special users was inserted
+        // and we don't want the special users to be known as an actual user in other parts of the code
+        users.splice(0, specialUsers.length);
         return users;
     }
 

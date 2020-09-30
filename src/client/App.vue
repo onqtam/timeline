@@ -26,7 +26,7 @@ import User from "@/logic/entities/User";
 })
 export default class App extends Vue {
     public beforeMount(): void {
-        User.initGuestUser();
+        User.initSpecialUsers();
         store.dispatch.user.loadUser();
     }
 

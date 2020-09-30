@@ -10,6 +10,7 @@ import User from "../../logic/entities/User";
 import VoteCommentRecord from "../../logic/entities/UserRecords";
 import UserActivity from "../../logic/entities/UserActivity";
 import { Episode } from "../../logic/entities/Episode";
+import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 
 export default class CommentController {
     public static getRoutes(): RouteInfo[] {
@@ -28,6 +29,11 @@ export default class CommentController {
             verb: HTTPVerb.Post,
             requiresAuthentication: true,
             callback: CommentController.postComment
+        }, {
+            path: "/comments/",
+            verb: HTTPVerb.Delete,
+            requiresAuthentication: true,
+            callback: CommentController.deleteComment
         }, {
             path: "/comments/vote/",
             verb: HTTPVerb.Post,
@@ -269,5 +275,33 @@ export default class CommentController {
 
         const returnValue = { commentId: newComment.id };
         response.end(EncodingUtils.jsonify(returnValue));
+    }
+
+    private static async deleteComment(request: Request, response: Response): Promise<void> {
+        const params = {
+            commentId: request.body.commentId as number,
+        };
+        console.log("Received params: ", JSON.stringify(params));
+
+        const user: User = request.user! as User;
+        console.assert(user);
+
+        // Replace the comment's content and user
+        const deletedCommentValues: QueryDeepPartialEntity<Comment> = {
+            author: User.deletedUser,
+            authorName: User.deletedUser.shortName,
+            content: "[Deleted]"
+        };
+
+        // TODO: Check and report errors
+        await getConnection()
+            .createQueryBuilder(Comment, "comment")
+            .update()
+            .where(`"comment"."id" = :commentId`, params)
+            .andWhere(`"comment"."authorId" = :id`, user)
+            .set(deletedCommentValues)
+            .execute();
+
+        response.end();
     }
 }

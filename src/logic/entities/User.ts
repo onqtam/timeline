@@ -43,15 +43,25 @@ export default class User implements IReviveFromJSON {
     public static get guestUser(): User {
         return this._guestUser;
     }
+    public static get deletedUser(): User {
+        return this._deletedUser;
+    }
 
-    public static async initGuestUser(): Promise<void> {
+    public static async initSpecialUsers(): Promise<void> {
         if (CommonParams.IsRunningOnClient) {
             this._guestUser = User.createGuestUser();
+            this._deletedUser = User.createDeletedUser();
         } else {
-            const defaultUser: User = this.createGuestUser();
+            const defaultGuest: User = this.createGuestUser();
             this._guestUser = (await getConnection()
                 .createQueryBuilder(User, "user")
-                .where("\"user\".\"email\" = :email", defaultUser)
+                .where("\"user\".\"email\" = :email", defaultGuest)
+                .getOne())!;
+
+            const defaultDeleted: User = this.createDeletedUser();
+            this._deletedUser = (await getConnection()
+                .createQueryBuilder(User, "user")
+                .where("\"user\".\"email\" = :email", defaultDeleted)
                 .getOne())!;
         }
     }
@@ -67,5 +77,17 @@ export default class User implements IReviveFromJSON {
         return user;
     }
 
+    // TODO: Check the server doesn't let the deleted user to do anything!
+    public static createDeletedUser(): User {
+        const user = new User();
+        user.shortName = "deleted";
+        user.email = "deleted@deleted.deleted";
+        user.activity = new UserActivity();
+        user.activity.voteRecords = [];
+        user.settings = new UserSettings();
+        return user;
+    }
+
     private static _guestUser: User;
+    private static _deletedUser: User;
 }

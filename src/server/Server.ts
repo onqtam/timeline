@@ -22,7 +22,7 @@ export default class Server {
         // TODO: Block this in production
         this.app.use((req, res, next) => {
             res.header("Access-Control-Allow-Origin", "http://lvh.me:8080");
-            res.header("Access-Control-Allow-Methods", "*");
+            res.header("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, HEAD, OPTIONS");
             res.header("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
             res.header("Access-Control-Allow-Credentials", "true");
             next();
@@ -81,6 +81,6 @@ export default class Server {
         });
         await dbConnection;
         // Hide implementation details about the promise type
-        return User.initGuestUser() as unknown as Promise<void>;
+        return User.initSpecialUsers() as unknown as Promise<void>;
     }
 }

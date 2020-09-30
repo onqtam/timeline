@@ -17,7 +17,11 @@
             <span class="separator"> · </span>
             <!-- TODO Create a button component -->
             <a v-if="!isUserGuest" class="start-reply-button" @click=toggleIsReplyingTo>
-                <i class="fa fa-reply" aria-hidden="true"></i> Reply
+                <i class="fa fa-reply" aria-hidden="true"></i>
+            </a>
+            <span class="separator"> · </span>
+            <a v-if="!isUserGuest" class="delete-button" @click=deleteComment>
+                <i class="fa fa-trash" aria-hidden="true"></i>
             </a>
             <div v-if=isReplyingTo>
                 <br/>
@@ -104,6 +108,10 @@ export default class CommentComponent extends Vue {
         }
     }
 
+    private deleteComment(): void {
+        store.dispatch.listen.deleteComment(this.comment);
+    }
+
     private formatCommentDate(): string {
         const timeSinceComment = new Date().valueOf() - this.comment.date.valueOf();
         const MS_TO_SECONDS: number = 1/1000;
@@ -155,7 +163,7 @@ export default class CommentComponent extends Vue {
 .votes, .date, .separator {
     color: @theme-neutral-color;
 }
-.start-reply-button, .submit-reply-button {
+.start-reply-button, .submit-reply-button, .delete-button {
     font-weight: bold;
     cursor: pointer;
 

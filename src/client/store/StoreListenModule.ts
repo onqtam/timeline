@@ -10,6 +10,7 @@ import AsyncLoader from "../utils/AsyncLoader";
 import CommonParams from "@/logic/CommonParams";
 import { HTTPVerb } from "@/logic/HTTPVerb";
 import { SettingPair } from "./StoreUserModule";
+import User from '@/logic/entities/User';
 
 export interface IStoreListenModule {
     audioFile: AudioFile;
@@ -151,6 +152,14 @@ class StoreListenViewModel implements IStoreListenModule {
         }
     }
 
+    public localDeleteComment(comment: Comment): void {
+        // TODO: In several places in code we repeat the same actions on the server and client
+        // Consider how to combine them if possible
+        comment.author = User.deletedUser;
+        comment.authorName = User.deletedUser.shortName;
+        comment.content = "[Deleted]";
+    }
+
     // This trivial method only exists to cope with the rule of not modifying store data outside of z
     public localUpdateCommentIdFromServer(comment: Comment, serverId: number): void {
         comment.id = serverId;
@@ -223,6 +232,15 @@ class StoreListenViewModel implements IStoreListenModule {
         const query_postNewComment = AsyncLoader.makeRestRequest(URL, HTTPVerb.Post, requestBody) as Promise<{ commentId: number }>;
         return query_postNewComment;
     }
+
+    public async deleteServerComment(comment: Comment): Promise<void> {
+        const URL: string = `${CommonParams.APIServerRootURL}/comments/`;
+        const requestBody = {
+            commentId: comment.id
+        };
+        const query_postNewComment = AsyncLoader.makeRestRequest(URL, HTTPVerb.Delete, requestBody) as Promise<void>;
+        return query_postNewComment;
+    }
 }
 
 const listenModule = new StoreListenViewModel();
@@ -248,6 +266,9 @@ export default {
         },
         internalLocalUpdateCommentIdFromServer: (state: StoreListenViewModel, payload: { comment: Comment; serverId: number }): void => {
             state.localUpdateCommentIdFromServer(payload.comment, payload.serverId);
+        },
+        internalLocalDeleteComment: (state: StoreListenViewModel, comment: Comment): void => {
+            state.localDeleteComment(comment);
         },
         internalLocalVote: (state: StoreListenViewModel, payload: { comment: Comment; isVotePositive: boolean}): void => {
             state.vote(payload.comment, payload.isVotePositive);
@@ -293,6 +314,11 @@ export default {
                     serverId: commentResult.commentId
                 });
             });
+            return serverQuery as unknown as Promise<void>;
+        },
+        deleteComment: (context: ActionContext<StoreListenViewModel, StoreListenViewModel>, comment: Comment): Promise<void> => {
+            context.commit("internalLocalDeleteComment", comment);
+            const serverQuery = context.state.deleteServerComment(comment);
             return serverQuery as unknown as Promise<void>;
         },
         vote: (context: ActionContext<StoreListenViewModel, StoreListenViewModel>, payload: { comment: Comment; isVotePositive: boolean}): Promise<void> => {
