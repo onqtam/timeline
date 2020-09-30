@@ -5,16 +5,19 @@
         "Middlewares",
         "Miqm",
         "Redirectable",
+        "devtool",
         "downlevel",
         "googleusercontent",
         "hhtukbn",
+        "nameof",
         "parsererror",
         "recomputable",
         "recomputables",
         "rnloh",
         "timeslots",
         "unpinch",
-        "upsert"
+        "upsert",
+        "varchar"
     ],
     "cSpell.ignoreWords": [
         "dbmanager",

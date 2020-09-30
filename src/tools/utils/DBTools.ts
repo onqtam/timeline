@@ -12,6 +12,7 @@ import User from "../../logic/entities/User";
 import UserActivity from "../../logic/entities/UserActivity";
 import Comment from "../../logic/entities/Comments";
 import VoteCommentRecord from "../../logic/entities/UserRecords";
+import UserSettings from "../../logic/entities/UserSettings";
 
 // Podcast Info handling
 class ElementParserHelper {
@@ -248,6 +249,7 @@ export default class DBTools {
             user.email = `${name}@gmail.com`;
             user.activity = new UserActivity();
             user.activity.internalDBDummyValue = ~~(Math.random() * Number.MAX_SAFE_INTEGER);
+            user.settings = new UserSettings();
             users.push(user);
         }
         const activities = users.map(u => u.activity);

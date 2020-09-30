@@ -4,6 +4,7 @@ import Home from "../views/Home.vue";
 import ListenView from "../views/Listen.vue";
 import EpisodesView from "../views/Episodes.vue";
 import PodcastsView from "../views/Podcasts.vue";
+import ProfileView from "../views/Profile.vue";
 import Timepoint from "@/logic/entities/Timepoint";
 
 Vue.use(VueRouter);
@@ -43,6 +44,12 @@ const routes: Array<RouteConfig> = [
         path: "/podcasts",
         name: "Podcasts",
         component: PodcastsView,
+        props: true
+    },
+    {
+        path: "/profile",
+        name: "Profile",
+        component: ProfileView,
         props: true
     },
     {

@@ -6,6 +6,7 @@ declare module "vue/types/vue" {
   interface Vue {
     // from VueRecomputed.ts
     $markRecomputable(propertyName: string): void;
+    $destroyRecomputables(): void;
     $recompute(propertyName: string): void;
   }
 }

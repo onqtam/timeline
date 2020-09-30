@@ -7,6 +7,7 @@ import { AuthRouteInfo } from "../RouteInfo";
 import { HTTPVerb } from "../../logic/HTTPVerb";
 import User from "../../logic/entities/User";
 import UserActivity from "../../logic/entities/UserActivity";
+import UserSettings from "../../logic/entities/UserSettings";
 
 type PassportVerifyOptions = { message: string }
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -59,6 +60,7 @@ export default class AuthenticationController {
                 .select()
                 .whereInIds([id])
                 .leftJoinAndSelect("user.activity", "activity")
+                .leftJoinAndSelect("user.settings", "settings")
                 .getOne()
                 .then(
                     (user: User|undefined) => {
@@ -88,21 +90,29 @@ export default class AuthenticationController {
         const existingUser: User|undefined = await getConnection()
             .createQueryBuilder(User, "user")
             .leftJoinAndSelect("user.activity", "activity")
+            .leftJoinAndSelect("user.settings", "settings")
             .where("\"user\".\"externalProviderId\" = :providerId", { providerId: googleProviderId })
             .getOne();
 
         if (!existingUser) {
             const newUser = new User();
             newUser.shortName = profile.displayName;
-            newUser.email = "test@test.com";
+            newUser.email = (profile.emails && profile.emails[0].value) || "unknown@unknown.tld";
             newUser.externalProviderId = googleProviderId;
             newUser.activity = new UserActivity();
             newUser.activity.internalDBDummyValue = ~~(Math.random() * Number.MAX_SAFE_INTEGER);
+            newUser.settings = new UserSettings();
+            newUser.settings.initDefaultValues();
 
             await getConnection()
                 .createQueryBuilder(UserActivity, "activity")
                 .insert()
                 .values(newUser.activity)
+                .execute();
+            await getConnection()
+                .createQueryBuilder(UserSettings, "settings")
+                .insert()
+                .values(newUser.settings)
                 .execute();
             await getConnection()
                 .createQueryBuilder(User, "user")
@@ -114,6 +124,7 @@ export default class AuthenticationController {
         const user: User|undefined = existingUser || await getConnection()
             .createQueryBuilder(User, "user")
             .leftJoinAndSelect("user.activity", "activity")
+            .leftJoinAndSelect("user.settings", "settings")
             .where("\"user\".\"externalProviderId\" = :providerId", { providerId: googleProviderId })
             .getOne();
         console.log("Logged in user: ", user);

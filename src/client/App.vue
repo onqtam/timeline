@@ -4,6 +4,7 @@
             <router-link to="/">Home</router-link> |
             <router-link to="/about">About</router-link>
             <VButton @click=login>Login</VButton>
+            <router-link to="/profile">Profile</router-link>
         </div>
         <LoginModal ref="login"></LoginModal>
         <router-view/>

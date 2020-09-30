@@ -3,6 +3,7 @@ import { IsEmail } from "class-validator";
 import UserActivity from "./UserActivity";
 import EncodingUtils, { IReviveFromJSON } from "../EncodingUtils";
 import CommonParams from "../CommonParams";
+import UserSettings from "./UserSettings";
 
 const GUEST_USER_EMAIL: string = "guest@guest.guest";
 
@@ -22,6 +23,9 @@ export default class User implements IReviveFromJSON {
     @OneToOne(() => UserActivity)
     @JoinColumn()
     public activity!: UserActivity;
+    @OneToOne(() => UserSettings)
+    @JoinColumn()
+    public settings!: UserSettings;
 
     public get isGuest(): boolean {
         return this.email === GUEST_USER_EMAIL;
@@ -30,6 +34,9 @@ export default class User implements IReviveFromJSON {
     public reviveSubObjects(): void {
         if (this.activity) {
             EncodingUtils.reviveObjectAs(this.activity, UserActivity);
+        }
+        if (this.settings) {
+            EncodingUtils.reviveObjectAs(this.settings, UserSettings);
         }
     }
 
@@ -56,6 +63,7 @@ export default class User implements IReviveFromJSON {
         user.email = "guest@guest.guest";
         user.activity = new UserActivity();
         user.activity.voteRecords = [];
+        user.settings = new UserSettings();
         return user;
     }
 

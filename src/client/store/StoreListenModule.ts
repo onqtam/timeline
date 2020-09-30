@@ -1,3 +1,4 @@
+import { ActionContext } from "vuex";
 import store from "@/client/store";
 import Timepoint from "@/logic/entities/Timepoint";
 import { default as AudioFile, AudioWindow } from "@/logic/AudioFile";
@@ -8,7 +9,7 @@ import { ActiveAppMode } from "./StoreDeviceInfoModule";
 import AsyncLoader from "../utils/AsyncLoader";
 import CommonParams from "@/logic/CommonParams";
 import { HTTPVerb } from "@/logic/HTTPVerb";
-import { ActionContext } from "vuex";
+import { SettingPair } from "./StoreUserModule";
 
 export interface IStoreListenModule {
     audioFile: AudioFile;
@@ -37,23 +38,32 @@ class StoreListenViewModel implements IStoreListenModule {
     public commentDensityHistogram: Histogram;
     public activeEpisode!: Episode;
 
-    // TODO: Comments in an episode need to be stored in a database of some kind
-    // This is an attempt to simulate that by storing them in a big dictionary
-    private currentEpisodeKey!: string;
-
     constructor() {
         this.audioFile = new AudioFile();
         this.audioPos = new Timepoint();
         this.audioWindow = new AudioWindow(this.audioFile, new Timepoint(0), 80, 4);
         this.volume = 0.15;
         this.allThreads = [];
-        this.currentEpisodeKey = "";
 
         this.commentDensityHistogram = {
             xAxis: [],
             yAxis: [],
             xAxisDistance: 0
         };
+    }
+
+    public setup(): void {
+        store.state.user.settingsModifiedEvent.subscribe((modifiedSetting: SettingPair) => {
+            // TODO: Once ts-nameof is correctly installed use nameof for the keys
+            switch (modifiedSetting.key) {
+            case "audioWindowTimeslotCount":
+                this.setAudioWindowSlots(modifiedSetting.value as number);
+                break;
+            case "audioWindowDuration":
+                this.resizeAudioWindow(modifiedSetting.value as number);
+                break;
+            }
+        });
     }
 
     public setActiveEpisode(episode: Episode): void {
@@ -223,6 +233,9 @@ export default {
     namespaced: true as true,
     state: listenModule,
     mutations: {
+        setup: (state: StoreListenViewModel): void => {
+            state.setup();
+        },
         // Should only be called by the loadEpisode action
         internalSetActiveEpisode: (state: StoreListenViewModel, episode: Episode): void => {
             state.setActiveEpisode(episode);
@@ -244,9 +257,6 @@ export default {
         },
         setVolume: (state: StoreListenViewModel, newVolume: number): void => {
             state.setVolume(newVolume);
-        },
-        resizeAudioWindow: (state: StoreListenViewModel, newDuration: number): void => {
-            state.resizeAudioWindow(newDuration);
         },
         moveAudioWindow: (state: StoreListenViewModel, newStart: number): void => {
             state.moveAudioWindow(newStart);

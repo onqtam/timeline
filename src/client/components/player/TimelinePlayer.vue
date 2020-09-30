@@ -19,14 +19,6 @@
                 >
                 </audio>
             </div>
-            <div class="slider-controls">
-                <label>Number Of Timeslots</label>
-                <VSlider class="timeslot-count-slider" :min=1 :max=5 :step=1 :value.sync=audioWindowTimeslotCount></VSlider>
-            </div>
-            <div class="slider-controls">
-                <label>Audio Window Size</label>
-                <VSlider class="window-width-count-slider" :min=30 :max=300 :step=30 :value.sync=audioWindowDuration></VSlider>
-            </div>
         </div>
         <Timeline
             class="timeline"
@@ -87,18 +79,6 @@ export default class TimelinePlayer extends Vue {
     public get audioWindow(): AudioWindow {
         return store.state.listen.audioWindow;
     }
-    public get audioWindowTimeslotCount(): number {
-        return this.audioWindow.timeslotCount;
-    }
-    public set audioWindowTimeslotCount(value: number) {
-        store.commit.listen.setAudioWindowSlots(value);
-    }
-    public get audioWindowDuration(): number {
-        return this.audioWindow.duration;
-    }
-    public set audioWindowDuration(value: number) {
-        store.commit.listen.resizeAudioWindow(value);
-    }
     public get volume(): number {
         return store.state.listen.volume;
     }
@@ -148,6 +128,9 @@ export default class TimelinePlayer extends Vue {
         this.onWindowResized();
         store.commit.device.addOnAppModeChangedListener(this.onWindowResized.bind(this));
         this.$recompute("audioElement");
+    }
+    public beforeDestroy(): void {
+        this.$destroyRecomputables();
     }
     public destroyed(): void {
         store.commit.device.removeOnAppModeChangedistener(this.onWindowResized.bind(this));
