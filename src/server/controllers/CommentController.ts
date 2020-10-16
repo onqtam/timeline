@@ -8,7 +8,7 @@ import { HTTPVerb } from "../../logic/HTTPVerb";
 import { getConnection } from "typeorm";
 import Timepoint from "../../logic/entities/Timepoint";
 import User from "../../logic/entities/User";
-import VoteCommentRecord from "../../logic/entities/UserRecords";
+import VoteCommentRecord from "../../logic/entities/VoteCommentRecord";
 import UserActivity from "../../logic/entities/UserActivity";
 import { Episode } from "../../logic/entities/Episode";
 

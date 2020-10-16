@@ -127,6 +127,8 @@ export default class TimelinePlayer extends Vue {
     public mounted(): void {
         this.onWindowResized();
         store.commit.device.addOnAppModeChangedListener(this.onWindowResized.bind(this));
+        const playbackProgress: number = store.state.user.getPlaybackProgressForEpisode(this.activeEpisode.id).seconds;
+        store.commit.listen.moveAudioPos(playbackProgress);
         this.$recompute("audioElement");
     }
     public beforeDestroy(): void {

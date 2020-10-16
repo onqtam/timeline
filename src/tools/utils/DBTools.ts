@@ -11,8 +11,9 @@ import CommentGenerator from "./CommentGenerator";
 import User from "../../logic/entities/User";
 import UserActivity from "../../logic/entities/UserActivity";
 import Comment from "../../logic/entities/Comments";
-import VoteCommentRecord from "../../logic/entities/UserRecords";
+import VoteCommentRecord from "../../logic/entities/VoteCommentRecord";
 import UserSettings from "../../logic/entities/UserSettings";
+import PlaybackProgressRecord from '@/logic/entities/PlaybackProgressRecord';
 
 // Podcast Info handling
 class ElementParserHelper {
@@ -211,6 +212,10 @@ export default class DBTools {
         await connection.createQueryBuilder()
             .delete()
             .from(VoteCommentRecord)
+            .execute();
+        await connection.createQueryBuilder()
+            .delete()
+            .from(PlaybackProgressRecord)
             .execute();
         await connection.createQueryBuilder()
             .delete()

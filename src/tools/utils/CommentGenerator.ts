@@ -4,7 +4,7 @@ import { RandomIntegerDistribution, RandomString } from "../../logic/RandomHelpe
 import MathHelpers from "../../logic/MathHelpers";
 import Timepoint from "../../logic/entities/Timepoint";
 import { Episode } from "../../logic/entities/Episode";
-import VoteCommentRecord from "../../logic/entities/UserRecords";
+import VoteCommentRecord from "../../logic/entities/VoteCommentRecord";
 
 export default class CommentGenerator {
     public users: User[];

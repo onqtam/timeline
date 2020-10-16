@@ -17,6 +17,7 @@ import { default as Comment } from "@/logic/entities/Comments";
 import VButton from "@/client/components/primitives/VButton.vue";
 import TimelinePlayer from "@/client/components/player/TimelinePlayer.vue";
 import CommentSection from "@/client/components/comments/CommentSection.vue";
+import server from '@/server/main';
 
 @Component({
     components: {
@@ -67,6 +68,9 @@ export default class ListenView extends Vue {
 
     public isDataLoaded: boolean = false;
 
+    private _localPlaybackStorageTimerId: number = -1;
+    private _serverPlaybackStorageTimerId: number = -1;
+
     public beforeMount(): void {
         console.assert(this.podcastTitleURL !== undefined && this.episodeTitleURL !== undefined);
         const dispatchPayload = { podcastURL: this.podcastTitleURL, episodeURL: this.episodeTitleURL };
@@ -89,6 +93,29 @@ export default class ListenView extends Vue {
                 (this.$refs["comment-section"] as CommentSection).focusThread(this.threadIdToFocus!);
             });
         }
+
+        // Trigger timers for saving the progress
+        const localTimer: number = 5000;
+        const serverTimer: number = 60000;
+        this._localPlaybackStorageTimerId = window.setInterval(() => {
+            const payload = {
+                episodeId: store.state.listen.activeEpisode.id,
+                progress: store.state.listen.audioPos
+            };
+            store.commit.user.localSavePlaybackProgress(payload);
+        }, localTimer);
+        this._serverPlaybackStorageTimerId = window.setInterval(() => {
+            const payload = {
+                episodeId: store.state.listen.activeEpisode.id,
+                progress: store.state.listen.audioPos
+            };
+            store.dispatch.user.savePlaybackProgress(payload);
+        }, serverTimer);
+    }
+
+    public destroyed(): void {
+        clearInterval(this._localPlaybackStorageTimerId);
+        clearInterval(this._serverPlaybackStorageTimerId);
     }
 }
 </script>

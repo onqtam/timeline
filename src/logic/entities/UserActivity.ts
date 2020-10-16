@@ -1,5 +1,5 @@
 import { Entity, OneToMany, PrimaryGeneratedColumn, Column } from "typeorm";
-import VoteCommentRecord from "./UserRecords";
+import VoteCommentRecord from "./VoteCommentRecord";
 import EncodingUtils, { IReviveFromJSON } from "../EncodingUtils";
 
 @Entity()

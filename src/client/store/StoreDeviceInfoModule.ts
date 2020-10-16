@@ -48,6 +48,7 @@ export class StoreDeviceInfoViewModel implements IStoreDeviceInfoModule {
         window.addEventListener("resize", store.commit.device.updateDeviceScreenDimensions);
     }
 
+    // TODO: Move to the SimpleEvent library
     public addOnAppModeChangedListener(callback: () => void): void {
         this.appModeChangedListeners.push(callback);
     }

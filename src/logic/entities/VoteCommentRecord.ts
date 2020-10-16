@@ -13,3 +13,5 @@ export default class VoteCommentRecord {
     @ManyToOne(() => UserActivity, activity => activity.voteRecords, { nullable: false })
     public owningActivity!: UserActivity;
 }
+
+

@@ -2,18 +2,22 @@ import { ActionContext } from "vuex";
 import { SimpleEventDispatcher, ISimpleEvent } from "ste-simple-events";
 
 import User from "@/logic/entities/User";
-import VoteCommentRecord from "@/logic/entities/UserRecords";
+import VoteCommentRecord from "@/logic/entities/VoteCommentRecord";
 import CommonParams from "@/logic/CommonParams";
 import AsyncLoader from "../utils/AsyncLoader";
 import { HTTPVerb } from "@/logic/HTTPVerb";
 import router from "../router";
 import UserSettings from "@/logic/entities/UserSettings";
 import EncodingUtils from "@/logic/EncodingUtils";
+import store from '.';
+import Timepoint from '@/logic/entities/Timepoint';
+import { UserPlaybackActivity } from '@/logic/UserActivities';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 export interface IStoreUserModule {
     info: User;
+    getPlaybackProgressForEpisode(episodeId: number): Timepoint;
 }
 
 export type SettingPair = {key: string; value: any};
@@ -23,11 +27,18 @@ export class StoreUserViewModel implements IStoreUserModule {
     public get settingsModifiedEvent(): ISimpleEvent<SettingPair> {
         return this._settingsModifiedEvent.asEvent();
     }
+    private _episodeIdToPlaybackProgress: Record<number, number>;
     private _settingsModifiedEvent: SimpleEventDispatcher<SettingPair>;
     private static LOCAL_STORAGE_SETTINGS_KEY = "local_user_settings";
+    private static LOCAL_STORAGE_PLAYBACK_KEY = "local_playback_settings";
     constructor() {
         this.info = new User();
+        this._episodeIdToPlaybackProgress = {};
         this._settingsModifiedEvent = new SimpleEventDispatcher<SettingPair>();
+    }
+
+    public getPlaybackProgressForEpisode(episodeId: number): Timepoint {
+        return new Timepoint(this._episodeIdToPlaybackProgress[episodeId] || 0);
     }
 
     // Should only be called by other modules!
@@ -78,14 +89,21 @@ export class StoreUserViewModel implements IStoreUserModule {
         this._settingsModifiedEvent.dispatch(payload);
     }
 
-    public localLoadSettings(): UserSettings {
+    public localLoadData(): void {
+        // Also load playback progress
+        const storedPlaybackString: string|null = localStorage.getItem(StoreUserViewModel.LOCAL_STORAGE_PLAYBACK_KEY);
+        if (storedPlaybackString) {
+            this._episodeIdToPlaybackProgress = JSON.parse(storedPlaybackString);
+        }
+
         const storedSettingsString: string|null = localStorage.getItem(StoreUserViewModel.LOCAL_STORAGE_SETTINGS_KEY);
         if (!storedSettingsString) {
-            return new UserSettings();
+            User.guestUser.settings = new UserSettings();
+            return;
         }
         const obj = JSON.parse(storedSettingsString);
         EncodingUtils.reviveObjectAs<UserSettings>(obj, UserSettings);
-        return obj as UserSettings;
+        User.guestUser.settings = obj;
     }
 
     public localStoreSettings(): void {
@@ -104,6 +122,42 @@ export class StoreUserViewModel implements IStoreUserModule {
         const query_storeSettings = AsyncLoader.makeRestRequest(restURL, HTTPVerb.Post, body) as Promise<void>;
         return query_storeSettings;
     }
+
+    public internalSetPlaybackProgress(episodeProgress: UserPlaybackActivity[]): void {
+        this._episodeIdToPlaybackProgress = {};
+        episodeProgress.reduce((map, record) => {
+            map[record.episodeId] = record.progressInSeconds;
+            return map;
+        }, this._episodeIdToPlaybackProgress);
+
+        console.log("User playback progress loaded from the server");
+    }
+
+    public loadPlaybackProgress(): Promise<UserPlaybackActivity[]> {
+        console.log("Loading playback progress from the server");
+        const restURL: string = `${CommonParams.APIServerRootURL}/user/progress`;
+        const query_loadPlayback = AsyncLoader.makeRestRequest(restURL, HTTPVerb.Get, null) as Promise<UserPlaybackActivity[]>;
+        return query_loadPlayback;
+    }
+
+    public localSavePlaybackProgress(payload: { episodeId: number; progress: Timepoint }): void {
+        this._episodeIdToPlaybackProgress[payload.episodeId] = payload.progress.seconds;
+        const playbackString: string = EncodingUtils.jsonify(this._episodeIdToPlaybackProgress);
+        localStorage.setItem(StoreUserViewModel.LOCAL_STORAGE_PLAYBACK_KEY, playbackString);
+    }
+
+    public async serverStorePlaybackProgress(payload: { episodeId: number; progress: Timepoint }): Promise<void> {
+        console.assert(!this.info.isGuest);
+
+        console.log("Saving playback progress on the server");
+        const restURL: string = `${CommonParams.APIServerRootURL}/user/progress`;
+        const body = {
+            episodeId: payload.episodeId,
+            progressInSeconds: payload.progress.seconds
+        };
+        const query_storePlayback = AsyncLoader.makeRestRequest(restURL, HTTPVerb.Post, body) as Promise<void>;
+        return query_storePlayback;
+    }
 }
 
 const userModule = new StoreUserViewModel();
@@ -120,25 +174,42 @@ export default {
         localRevertVote: (state: StoreUserViewModel, commentId: number): void => {
             state.revertVote(commentId);
         },
+        internalLoadLocalData: (state: StoreUserViewModel): void => {
+            state.localLoadData();
+        },
         internalSetActiveUser: (state: StoreUserViewModel, user: User): void => {
             state.internalSetActiveUser(user);
         },
+        internalSetPlaybackProgress: (state: StoreUserViewModel, episodeProgress: UserPlaybackActivity[]): void => {
+            state.internalSetPlaybackProgress(episodeProgress);
+        },
         localSetSettingValue: <T>(state: StoreUserViewModel, payload: { key: string; value: T}): void => {
             state.setSettingValue(payload);
+        },
+        localSavePlaybackProgress: (state: StoreUserViewModel, payload: { episodeId: number; progress: Timepoint}): void => {
+            state.localSavePlaybackProgress(payload);
         }
     },
     actions: {
         loadUser: (context: ActionContext<StoreUserViewModel, StoreUserViewModel>): Promise<void> => {
-            User.guestUser.settings = context.state.localLoadSettings();
+            context.commit("internalLoadLocalData");
             context.commit("internalSetActiveUser", User.guestUser);
             // TODO: Don't fetch the current user if there's no cookie
-            return context.state.loadUser()
+            const query_loadUser = context.state.loadUser()
                 .then(user => {
                     context.commit("internalSetActiveUser", user);
                 })
                 .catch(reason => {
                     console.error("Failed to load user: ", reason);
                 });
+            const query_loadUserPlayback = context.state.loadPlaybackProgress()
+                .then(episodeProgress => {
+                    context.commit("internalSetPlaybackProgress", episodeProgress);
+                })
+                .catch(reason => {
+                    console.error("Failed to load user playback progress: ", reason);
+                });
+            return Promise.allSettled([query_loadUser, query_loadUserPlayback]) as unknown as Promise<void>;
         },
         login: (context: ActionContext<StoreUserViewModel, StoreUserViewModel>): Promise<void> => {
             return context.state.loginGoogle();
@@ -149,6 +220,12 @@ export default {
                 return context.state.serverStoreSettings();
             }
             return Promise.resolve();
-        }
+        },
+        savePlaybackProgress: (context: ActionContext<StoreUserViewModel, StoreUserViewModel>, payload: { episodeId: number; progress: Timepoint}): Promise<void> => {
+            if (!context.state.info.isGuest) {
+                return context.state.serverStorePlaybackProgress(payload);
+            }
+            return Promise.resolve();
+        },
     }
 };
