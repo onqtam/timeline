@@ -13,7 +13,7 @@ import UserActivity from "../../logic/entities/UserActivity";
 import Comment from "../../logic/entities/Comments";
 import VoteCommentRecord from "../../logic/entities/VoteCommentRecord";
 import UserSettings from "../../logic/entities/UserSettings";
-import PlaybackProgressRecord from '@/logic/entities/PlaybackProgressRecord';
+import PlaybackProgressRecord from "../../logic/entities/PlaybackProgressRecord";
 
 // Podcast Info handling
 class ElementParserHelper {
