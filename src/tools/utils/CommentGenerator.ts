@@ -4,7 +4,7 @@ import { RandomIntegerDistribution, RandomString } from "../../logic/RandomHelpe
 import MathHelpers from "../../logic/MathHelpers";
 import Timepoint from "../../logic/entities/Timepoint";
 import { Episode } from "../../logic/entities/Episode";
-import VoteCommentRecord from "../../logic/entities/VoteCommentRecord";
+// import VoteCommentRecord from "../../logic/entities/VoteCommentRecord";
 
 export default class CommentGenerator {
     public users: User[];
@@ -48,14 +48,14 @@ export default class CommentGenerator {
         for (const comment of comments) {
             for (let i = 0; i < votesPerCommentDistribution.sample(); i++) {
                 // TODO: It's pretty weird to always pick the same user to vote
-                const votingUser: User = this.users[i];
+                // const votingUser: User = this.users[i];
                 const isVotePositive: boolean = Math.random() >= chanceForPositiveVote;
                 if (isVotePositive) {
                     comment.upVotes++;
                 } else {
                     comment.downVotes++;
                 }
-                const voteRecord = new VoteCommentRecord(comment.id, votingUser.id, comment.episode.id, isVotePositive);
+                // const voteRecord = new VoteCommentRecord(comment.id, votingUser.id, comment.episode.id, isVotePositive);
                 // voteRecord.owningActivity = votingUser.activity;
                 // votingUser.activity.voteRecords = votingUser.activity.voteRecords || [];
                 // votingUser.activity.voteRecords.push(voteRecord);

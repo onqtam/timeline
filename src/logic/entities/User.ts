@@ -24,19 +24,17 @@ export default class User implements IReviveFromJSON {
     @JoinColumn()
     public settings!: UserSettings;
 
-
     public voteRecords!: VoteCommentRecord[];
     // Returns true if the user voted positive, false if the vote was negative, undefined if he hasn't voted
     public getVoteOnComment(commentId: number): boolean|undefined {
         const voteRecord = this.voteRecords.find(record => record.commentId === commentId);
 
         if (voteRecord?.wasVotePositive === true) {
-            console.log("== OMGGG TRUE", commentId)
+            console.log("== OMGGG TRUE", commentId);
         }
 
         return voteRecord?.wasVotePositive;
     }
-
 
     public get isGuest(): boolean {
         return this.email === GUEST_USER_EMAIL;
@@ -56,7 +54,7 @@ export default class User implements IReviveFromJSON {
     }
 
     public static async initSpecialUsers(): Promise<void> {
-        console.log(" ====  initSpecialUsers ====== ")
+        console.log(" ====  initSpecialUsers ====== ");
         if (CommonParams.IsRunningOnClient) {
             this._guestUser = User.createGuestUser();
             this._deletedUser = User.createDeletedUser();

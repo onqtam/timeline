@@ -11,7 +11,6 @@ import User from "../../logic/entities/User";
 import VoteCommentRecord from "../../logic/entities/VoteCommentRecord";
 import { Episode } from "../../logic/entities/Episode";
 import { QB } from "../utils/dbutils";
-import { assert } from 'console';
 
 export default class CommentController {
     public static getRoutes(): RouteInfo[] {
@@ -132,8 +131,7 @@ export default class CommentController {
             .where(`"voteRecord"."userId" = :uid`, { uid: user.id })
             .andWhere(`"voteRecord"."episodeId" = :eid`, { eid: params.episodeId })
             .getMany();
-        
-            
+
         const res: VoteCommentRecord[] = await query_allVotesForEpisode;
         console.log(res);
 
@@ -175,7 +173,7 @@ export default class CommentController {
                 .insert()
                 .values([record])
                 .execute() as unknown as Promise<void>;
-        } else if (existingRecord.wasVotePositive != params.wasVotePositive) {
+        } else if (existingRecord.wasVotePositive !== params.wasVotePositive) {
             query_upsertRecord = getConnection()
                 .createQueryBuilder(VoteCommentRecord, "")
                 .update()
@@ -201,9 +199,9 @@ export default class CommentController {
         comment.upVotes += ~~params.wasVotePositive;
         comment.downVotes += ~~!params.wasVotePositive;
 
-        console.log(comment.id)
-        console.log(comment.upVotes)
-        console.log(comment.downVotes)
+        console.log(comment.id);
+        console.log(comment.upVotes);
+        console.log(comment.downVotes);
 
         const query_updateCommentCounters = getConnection().createQueryBuilder(Comment, "comment")
             .update()

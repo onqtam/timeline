@@ -47,14 +47,14 @@ export default class CommentControlsComponent extends Vue {
     public readonly isCollapsible!: boolean;
 
     public hasVotedUp(): boolean {
-        console.log("== get hasVotedUp")
-        let res = store.state.user.info.getVoteOnComment(this.comment.id) === true;
+        console.log("== get hasVotedUp");
+        const res = store.state.user.info.getVoteOnComment(this.comment.id) === true;
         console.log(res);
         return res;
     }
     public get hasVotedDown(): boolean {
-        console.log("== get hasVotedDown")
-        let res = store.state.user.info.getVoteOnComment(this.comment.id) === false;
+        console.log("== get hasVotedDown");
+        const res = store.state.user.info.getVoteOnComment(this.comment.id) === false;
         console.log(res);
         return res;
     }
@@ -71,18 +71,18 @@ export default class CommentControlsComponent extends Vue {
     }
 
     private voteUp(): void {
-        console.log("== voteUp pressed!")
+        console.log("== voteUp pressed!");
         if (this.hasVotedUp()) {
-            console.log("== voteUp reverting!")
+            console.log("== voteUp reverting!");
             store.dispatch.listen.revertVote(this.comment);
         } else {
-            console.log("== voteUp voting!")
+            console.log("== voteUp voting!");
             store.dispatch.listen.vote({ comment: this.comment, isVotePositive: true });
         }
     }
 
     private voteDown(): void {
-        console.log("== voteDown pressed!")
+        console.log("== voteDown pressed!");
         if (this.hasVotedDown) {
             store.dispatch.listen.revertVote(this.comment);
         } else {

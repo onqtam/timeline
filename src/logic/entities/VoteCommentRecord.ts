@@ -1,6 +1,5 @@
 import { Entity, Column, PrimaryGeneratedColumn } from "typeorm";
 
-
 // no foreign keys because every vote (insert/update/delete) will trigger a refferential
 // integrity check and voting is the most common operation besides fetching the data
 @Entity()
@@ -23,5 +22,3 @@ export default class VoteCommentRecord {
         this.wasVotePositive = vote;
     }
 }
-
-

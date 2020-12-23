@@ -5,9 +5,9 @@ import EncodingUtils from "../../logic/EncodingUtils";
 import { HTTPVerb } from "../../logic/HTTPVerb";
 import UserSettings from "../../logic/entities/UserSettings";
 import User from "../../logic/entities/User";
-import PlaybackProgressRecord from '../../logic/entities/PlaybackProgressRecord';
-import { UserPlaybackActivity } from '../../logic/UserActivities';
-import Timepoint from '../../logic/entities/Timepoint';
+import PlaybackProgressRecord from "../../logic/entities/PlaybackProgressRecord";
+import { UserPlaybackActivity } from "../../logic/UserActivities";
+import Timepoint from "../../logic/entities/Timepoint";
 
 export default class UserController {
     public static getRoutes(): RouteInfo[] {

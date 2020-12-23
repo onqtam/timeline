@@ -1,8 +1,5 @@
-import { Entity, Column, ManyToOne, PrimaryGeneratedColumn, Index, PrimaryColumn } from "typeorm";
-import { Episode } from './Podcast';
-import Timepoint from './Timepoint';
-import User from './User';
-
+import { Entity, Column, PrimaryColumn } from "typeorm";
+import Timepoint from "./Timepoint";
 
 @Entity()
 export default class PlaybackProgressRecord {

@@ -9,9 +9,8 @@ import { HTTPVerb } from "@/logic/HTTPVerb";
 import router from "../router";
 import UserSettings from "@/logic/entities/UserSettings";
 import EncodingUtils from "@/logic/EncodingUtils";
-import store from '.';
-import Timepoint from '@/logic/entities/Timepoint';
-import { UserPlaybackActivity } from '@/logic/UserActivities';
+import Timepoint from "@/logic/entities/Timepoint";
+import { UserPlaybackActivity } from "@/logic/UserActivities";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -46,16 +45,11 @@ export class StoreUserViewModel implements IStoreUserModule {
         // TODO: move to a map and don't bother with management of existing keys
         const record = this.info.voteRecords.find(record => record.commentId === votedComment.commentId);
         if (record) {
-            console.log("== found and changed!")
+            console.log("== found and changed!");
             record.wasVotePositive = votedComment.wasVotePositive;
         } else {
-            console.log("== pushed!")
-            this.info.voteRecords.push(new VoteCommentRecord(
-                votedComment.commentId,
-                this.info.id,
-                0,
-                votedComment.wasVotePositive
-                ));
+            console.log("== pushed!");
+            this.info.voteRecords.push(new VoteCommentRecord(votedComment.commentId, this.info.id, 0, votedComment.wasVotePositive));
 
             console.log(this.info.voteRecords);
         }
@@ -230,11 +224,12 @@ export default {
             }
             return Promise.resolve();
         },
-        savePlaybackProgress: (context: ActionContext<StoreUserViewModel, StoreUserViewModel>, payload: { episodeId: number; progress: Timepoint}): Promise<void> => {
-            // if (!context.state.info.isGuest) {
-            //     return context.state.serverStorePlaybackProgress(payload);
-            // }
+        savePlaybackProgress: (context: ActionContext<StoreUserViewModel, StoreUserViewModel>, _payload: { episodeId: number; progress: Timepoint}): Promise<void> => {
+            if (!context.state.info.isGuest) {
+                // TODO: remporarilycommented out to avoid spammy db updates on the server
+                // return context.state.serverStorePlaybackProgress(payload);
+            }
             return Promise.resolve();
-        },
+        }
     }
 };

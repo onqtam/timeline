@@ -7,8 +7,6 @@ import Timepoint from "../../logic/entities/Timepoint";
 import AsyncLoader from "./AsyncLoader";
 import { RandomString } from "../../logic/RandomHelpers";
 import { PostgresConnectionOptions } from "typeorm/driver/postgres/PostgresConnectionOptions";
-import { ObjectType } from "typeorm/common/ObjectType";
-import { SelectQueryBuilder } from "typeorm/query-builder/SelectQueryBuilder";
 import CommentGenerator from "./CommentGenerator";
 import User from "../../logic/entities/User";
 import Comment from "../../logic/entities/Comments";

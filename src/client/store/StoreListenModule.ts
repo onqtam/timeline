@@ -202,7 +202,7 @@ class StoreListenViewModel implements IStoreListenModule {
         const query_comments = AsyncLoader.makeRestRequest(loadCommentsURL, HTTPVerb.Get, null, Comment) as Promise<Comment[]>;
         const loadHistogramURL: string = `${CommonParams.APIServerRootURL}/comments/histogram/${episode.id}`;
         const query_histogram = AsyncLoader.makeRestRequest(loadHistogramURL, HTTPVerb.Get, null) as Promise<Histogram>;
-        
+
         let votesByUser: VoteCommentRecord[] = [];
         if (!store.state.user.info.isGuest) {
             const loadVotesURL: string = `${CommonParams.APIServerRootURL}/comments/votes/${episode.id}`;
@@ -211,13 +211,12 @@ class StoreListenViewModel implements IStoreListenModule {
             votesByUser = await query_votes;
         }
 
-        let comms = await query_comments
+        const comms = await query_comments;
 
         console.log("== votes by user");
         console.log(votesByUser);
         console.log(comms);
         console.log("== votes by user");
-
 
         return {
             allComments: comms,
@@ -236,7 +235,7 @@ class StoreListenViewModel implements IStoreListenModule {
             wasVotePositive: wasVotePositive
         };
         console.log(requestBody);
-        
+
         const query_storeVote = AsyncLoader.makeRestRequest(URL, HTTPVerb.Post, requestBody) as Promise<void>;
         return query_storeVote;
     }

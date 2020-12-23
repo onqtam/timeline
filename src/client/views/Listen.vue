@@ -17,7 +17,6 @@ import { default as Comment } from "@/logic/entities/Comments";
 import VButton from "@/client/components/primitives/VButton.vue";
 import TimelinePlayer from "@/client/components/player/TimelinePlayer.vue";
 import CommentSection from "@/client/components/comments/CommentSection.vue";
-import server from '@/server/main';
 
 @Component({
     components: {
