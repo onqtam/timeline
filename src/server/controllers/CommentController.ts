@@ -9,8 +9,9 @@ import { getConnection } from "typeorm";
 import Timepoint from "../../logic/entities/Timepoint";
 import User from "../../logic/entities/User";
 import VoteCommentRecord from "../../logic/entities/VoteCommentRecord";
-import UserActivity from "../../logic/entities/UserActivity";
 import { Episode } from "../../logic/entities/Episode";
+import { QB } from "../utils/dbutils";
+import { assert } from 'console';
 
 export default class CommentController {
     public static getRoutes(): RouteInfo[] {
@@ -35,6 +36,11 @@ export default class CommentController {
             requiresAuthentication: true,
             callback: CommentController.deleteComment
         }, {
+            path: "/comments/votes/:episodeId/",
+            verb: HTTPVerb.Get,
+            requiresAuthentication: true,
+            callback: CommentController.getVotes
+        }, {
             path: "/comments/vote/",
             verb: HTTPVerb.Post,
             requiresAuthentication: true,
@@ -53,15 +59,16 @@ export default class CommentController {
             intervalStart: ~~request.params.intervalStart,
             intervalEnd: ~~request.params.intervalEnd
         };
-        console.log("Received params: ", JSON.stringify(params));
+        console.log("\n== getCommentThreadsFor - Received params: ", JSON.stringify(params));
 
         const rootsWithinInterval: Comment[] = await getConnection()
             .createQueryBuilder(Comment, "comment")
-            .where("comment.\"parentCommentId\" is NULL") // Roots
-            .andWhere("comment.\"episodeId\" = :episodeId", params) // For this episode
-            .andWhere("comment.\"timepointSeconds\" >= :intervalStart", params) // In the given interval
-            .andWhere("comment.\"timepointSeconds\" <= :intervalEnd", params)
+            .where(`comment."parentCommentId" is NULL`) // Roots
+            .andWhere(`comment."episodeId" = :episodeId`, params) // For this episode
+            .andWhere(`comment."timepointSeconds" >= :intervalStart`, params) // In the given interval
+            .andWhere(`comment."timepointSeconds" <= :intervalEnd`, params)
             .leftJoinAndSelect("comment.author", "author")
+            // .leftJoinAndSelect("comment.episode", "episode")
             .getMany();
 
         const getTreeOfRoot = async (c: Comment): Promise<Comment> => {
@@ -70,6 +77,8 @@ export default class CommentController {
         };
         const query_completeTrees: Promise<Comment[]> = Promise.all(rootsWithinInterval.map(getTreeOfRoot));
         const completeTrees: Comment[] = await query_completeTrees;
+        console.log("== LOGGING LOTS OF STUFF:");
+        console.log(completeTrees);
         response.end(EncodingUtils.jsonify(completeTrees));
     }
 
@@ -87,9 +96,9 @@ export default class CommentController {
             .createQueryBuilder(Comment, "comment")
             .select(`comment."timepointSeconds" / ${FIXED_TIMESLOT_SIZE}`, "timeslotIndex")
             .addSelect("count(*)", "commentCount")
-            .where("comment.\"episodeId\" = :episodeId", params) // For this episode
-            .groupBy("\"timeslotIndex\"")
-            .orderBy("\"timeslotIndex\"")
+            .where(`comment."episodeId" = :episodeId`, params) // For this episode
+            .groupBy(`"timeslotIndex"`)
+            .orderBy(`"timeslotIndex"`)
             .execute();
         const xAxis: number[] = commentTimeslotHistogram.map(record => record.timeslotIndex);
         const yAxis: number[] = commentTimeslotHistogram.map(record => ~~record.commentCount); // node-pg returns COUNT as a string so convert to number
@@ -109,12 +118,35 @@ export default class CommentController {
         response.end(EncodingUtils.jsonify(resultData));
     }
 
+    private static async getVotes(request: Request, response: Response): Promise<void> {
+        const params = {
+            episodeId: ~~request.params.episodeId
+        };
+        console.log("\n== getVotes - Received params: ", JSON.stringify(params));
+
+        const user: User = request.user! as User;
+        console.assert(user);
+
+        const query_allVotesForEpisode: Promise<VoteCommentRecord[]> = QB(VoteCommentRecord, "voteRecord")
+            .select()
+            .where(`"voteRecord"."userId" = :uid`, { uid: user.id })
+            .andWhere(`"voteRecord"."episodeId" = :eid`, { eid: params.episodeId })
+            .getMany();
+        
+            
+        const res: VoteCommentRecord[] = await query_allVotesForEpisode;
+        console.log(res);
+
+        response.end(EncodingUtils.jsonify(res));
+    }
+
     private static async recordVote(request: Request, response: Response): Promise<void> {
         const params = {
             commentId: ~~request.body.commentId,
+            episodeId: ~~request.body.episodeId,
             wasVotePositive: request.body.wasVotePositive
         };
-        console.log("Received params: ", JSON.stringify(params));
+        console.log("\n== recordVote - Received params: ", JSON.stringify(params));
 
         const user: User = request.user! as User;
         console.assert(user);
@@ -122,68 +154,64 @@ export default class CommentController {
         const query_existingRecord: Promise<VoteCommentRecord | undefined> = getConnection()
             .createQueryBuilder(VoteCommentRecord, "voteRecord")
             .select()
-            .where(
-                "\"voteRecord\".\"owningActivityId\" = :activityId AND \"voteRecord\".\"commentId\" = :commentId",
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                { activityId: (user as any).activity_id, commentId: params.commentId }
-            )
+            .where(`"voteRecord"."userId" = :uid`, { uid: user.id })
+            .andWhere(`"voteRecord"."commentId" = :cid`, { cid: params.commentId })
             .getOne();
 
         // Also load the relevant comment to update the counters;
         // TODO: Move the update to SQL? Stored procedure or something?
-        const query_comment: Promise<Comment> = getConnection()
+        const query_comment: Promise<Comment | undefined> = getConnection()
             .createQueryBuilder(Comment, "comment")
             .select()
             .whereInIds([params.commentId])
-            .execute();
+            .getOne();
 
         const existingRecord: VoteCommentRecord | undefined = await query_existingRecord;
         let query_upsertRecord: Promise<void>;
         if (!existingRecord) {
-            const userActivity: UserActivity = await getConnection()
-                .createQueryBuilder(UserActivity, "activity")
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                .whereInIds([(user as any).activity_id])
-                .execute();
+            const record = new VoteCommentRecord(params.commentId, user.id, params.episodeId, params.wasVotePositive);
 
-            const record = new VoteCommentRecord();
-            record.commentId = params.commentId;
-            record.wasVotePositive = params.wasVotePositive;
-            record.owningActivity = userActivity;
-
-            query_upsertRecord = getConnection()
-                .createQueryBuilder(VoteCommentRecord, "voteRecord")
+            query_upsertRecord = getConnection().createQueryBuilder(VoteCommentRecord, "voteRecord")
                 .insert()
                 .values([record])
                 .execute() as unknown as Promise<void>;
-        } else {
+        } else if (existingRecord.wasVotePositive != params.wasVotePositive) {
             query_upsertRecord = getConnection()
-                .createQueryBuilder(VoteCommentRecord, "voteRecord")
+                .createQueryBuilder(VoteCommentRecord, "")
                 .update()
-                .where(
-                    "\"voteRecord\".\"owningActivityId\" = :activityId AND \"voteRecord\".\"commentId\" = :commentId",
-                    { activityId: user.activity.id, commentId: params.commentId }
-                )
+                .where(`"userId" = :uid`, { uid: user.id })
+                .andWhere(`"commentId" = :cid`, { cid: params.commentId })
                 .set({ wasVotePositive: params.wasVotePositive })
                 .execute() as unknown as Promise<void>;
+        } else {
+            console.error("\n== bogus request to set a vote's value to it's former value (no change)\n");
+            return;
         }
 
-        const comment: Comment = await query_comment;
+        // TODO: update user karma - not who is voting but whoever owns the comment
+
+        const comment_res: Comment | undefined = await query_comment;
+        console.assert(comment_res);
+        const comment = comment_res as Comment;
+
         if (existingRecord) {
             comment.upVotes -= ~~existingRecord.wasVotePositive;
             comment.downVotes -= ~~!existingRecord.wasVotePositive;
         }
         comment.upVotes += ~~params.wasVotePositive;
         comment.downVotes += ~~!params.wasVotePositive;
-        const query_updateCommentCounters = getConnection()
-            .createQueryBuilder(Comment, "comment")
+
+        console.log(comment.id)
+        console.log(comment.upVotes)
+        console.log(comment.downVotes)
+
+        const query_updateCommentCounters = getConnection().createQueryBuilder(Comment, "comment")
             .update()
             .whereInIds([comment.id])
             .set({ upVotes: comment.upVotes, downVotes: comment.downVotes })
             .execute();
 
-        await query_upsertRecord;
-        await query_updateCommentCounters;
+        await Promise.all([query_upsertRecord, query_updateCommentCounters]);
         response.end();
     }
 
@@ -191,37 +219,30 @@ export default class CommentController {
         const params = {
             commentId: ~~request.body.commentId
         };
-        console.log("Received params: ", JSON.stringify(params));
+        console.log("\n== revertVote - Received params: ", JSON.stringify(params));
 
         const user: User = request.user! as User;
         console.assert(user);
 
-        const existingRecord: VoteCommentRecord = await getConnection()
-            .createQueryBuilder(VoteCommentRecord, "voteRecord")
+        const wasVotePositive: boolean = await QB(VoteCommentRecord, "voteRecord")
             .delete()
-            .where(
-                "\"voteRecord\".\"owningActivityId\" = :activityId AND \"voteRecord\".\"commentId\" = :commentId",
-                { activityId: user.activity.id, commentId: params.commentId }
-            )
-            .returning("voteRecord")
-            .execute() as unknown as VoteCommentRecord;
+            .where(`"userId" = :id`, user)
+            .andWhere(`"commentId" = :cid`, { cid: params.commentId })
+            .returning(`"wasVotePositive"`)
+            .execute() as unknown as boolean;
 
-        // Also load the relevant comment to update the counters
-        const comment: Comment = await getConnection()
-            .createQueryBuilder(Comment, "comment")
-            .select()
-            .whereInIds([params.commentId])
-            .execute();
-
-        comment.upVotes -= ~~existingRecord.wasVotePositive;
-        comment.downVotes -= ~~!existingRecord.wasVotePositive;
-
-        await getConnection()
-            .createQueryBuilder(Comment, "comment")
-            .update()
-            .whereInIds([comment.id])
-            .set({ upVotes: comment.upVotes, downVotes: comment.downVotes })
-            .execute();
+        // update the counters to the relevant comment
+        if (wasVotePositive) {
+            await getConnection().createQueryBuilder()
+                .update(Comment)
+                .set({ upVotes: () => `"upVotes" - 1` })
+                .execute();
+        } else {
+            await getConnection().createQueryBuilder()
+                .update(Comment)
+                .set({ downVotes: () => `"downVotes" - 1` })
+                .execute();
+        }
 
         response.end();
     }
@@ -233,7 +254,7 @@ export default class CommentController {
             timepointSeconds: ~~request.body.timepointSeconds as number,
             content: request.body.content as string
         };
-        console.log("Received params: ", JSON.stringify(params));
+        console.log("\n== postComment - Received params: ", JSON.stringify(params));
 
         const query_episode: Promise<Episode | undefined> = getConnection()
             .createQueryBuilder(Episode, "episode")
@@ -281,7 +302,7 @@ export default class CommentController {
         const params = {
             commentId: request.body.commentId as number
         };
-        console.log("Received params: ", JSON.stringify(params));
+        console.log("\n== deleteComment - Received params: ", JSON.stringify(params));
 
         const user: User = request.user! as User;
         console.assert(user);
@@ -295,10 +316,10 @@ export default class CommentController {
 
         // TODO: Check and report errors
         await getConnection()
-            .createQueryBuilder(Comment, "comment")
+            .createQueryBuilder(Comment, "")
             .update()
-            .where(`"comment"."id" = :commentId`, params)
-            .andWhere(`"comment"."authorId" = :id`, user)
+            .where(`"id" = :commentId`, params)
+            .andWhere(`"authorId" = :id`, user)
             .set(deletedCommentValues)
             .execute();
 

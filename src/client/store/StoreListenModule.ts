@@ -3,6 +3,7 @@ import store from "@/client/store";
 import Timepoint from "@/logic/entities/Timepoint";
 import { default as AudioFile, AudioWindow } from "@/logic/AudioFile";
 import Comment from "@/logic/entities/Comments";
+import VoteCommentRecord from "@/logic/entities/VoteCommentRecord";
 import MathHelpers from "@/logic/MathHelpers";
 import { Episode } from "@/logic/entities/Podcast";
 import { ActiveAppMode } from "./StoreDeviceInfoModule";
@@ -29,7 +30,9 @@ type Histogram = {
 type FullCommentData = {
     allComments: Comment[];
     commentDensityHistogram: Histogram;
+    votesByUser: VoteCommentRecord[];
 }
+
 class StoreListenViewModel implements IStoreListenModule {
     public audioFile!: AudioFile;
     public audioPos!: Timepoint;
@@ -78,6 +81,7 @@ class StoreListenViewModel implements IStoreListenModule {
     public setActiveEpisodeComments(commentData: FullCommentData): void {
         this.allThreads = commentData.allComments;
         this.commentDensityHistogram = commentData.commentDensityHistogram;
+        store.state.user.info.voteRecords = commentData.votesByUser;
         // The received histograms doesn't contain values beyond the last comment
         // so fill in trailing zeros
         // TODO: Figure out how to do this faster
@@ -168,11 +172,11 @@ class StoreListenViewModel implements IStoreListenModule {
     }
 
     public isVoteValid(comment: Comment, isVotePositive: boolean|undefined): boolean {
-        return store.state.user.info.activity.getVoteOnComment(comment.id) !== isVotePositive;
+        return store.state.user.info.getVoteOnComment(comment.id) !== isVotePositive;
     }
 
     public vote(comment: Comment, isVotePositive: boolean): void {
-        const existingVoteRecord = store.state.user.info.activity.getVoteOnComment(comment.id);
+        const existingVoteRecord = store.state.user.info.getVoteOnComment(comment.id);
         if (existingVoteRecord !== undefined) {
             // Already voted, revert the previous vote
             comment.upVotes -= ~~existingVoteRecord;
@@ -184,7 +188,7 @@ class StoreListenViewModel implements IStoreListenModule {
     }
 
     public revertVote(comment: Comment): void {
-        const existingVoteRecord = store.state.user.info.activity.getVoteOnComment(comment.id);
+        const existingVoteRecord = store.state.user.info.getVoteOnComment(comment.id);
         console.assert(existingVoteRecord !== undefined);
         // revert the previous vote
         comment.upVotes -= ~~existingVoteRecord!;
@@ -198,18 +202,41 @@ class StoreListenViewModel implements IStoreListenModule {
         const query_comments = AsyncLoader.makeRestRequest(loadCommentsURL, HTTPVerb.Get, null, Comment) as Promise<Comment[]>;
         const loadHistogramURL: string = `${CommonParams.APIServerRootURL}/comments/histogram/${episode.id}`;
         const query_histogram = AsyncLoader.makeRestRequest(loadHistogramURL, HTTPVerb.Get, null) as Promise<Histogram>;
+        
+        let votesByUser: VoteCommentRecord[] = [];
+        if (!store.state.user.info.isGuest) {
+            const loadVotesURL: string = `${CommonParams.APIServerRootURL}/comments/votes/${episode.id}`;
+            const query_votes = AsyncLoader.makeRestRequest(loadVotesURL, HTTPVerb.Get, null) as Promise<VoteCommentRecord[]>;
+            // TODO ideally we would await all 3 at the same time
+            votesByUser = await query_votes;
+        }
+
+        let comms = await query_comments
+
+        console.log("== votes by user");
+        console.log(votesByUser);
+        console.log(comms);
+        console.log("== votes by user");
+
+
         return {
-            allComments: await query_comments,
-            commentDensityHistogram: await query_histogram
+            allComments: comms,
+            commentDensityHistogram: await query_histogram,
+            votesByUser: votesByUser
         };
     }
 
     public async storeServerVote(comment: Comment, wasVotePositive: boolean): Promise<void> {
         const URL: string = `${CommonParams.APIServerRootURL}/comments/vote/`;
+        console.log("TROLOLO");
+        console.log(comment);
         const requestBody = {
             commentId: comment.id,
+            episodeId: this.activeEpisode.id, // TODO change with comment.episodeId
             wasVotePositive: wasVotePositive
         };
+        console.log(requestBody);
+        
         const query_storeVote = AsyncLoader.makeRestRequest(URL, HTTPVerb.Post, requestBody) as Promise<void>;
         return query_storeVote;
     }

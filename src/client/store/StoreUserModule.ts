@@ -44,18 +44,27 @@ export class StoreUserViewModel implements IStoreUserModule {
     // Should only be called by other modules!
     public recordVote(votedComment: {commentId: number; wasVotePositive: boolean}): void {
         // TODO: move to a map and don't bother with management of existing keys
-        const record = this.info.activity.voteRecords.find(record => record.commentId === votedComment.commentId);
+        const record = this.info.voteRecords.find(record => record.commentId === votedComment.commentId);
         if (record) {
+            console.log("== found and changed!")
             record.wasVotePositive = votedComment.wasVotePositive;
         } else {
-            this.info.activity.voteRecords.push(votedComment as unknown as VoteCommentRecord);
+            console.log("== pushed!")
+            this.info.voteRecords.push(new VoteCommentRecord(
+                votedComment.commentId,
+                this.info.id,
+                0,
+                votedComment.wasVotePositive
+                ));
+
+            console.log(this.info.voteRecords);
         }
     }
     public revertVote(commentId: number): void {
         // TODO: Server-side
-        const recordIndex = this.info.activity.voteRecords.findIndex(record => record.commentId === commentId);
+        const recordIndex = this.info.voteRecords.findIndex(record => record.commentId === commentId);
         if (recordIndex !== -1) {
-            this.info.activity.voteRecords.splice(recordIndex, 1);
+            this.info.voteRecords.splice(recordIndex, 1);
         }
     }
     public async loadUser(): Promise<User> {
@@ -222,9 +231,9 @@ export default {
             return Promise.resolve();
         },
         savePlaybackProgress: (context: ActionContext<StoreUserViewModel, StoreUserViewModel>, payload: { episodeId: number; progress: Timepoint}): Promise<void> => {
-            if (!context.state.info.isGuest) {
-                return context.state.serverStorePlaybackProgress(payload);
-            }
+            // if (!context.state.info.isGuest) {
+            //     return context.state.serverStorePlaybackProgress(payload);
+            // }
             return Promise.resolve();
         },
     }

@@ -1,6 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn, Index, getConnection } from "typeorm";
 import { IsEmail } from "class-validator";
-import UserActivity from "./UserActivity";
+import VoteCommentRecord from "./VoteCommentRecord";
 import EncodingUtils, { IReviveFromJSON } from "../EncodingUtils";
 import CommonParams from "../CommonParams";
 import UserSettings from "./UserSettings";
@@ -20,21 +20,29 @@ export default class User implements IReviveFromJSON {
     @Column({ type: "varchar", nullable: true })
     @Index({ unique: true })
     public externalProviderId!: string|null;
-    @OneToOne(() => UserActivity)
-    @JoinColumn()
-    public activity!: UserActivity;
     @OneToOne(() => UserSettings)
     @JoinColumn()
     public settings!: UserSettings;
+
+
+    public voteRecords!: VoteCommentRecord[];
+    // Returns true if the user voted positive, false if the vote was negative, undefined if he hasn't voted
+    public getVoteOnComment(commentId: number): boolean|undefined {
+        const voteRecord = this.voteRecords.find(record => record.commentId === commentId);
+
+        if (voteRecord?.wasVotePositive === true) {
+            console.log("== OMGGG TRUE", commentId)
+        }
+
+        return voteRecord?.wasVotePositive;
+    }
+
 
     public get isGuest(): boolean {
         return this.email === GUEST_USER_EMAIL;
     }
 
     public reviveSubObjects(): void {
-        if (this.activity) {
-            EncodingUtils.reviveObjectAs(this.activity, UserActivity);
-        }
         if (this.settings) {
             EncodingUtils.reviveObjectAs(this.settings, UserSettings);
         }
@@ -48,6 +56,7 @@ export default class User implements IReviveFromJSON {
     }
 
     public static async initSpecialUsers(): Promise<void> {
+        console.log(" ====  initSpecialUsers ====== ")
         if (CommonParams.IsRunningOnClient) {
             this._guestUser = User.createGuestUser();
             this._deletedUser = User.createDeletedUser();
@@ -55,14 +64,18 @@ export default class User implements IReviveFromJSON {
             const defaultGuest: User = this.createGuestUser();
             this._guestUser = (await getConnection()
                 .createQueryBuilder(User, "user")
-                .where("\"user\".\"email\" = :email", defaultGuest)
+                .where(`"user"."email" = :email`, defaultGuest)
                 .getOne())!;
 
             const defaultDeleted: User = this.createDeletedUser();
             this._deletedUser = (await getConnection()
                 .createQueryBuilder(User, "user")
-                .where("\"user\".\"email\" = :email", defaultDeleted)
+                .where(`"user"."email" = :email`, defaultDeleted)
                 .getOne())!;
+
+            // TODO: this is still undefined - we never insert the deleted user - we just ask for him here.
+            // perhaps we don't need a deleted user in the DB at all? maybe just use -1 for the userId and remove the foreign keys...
+            console.log(this._deletedUser);
         }
     }
 
@@ -71,8 +84,6 @@ export default class User implements IReviveFromJSON {
         const user = new User();
         user.shortName = "Guest";
         user.email = "guest@guest.guest";
-        user.activity = new UserActivity();
-        user.activity.voteRecords = [];
         user.settings = new UserSettings();
         return user;
     }
@@ -82,8 +93,6 @@ export default class User implements IReviveFromJSON {
         const user = new User();
         user.shortName = "deleted";
         user.email = "deleted@deleted.deleted";
-        user.activity = new UserActivity();
-        user.activity.voteRecords = [];
         user.settings = new UserSettings();
         return user;
     }

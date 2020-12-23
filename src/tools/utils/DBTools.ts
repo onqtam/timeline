@@ -7,9 +7,10 @@ import Timepoint from "../../logic/entities/Timepoint";
 import AsyncLoader from "./AsyncLoader";
 import { RandomString } from "../../logic/RandomHelpers";
 import { PostgresConnectionOptions } from "typeorm/driver/postgres/PostgresConnectionOptions";
+import { ObjectType } from "typeorm/common/ObjectType";
+import { SelectQueryBuilder } from "typeorm/query-builder/SelectQueryBuilder";
 import CommentGenerator from "./CommentGenerator";
 import User from "../../logic/entities/User";
-import UserActivity from "../../logic/entities/UserActivity";
 import Comment from "../../logic/entities/Comments";
 import VoteCommentRecord from "../../logic/entities/VoteCommentRecord";
 import UserSettings from "../../logic/entities/UserSettings";
@@ -217,10 +218,10 @@ export default class DBTools {
             .delete()
             .from(PlaybackProgressRecord)
             .execute();
-        await connection.createQueryBuilder()
-            .delete()
-            .from(UserActivity)
-            .execute();
+        // await connection.createQueryBuilder()
+        //     .delete()
+        //     .from(UserActivity)
+        //     .execute();
     }
 
     static async cleanUpComments(): Promise<void> {
@@ -253,19 +254,19 @@ export default class DBTools {
             const user = new User();
             user.shortName = name;
             user.email = `${name}@gmail.com`;
-            user.activity = new UserActivity();
-            user.activity.internalDBDummyValue = ~~(Math.random() * Number.MAX_SAFE_INTEGER);
+            // user.activity = new UserActivity();
+            // user.activity.internalDBDummyValue = ~~(Math.random() * Number.MAX_SAFE_INTEGER);
             user.settings = new UserSettings();
             users.push(user);
         }
-        const activities = users.map(u => u.activity);
+        // const activities = users.map(u => u.activity);
 
         const connection: Connection = getConnection();
-        await connection.createQueryBuilder()
-            .insert()
-            .into(UserActivity)
-            .values(activities)
-            .execute();
+        // await connection.createQueryBuilder()
+        //     .insert()
+        //     .into(UserActivity)
+        //     .values(activities)
+        //     .execute();
         await connection.createQueryBuilder()
             .insert()
             .into(User)
@@ -295,17 +296,18 @@ export default class DBTools {
             currentLevelComments = currentLevelComments.flatMap(c => c.replies || []);
             allComments.splice(allComments.length - 1, 0, ...currentLevelComments);
         }
-        generator.generateRandomVotes(allComments);
+        // generator.generateRandomVotes(allComments); // TODO viktor: fixme!
+
         // User activities should now be filled, save them
-        const allActivities: UserActivity[] = users.map(u => u.activity);
-        const allVoteRecords: VoteCommentRecord[] = allActivities.flatMap(a => a.voteRecords || []);
+        // const allActivities: UserActivity[] = users.map(u => u.activity);
+        // const allVoteRecords: VoteCommentRecord[] = allActivities.flatMap(a => a.voteRecords || []);
         // The order is important - insert all vote records, then update activities
-        await connection.createQueryBuilder()
-            .insert()
-            .into(VoteCommentRecord)
-            .values(allVoteRecords)
-            .execute();
-        await connection.getRepository(UserActivity).save(allActivities);
+        // await connection.createQueryBuilder()
+        //     .insert()
+        //     .into(VoteCommentRecord)
+        //     .values(allVoteRecords)
+        //     .execute();
+        // await connection.getRepository(UserActivity).save(allActivities);
         // Resave comments to update their up/down vote counters
         await connection.getRepository(Comment).save(allComments);
 

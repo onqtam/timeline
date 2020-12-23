@@ -41,6 +41,9 @@ export default class App extends Vue {
 
 * {
     color: @theme-text-color;
+    // margin: 0;
+    // padding: 0;
+    // box-sizing: border-box;
 }
 
 html, body, #app {

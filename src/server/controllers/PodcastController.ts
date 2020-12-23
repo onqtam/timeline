@@ -53,7 +53,7 @@ export default class PodcastController {
             .createQueryBuilder()
             .select()
             .from(Podcast, "podcast")
-            .where("podcast.\"title\" = :podcastTitle", params)
+            .where(`podcast."title" = :podcastTitle`, params)
             .execute())[0];
         if (!podcast) {
             response.status(404).end();
@@ -63,8 +63,8 @@ export default class PodcastController {
             .createQueryBuilder()
             .select()
             .from(Episode, "episode")
-            .where("episode.\"title\" = :episodeTitle", params)
-            .andWhere("episode.\"owningPodcastId\" = :podcastId", { podcastId: podcast?.id })
+            .where(`episode."title" = :episodeTitle`, params)
+            .andWhere(`episode."owningPodcastId" = :podcastId`, { podcastId: podcast?.id })
             .execute())[0];
 
         if (!episode) {

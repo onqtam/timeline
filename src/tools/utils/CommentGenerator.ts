@@ -55,12 +55,10 @@ export default class CommentGenerator {
                 } else {
                     comment.downVotes++;
                 }
-                const voteRecord = new VoteCommentRecord();
-                voteRecord.commentId = comment.id;
-                voteRecord.owningActivity = votingUser.activity;
-                voteRecord.wasVotePositive = isVotePositive;
-                votingUser.activity.voteRecords = votingUser.activity.voteRecords || [];
-                votingUser.activity.voteRecords.push(voteRecord);
+                const voteRecord = new VoteCommentRecord(comment.id, votingUser.id, comment.episode.id, isVotePositive);
+                // voteRecord.owningActivity = votingUser.activity;
+                // votingUser.activity.voteRecords = votingUser.activity.voteRecords || [];
+                // votingUser.activity.voteRecords.push(voteRecord);
             }
         }
     }

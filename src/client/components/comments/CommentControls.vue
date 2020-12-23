@@ -4,7 +4,7 @@
             v-if=isExpanded
         >
             <a class="vote-button"
-                :class="{ 'active-vote': hasVotedUp }"
+                :class="{ 'active-vote': hasVotedUp() }"
                 @click=voteUp
             >
                 <i class="fa fa-arrow-up"></i>
@@ -46,11 +46,17 @@ export default class CommentControlsComponent extends Vue {
     @Prop({ type: Boolean })
     public readonly isCollapsible!: boolean;
 
-    public get hasVotedUp(): boolean {
-        return store.state.user.info.activity.getVoteOnComment(this.comment.id) === true;
+    public hasVotedUp(): boolean {
+        console.log("== get hasVotedUp")
+        let res = store.state.user.info.getVoteOnComment(this.comment.id) === true;
+        console.log(res);
+        return res;
     }
     public get hasVotedDown(): boolean {
-        return store.state.user.info.activity.getVoteOnComment(this.comment.id) === false;
+        console.log("== get hasVotedDown")
+        let res = store.state.user.info.getVoteOnComment(this.comment.id) === false;
+        console.log(res);
+        return res;
     }
 
     public mounted(): void {
@@ -65,14 +71,18 @@ export default class CommentControlsComponent extends Vue {
     }
 
     private voteUp(): void {
-        if (this.hasVotedUp) {
+        console.log("== voteUp pressed!")
+        if (this.hasVotedUp()) {
+            console.log("== voteUp reverting!")
             store.dispatch.listen.revertVote(this.comment);
         } else {
+            console.log("== voteUp voting!")
             store.dispatch.listen.vote({ comment: this.comment, isVotePositive: true });
         }
     }
 
     private voteDown(): void {
+        console.log("== voteDown pressed!")
         if (this.hasVotedDown) {
             store.dispatch.listen.revertVote(this.comment);
         } else {

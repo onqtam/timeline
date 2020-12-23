@@ -2,7 +2,6 @@
     <div class="comment-container">
         <!-- Show controls if we aren't the head of a thread; the thread owns the controls for it -->
         <CommentControlsComponent
-            v-if=!isHead
             :comment=comment :isExpanded.sync=isExpanded :isCollapsible=true
         />
         <!-- Set the comment id as element id to be able to find comment's DOM element from other systems  -->
@@ -59,12 +58,6 @@ export default class CommentComponent extends Vue {
     @Prop({ type: Boolean })
     public shouldShowOnlyPreview!: boolean;
 
-    public get hasVotedUp(): boolean {
-        return store.state.user.info.activity.getVoteOnComment(this.comment.id) === true;
-    }
-    public get hasVotedDown(): boolean {
-        return store.state.user.info.activity.getVoteOnComment(this.comment.id) === false;
-    }
     public get isUserGuest(): boolean {
         return store.state.user.info.isGuest;
     }
@@ -79,10 +72,6 @@ export default class CommentComponent extends Vue {
 
     private isExpanded: boolean = true;
     private isReplyingTo: boolean = false;
-
-    private get isHead(): boolean {
-        return this.parentThread !== null;
-    }
 
     private get shouldShowDelimiter(): boolean {
         const parentReplies: Comment[]|undefined = this.parentThread?.replies;
