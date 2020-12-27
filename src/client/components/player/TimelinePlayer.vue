@@ -37,6 +37,43 @@
             :agenda=activeEpisode.agenda
         >
         </AgendaComponent>
+        <!-- <svg id="funnel" viewBox="0 0 1000 20" preserveAspectRatio="none" height="1.5em" width="100%">
+            <defs>
+            <linearGradient id="light_grad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" style="stop-color:rgb(190,190,210);stop-opacity:1"/>
+                <stop offset="100%" style="stop-color:rgb(235,235,255);stop-opacity:1"/>
+            </linearGradient>
+            <linearGradient id="darker_grad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" style="stop-color:rgb(150,150,175);stop-opacity:1"/>
+                <stop offset="100%" style="stop-color:rgb(200,200,225);stop-opacity:1"/>
+            </linearGradient>
+            </defs>
+            <path fill="url(#light_grad)" d="
+            M 0 20 C 0 10 0 10 110 10
+            C 200 10 200 10 200 0
+            L 250 0
+            C 250 10 250 10 630 10
+            C 1000 10 1000 10 1000 20"/>
+            <path fill="url(#darker_grad)" d="
+            M 0 20 C 0 10 0 10 110 10
+            C 200 10 200 10 200 0
+            L 210 0
+            C 210 13 210 13 150 13
+            C 100 13 100 13 100 20
+            "/>
+            <g stroke="black" stroke-width="1.2" fill="transparent">
+            <path d="M 0 20 C 0 10 0 10 110 10"/>
+            <path d="M 110 10 C 200 10 200 10 200 0"/>
+            <path d="M 200 0 L 250 0"/>
+            <path d="M 250 0 C 250 10 250 10 630 10"/>
+            <path d="M 630 10 C 1000 10 1000 10 1000 20"/>
+            </g>
+            <g stroke="black" stroke-width="1.2" fill="transparent">
+            <path d="M 210 0 C 210 13 210 13 150 13" stroke-width="0.8"/>
+            <path d="M 150 13 C 100 13 100 13 100 20" stroke-width="0.8"/>
+            </g>
+        </svg> -->
+
         <Timeline
             class="zoomline"
             ref="zoomline"
@@ -198,7 +235,7 @@ export default class TimelinePlayer extends Vue {
             this.timelineMarkCount = 12;
             break;
         case ActiveAppMode.StandardScreen:
-            this.timelineMarkCount = 10;
+            this.timelineMarkCount = 5;
             break;
         case ActiveAppMode.Tablet:
             this.timelineMarkCount = 5;

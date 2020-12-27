@@ -1,5 +1,7 @@
 <template>
     <div>
+        <!-- controls=0 -->
+        <iframe width="100%" height="700px" src="https://www.youtube.com/embed/nM9f0W2KD5s?" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
         <TimelinePlayer v-if=isDataLoaded ref="timeline-player" class="timeline-player" />
         <CommentSection v-if=isDataLoaded ref="comment-section" />
     </div>
@@ -123,7 +125,8 @@ export default class ListenView extends Vue {
 @import "../cssresources/theme.less";
 
 .timeline-player {
-    height: 40vh;
+    height: 30vh;
+    background-color:rgb(49, 49, 49);
 }
 
 .timeline-player, .comment-section-root {
@@ -136,7 +139,7 @@ button {
 
 .comment-section-root {
     // This limits the size of all threads; TODO revisit and pick a better number at a later stage
-    height: 50vh;
+    height: 70vh;
     box-sizing: border-box;
     padding-bottom: 5vh;
 }

@@ -1,11 +1,11 @@
 <template>
     <div id="app">
-        <div id="nav">
+        <header id="nav">
             <router-link to="/">Home</router-link> |
             <router-link to="/about">About</router-link>
             <VButton @click=login>Login</VButton>
             <router-link to="/profile">Profile</router-link>
-        </div>
+        </header>
         <LoginModal ref="login"></LoginModal>
         <router-view/>
     </div>
@@ -41,26 +41,39 @@ export default class App extends Vue {
 
 * {
     color: @theme-text-color;
-    // margin: 0;
-    // padding: 0;
-    // box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-html, body, #app {
-    width: 100vw;
-    height: 100vh;
-    padding: 0;
-    margin: 0;
-    background: @theme-background;
+body {
+    background: rgb(66, 66, 66);
+    display: grid;
+    justify-content: center;
+    // place-content: center; // same effect as justify-content
 
     font-family: Avenir, Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-align: center;
-    overflow: hidden;
+}
+
+// https://web.dev/min-max-clamp/
+#app {
+    // https://stackoverflow.com/questions/17904088/disable-less-css-overwriting-calc
+    width: ~"max(80vw, calc(800px - 3vw))";
+    max-width: 1500px;
+}
+
+// https://blog.francium.tech/responsive-web-design-device-resolution-and-viewport-width-e7b7f138d7b9
+@media screen and (max-width: 800px) {
+    #app {
+        width: 97vw; // otherwise (with 100vw) a horizontal scroll bar might appear
+    }
 }
 
 #nav {
+    background-color: rgb(228, 228, 228);
     padding: 30px;
 
     a {

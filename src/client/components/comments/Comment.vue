@@ -148,6 +148,7 @@ export default class CommentComponent extends Vue {
     text-align: left;
     padding-left: @expansion-controls-offset;
     position: relative;
+    overflow: hidden;
 }
 .votes, .date, .separator {
     color: @theme-neutral-color;
