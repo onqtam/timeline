@@ -218,7 +218,6 @@ export default class Timeline extends Vue {
     background: @theme-focus-color;
     border: 2px solid @theme-focus-color-3;
     position: relative;
-    box-sizing: border-box;
     user-select: none;
     cursor: pointer; /* Show we are clickable */
 }

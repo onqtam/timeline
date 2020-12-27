@@ -208,7 +208,6 @@ input, button {
 .new-thread-container, .comment-management-panel {
     width: 48%;
     margin-bottom: 1em;
-    box-sizing: border-box;
 }
 
 @top-row-shared-border: 2px solid @theme-focus-color-3;
@@ -226,7 +225,6 @@ input, button {
     max-height: 100%;
     overflow-y: auto;
     padding-right: 0.25em;
-    box-sizing: border-box;
     // Scrollbar
     &::-webkit-scrollbar {
         width: 0.75em;

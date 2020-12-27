@@ -105,7 +105,6 @@ export default class CommentThreadComponent extends Vue {
 @top-border-width: 1em;
 .comment-thread-container {
     text-align: left;
-    box-sizing: border-box;
     border-radius: 0 0 5% 5%;
     border: 2px solid @theme-neutral-color;
     border-top-width: @top-border-width;

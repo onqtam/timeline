@@ -127,7 +127,6 @@ export default class VSlider extends Vue {
     }
 }
 .v-slider-value-text {
-    box-sizing: border-box;
     position: absolute;
     top: -2em;
     width: @button-height; // Same size as the button so it aligns with it

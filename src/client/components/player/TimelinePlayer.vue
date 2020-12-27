@@ -172,7 +172,7 @@ export default class TimelinePlayer extends Vue {
         this.$destroyRecomputables();
     }
     public destroyed(): void {
-        store.commit.device.removeOnAppModeChangedistener(this.onWindowResized.bind(this));
+        store.commit.device.removeOnAppModeChangedListener(this.onWindowResized.bind(this));
     }
     public seekTo(secondToSeekTo: number): void {
         store.commit.listen.moveAudioPos(secondToSeekTo);

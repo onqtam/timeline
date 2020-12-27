@@ -140,7 +140,6 @@ button {
 .comment-section-root {
     // This limits the size of all threads; TODO revisit and pick a better number at a later stage
     height: 70vh;
-    box-sizing: border-box;
     padding-bottom: 5vh;
 }
 </style>

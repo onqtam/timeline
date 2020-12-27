@@ -63,14 +63,12 @@ export default class PodcastComponent extends Vue {
 @import "../cssresources/theme.less";
 
 .podcast-slot {
-    box-sizing: border-box;
     padding: 0;
     padding-bottom: 2.5em;
 }
 .podcast-thumbnail, .podcast-content {
     margin: 0;
     display: inline-block;
-    box-sizing: border-box;
 }
 .podcast-thumbnail {
     background-size: contain;

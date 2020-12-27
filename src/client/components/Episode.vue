@@ -64,14 +64,12 @@ export default class EpisodeComponent extends Vue {
 @import "../cssresources/theme.less";
 
 .episode-slot {
-    box-sizing: border-box;
     padding: 0;
     padding-bottom: 2.5em;
 }
 .episode-thumbnail, .episode-content {
     margin: 0;
     display: inline-block;
-    box-sizing: border-box;
 }
 .episode-thumbnail {
     background-size: contain;

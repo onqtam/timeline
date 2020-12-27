@@ -52,7 +52,7 @@ export class StoreDeviceInfoViewModel implements IStoreDeviceInfoModule {
     public addOnAppModeChangedListener(callback: () => void): void {
         this.appModeChangedListeners.push(callback);
     }
-    public removeOnAppModeChangedistener(callback: () => void): void {
+    public removeOnAppModeChangedListener(callback: () => void): void {
         const indexOfCallback: number = this.appModeChangedListeners.indexOf(callback);
         this.appModeChangedListeners[indexOfCallback] = this.appModeChangedListeners[this.appModeChangedListeners.length - 1];
         this.appModeChangedListeners.pop();
@@ -102,8 +102,8 @@ export default {
         addOnAppModeChangedListener: (state: StoreDeviceInfoViewModel, listener: AppModeChangedCallback): void => {
             state.addOnAppModeChangedListener(listener);
         },
-        removeOnAppModeChangedistener: (state: StoreDeviceInfoViewModel, listener: AppModeChangedCallback): void => {
-            state.removeOnAppModeChangedistener(listener);
+        removeOnAppModeChangedListener: (state: StoreDeviceInfoViewModel, listener: AppModeChangedCallback): void => {
+            state.removeOnAppModeChangedListener(listener);
         },
         updateDeviceScreenDimensions: (state: StoreDeviceInfoViewModel): void => {
             state.updateDeviceScreenDimensions();

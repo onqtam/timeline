@@ -29,7 +29,6 @@ export default class VButton extends Vue {
     display: inline-block;
     padding: 0.4em;
     margin: 0.4em;
-    box-sizing: border-box;
     user-select: none;
     font-size: 0.8em;
 
