@@ -42,8 +42,6 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 import Timepoint from "@/logic/entities/Timepoint";
 import MathHelpers from "@/logic/MathHelpers";
 
-import store from "../../store";
-
 @Component
 export default class Zoomline extends Vue {
     // Props

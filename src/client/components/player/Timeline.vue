@@ -34,7 +34,6 @@
         <div
             class="current-play-position standard-play-position"
             v-if="currentAudioPosition.seconds >= rangeStart && currentAudioPosition.seconds <= rangeEnd"
-            
             :style="{ left: normalize(currentAudioPosition.seconds) + '%' }"
         >
             <div class="current-play-position-label">
@@ -141,8 +140,8 @@ export default class Timeline extends Vue {
         const rect = (this.$refs["timeline-container"] as HTMLElement).getBoundingClientRect();
         const offsetXAsPercentage = (mouseX - rect.left) / rect.width;
         let newPosition = this.rangeStart +
-            offsetXAsPercentage * (this.rangeEnd - this.rangeStart)
-            - this.audioWindow!.duration / 2; // we want to position the window so that the cursor ends up in the middle of it
+            offsetXAsPercentage * (this.rangeEnd - this.rangeStart) -
+            this.audioWindow!.duration / 2; // we want to position the window so that the cursor ends up in the middle of it
 
         // Clamp the new position within boundaries
         newPosition = MathHelpers.clamp(newPosition, this.rangeStart, this.rangeEnd - this.audioWindow!.duration);

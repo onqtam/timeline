@@ -30,11 +30,6 @@
 import { Component, Prop, Vue } from "vue-property-decorator";
 import Timepoint from "@/logic/entities/Timepoint";
 import { AudioWindow } from "@/logic/AudioFile";
-import MathHelpers from "@/logic/MathHelpers";
-
-import VChart, { ChartType } from "../primitives/VChart.vue";
-import Chartist, { IChartistData, ILineChartOptions } from "chartist";
-import store from "../../store";
 
 @Component
 export default class Funnel extends Vue {
@@ -79,13 +74,13 @@ export default class Funnel extends Vue {
     }
 
     private updatePaths() {
-        let funnel_fill_attr = `M 0 ${Funnel.totalHeight}
+        const funnel_fill_attr = `M 0 ${Funnel.totalHeight}
             C 0 ${Funnel.midHeight} 0 ${Funnel.midHeight} ${this.midpoint_left} ${Funnel.midHeight}
             C ${this.window_start} ${Funnel.midHeight} ${this.window_start} ${Funnel.midHeight} ${this.window_start} 0
             L ${this.window_end} 0
             C ${this.window_end} ${Funnel.midHeight} ${this.window_end} ${Funnel.midHeight} ${this.midpoint_right} ${Funnel.midHeight}
             C 1000 ${Funnel.midHeight} 1000 ${Funnel.midHeight} 1000 ${Funnel.totalHeight}`;
-        let progress_fill_attr = `M 0 ${Funnel.totalHeight} 
+        const progress_fill_attr = `M 0 ${Funnel.totalHeight} 
             C 0 ${Funnel.midHeight} 0 ${Funnel.midHeight} ${this.midpoint_left} ${Funnel.midHeight}
             C ${this.window_start} ${Funnel.midHeight} ${this.window_start} ${Funnel.midHeight} ${this.window_start} 0
             L ${this.progress_end} 0
@@ -93,7 +88,7 @@ export default class Funnel extends Vue {
             C ${this.progress_bottom} ${Funnel.progress_mid_height} ${this.progress_bottom} ${Funnel.progress_mid_height} ${this.progress_bottom} ${Funnel.totalHeight}`;
 
         (document.getElementById("funnel_fill") as HTMLElement).setAttribute("d", funnel_fill_attr);
-        // (document.getElementById("progress_fill") as HTMLElement).setAttribute("d", progress_fill_attr);
+        (document.getElementById("progress_fill") as HTMLElement).setAttribute("d", progress_fill_attr);
     }
 
     public mounted(): void {
