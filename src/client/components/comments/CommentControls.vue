@@ -47,15 +47,15 @@ export default class CommentControlsComponent extends Vue {
     public readonly isCollapsible!: boolean;
 
     public hasVotedUp(): boolean {
-        console.log("== get hasVotedUp");
+        // console.log("== get hasVotedUp");
         const res = store.state.user.info.getVoteOnComment(this.comment.id) === true;
-        console.log(res);
+        // console.log(res);
         return res;
     }
     public get hasVotedDown(): boolean {
-        console.log("== get hasVotedDown");
+        // console.log("== get hasVotedDown");
         const res = store.state.user.info.getVoteOnComment(this.comment.id) === false;
-        console.log(res);
+        // console.log(res);
         return res;
     }
 

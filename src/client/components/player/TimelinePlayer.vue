@@ -23,7 +23,6 @@
         <Timeline
             class="timeline"
             ref="timeline"
-            :mode=TimelineMode.Standard
             :audioWindow=audioWindow
             :numberOfMarks=timelineMarkCount
             :rangeStart=0 :rangeEnd=audio.duration
@@ -31,13 +30,15 @@
             @update:audioWindowStart=onTimelineWindowMoved
         >
         </Timeline>
-        <AgendaComponent
+
+        <!-- <AgendaComponent
             class="agenda"
             v-if=activeEpisode
             :agenda=activeEpisode.agenda
         >
-        </AgendaComponent>
-        <!-- <svg id="funnel" viewBox="0 0 1000 20" preserveAspectRatio="none" height="1.5em" width="100%">
+        </AgendaComponent> -->
+
+        <svg id="funnel" viewBox="0 0 1000 20" preserveAspectRatio="none" height="1.5em" width="100%">
             <defs>
             <linearGradient id="light_grad" x1="0%" y1="0%" x2="0%" y2="100%">
                 <stop offset="0%" style="stop-color:rgb(190,190,210);stop-opacity:1"/>
@@ -72,18 +73,17 @@
             <path d="M 210 0 C 210 13 210 13 150 13" stroke-width="0.8"/>
             <path d="M 150 13 C 100 13 100 13 100 20" stroke-width="0.8"/>
             </g>
-        </svg> -->
+        </svg>
 
-        <Timeline
+        <Zoomline
             class="zoomline"
             ref="zoomline"
-            :mode=TimelineMode.Zoomline
             :numberOfMarks=zoomlineMarkCount
             :rangeStart=zoomlineRangeStart :rangeEnd=zoomlineRangeEnd
             :currentAudioPosition=audioPos
             @update:currentAudioPosition=onZoomlinePositionMoved
         >
-        </Timeline>
+        </Zoomline>
     </div>
 </template>
 
@@ -95,7 +95,8 @@ import Timepoint from "@/logic/entities/Timepoint";
 
 import VButton from "../primitives/VButton.vue";
 import VSlider from "../primitives/VSlider.vue";
-import { default as Timeline, TimelineMode } from "./Timeline.vue";
+import { default as Timeline } from "./Timeline.vue";
+import { default as Zoomline } from "./Zoomline.vue";
 import AgendaComponent from "./Agenda.vue";
 import { Episode } from "@/logic/entities/Episode";
 import { ActiveAppMode } from "../../store/StoreDeviceInfoModule";
@@ -105,6 +106,7 @@ import { ActiveAppMode } from "../../store/StoreDeviceInfoModule";
         VButton,
         VSlider,
         Timeline,
+        Zoomline,
         AgendaComponent
     }
 })
@@ -146,9 +148,6 @@ export default class TimelinePlayer extends Vue {
         return store.state.listen.audioWindow.timeslotCount + 1;
     }
     private timelineMarkCount: number = -1;
-
-    // Store the enum as a member to access it in the template
-    private TimelineMode = TimelineMode;
 
     // Internal Data members
     private get audioElement(): HTMLAudioElement {
@@ -273,32 +272,35 @@ button {
 }
 
 .timeline-player {
-    display: grid;
-    grid-template-areas:
-        "controls controls"
-        "timeline agenda"
-        "zoomline zoomline";
-    @control-row-height: 25.5%;
-    @gap-size: 2.5%;
-    gap: @gap-size;
-    // Make sure the sum of all row heights and the gap equals 100% and the repeat for the width of all cols
-    @gap-per-row: @gap-size * 2 / 3; // 2 gaps between 3 rows, distribute their height equally among all rows
-    @gap-per-col: @gap-size * 1 / 2; // 1 gap between 2 cols
-    grid-template-rows: @control-row-height - @gap-per-row (100%-@control-row-height)/2 - @gap-per-row (100%-@control-row-height)/2 - @gap-per-row;
-    grid-template-columns: 75% - @gap-per-col 25% - @gap-per-col;
+    // display: grid;
+    // grid-template-areas:
+    //     "controls controls"
+    //     "timeline agenda"
+    //     "zoomline zoomline";
+    // @control-row-height: 25.5%;
+    // @gap-size: 2.5%;
+    // gap: @gap-size;
+    // // Make sure the sum of all row heights and the gap equals 100% and the repeat for the width of all cols
+    // @gap-per-row: @gap-size * 2 / 3; // 2 gaps between 3 rows, distribute their height equally among all rows
+    // @gap-per-col: @gap-size * 1 / 2; // 1 gap between 2 cols
+    // grid-template-rows: @control-row-height - @gap-per-row (100%-@control-row-height)/2 - @gap-per-row (100%-@control-row-height)/2 - @gap-per-row;
+    // grid-template-columns: 75% - @gap-per-col 25% - @gap-per-col;
 }
 
 .controls {
-    grid-area: controls;
+    // grid-area: controls;
+    height: 60px;
 }
 .timeline {
-    grid-area: timeline;
+    // grid-area: timeline;
+    height: 100px;
 }
 .agenda {
-    grid-area: agenda;
+    // grid-area: agenda;
 }
 .zoomline {
-    grid-area: zoomline;
+    // grid-area: zoomline;
+    height: 100px;
 }
 
 .audio-element {

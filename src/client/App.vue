@@ -8,6 +8,9 @@
         </header>
         <LoginModal ref="login"></LoginModal>
         <router-view/>
+        <footer>
+            @@@copyright
+        </footer>
     </div>
 </template>
 

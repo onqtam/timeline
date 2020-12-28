@@ -1,24 +1,16 @@
 <template>
     <div
-        ref="timeline-container"
-        class="timeline-container"
+        ref="zoomline-container"
+        class="zoomline-container"
         @click=onJumpToPosition
         @mousemove=onDrag
         @mouseleave=onStopDragging
     >
-        <!-- Highlights the part of the audio that should be zoomed, only in Standard -->
-        <div class="standard-zoom-window"
-            @mousedown.left=onStartDragging
-            @mouseup.left=onStopDragging
-            :style="{
-                left: normalize(audioWindow.start.seconds) + '%',
-                width: normalize(audioWindow.duration) + '%',
-            }"
+        <!-- Highlights the part of the audio which has already been played, only in Zoomline -->
+        <div class="zoomline-played-until-now-cover"
+            :style="{ width: normalize(currentAudioPosition.seconds) + '%'  }"
         >
         </div>
-
-        <!-- Displays a chart of the audio file, only in Standard. The data in the chart varies depending on settings -->
-        <VChart ref="chart" class="standard-chart" :type=ChartType.Line :data=chartData :options=chartOptions></VChart>
 
         <!-- Displays the small vertical lines that break down the timeline into small sections -->
         <div class="mark-container">
@@ -30,11 +22,15 @@
             </div>
         </div>
 
-        <!-- Displays a vertical line denoting the current audio position; -->
+        <!-- Displays a vertical line denoting the current audio position;
+            Only bind handlers if this is a zoomline; Use the ugly v-on syntax as the other one doesn't support conditional binding
+            + make sure this isn't visible in the zoomline where the audioPos might now be in range
+        -->
         <div
-            class="current-play-position standard-play-position"
+            class="current-play-position zoomline-play-position"
             v-if="currentAudioPosition.seconds >= rangeStart && currentAudioPosition.seconds <= rangeEnd"
-            
+            @mousedown="onStartDragging"
+            @mouseup="onStopDragging"
             :style="{ left: normalize(currentAudioPosition.seconds) + '%' }"
         >
             <div class="current-play-position-label">
@@ -47,19 +43,12 @@
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
 import Timepoint from "@/logic/entities/Timepoint";
-import { AudioWindow } from "@/logic/AudioFile";
 import MathHelpers from "@/logic/MathHelpers";
 
-import VChart, { ChartType } from "../primitives/VChart.vue";
-import Chartist, { IChartistData, ILineChartOptions } from "chartist";
 import store from "../../store";
 
-@Component({
-    components: {
-        VChart
-    }
-})
-export default class Timeline extends Vue {
+@Component
+export default class Zoomline extends Vue {
     // Props
     // In seconds
     @Prop({ type: Number })
@@ -71,9 +60,6 @@ export default class Timeline extends Vue {
     public numberOfMarks!: number;
     @Prop({ type: Timepoint })
     public currentAudioPosition!: Timepoint;
-    // Only used in standard mode
-    @Prop()
-    public audioWindow?: AudioWindow;
 
     public get computedMarks(): Timepoint[] {
         if (!this.timepointMarks || this.timepointMarks.length !== this.numberOfMarks) {
@@ -89,46 +75,11 @@ export default class Timeline extends Vue {
         return this.timepointMarks;
     }
 
-    public get chartData(): IChartistData {
-        const histogram = store.state.listen.commentDensityHistogram;
-        if (this.$refs.chart) {
-            // Force update the chart element as Vue doesn't pick the changes for some reason
-            (this.$refs.chart as Vue).$forceUpdate();
-        }
-        return {
-            labels: histogram.xAxis,
-            series: [histogram.yAxis]
-        };
-    }
-
-    public get chartOptions(): ILineChartOptions {
-        const histogram = store.state.listen.commentDensityHistogram;
-        return {
-            chartPadding: {
-                right: 0, left: 0, top: 0, bottom: 0
-            },
-            showArea: false,
-            showPoint: false,
-            axisX: {
-                showGrid: false,
-                offset: 0,
-                type: Chartist.StepAxis,
-                ticks: histogram.xAxis
-            },
-            axisY: {
-                showGrid: false,
-                offset: 0
-            }
-        };
-    }
-
     // Internal data members
     // Whether the user is currently dragging the corresponding element
-    // In Standard mode, this is the play window
+    // In Zoomline mode, this is the play cursor
     private isDraggingPlayElement: boolean = false;
     private timepointMarks: Timepoint[] = [];
-    // Store the enum as a member to access it in the template
-    private ChartType = ChartType;
 
     // Internal API
     // Converts the given value in a percentage between the current rangeStart and rangeEnd, clamped in [0;100]
@@ -140,15 +91,13 @@ export default class Timeline extends Vue {
 
     // Moves the corresponding play element (cursor or window) to the given mouse pos
     private setPlayElementPositionFromMouse(mouseX: number): void {
-        const rect = (this.$refs["timeline-container"] as HTMLElement).getBoundingClientRect();
+        const rect = (this.$refs["zoomline-container"] as HTMLElement).getBoundingClientRect();
         const offsetXAsPercentage = (mouseX - rect.left) / rect.width;
         let newPosition = this.rangeStart + offsetXAsPercentage * (this.rangeEnd - this.rangeStart);
 
         // Clamp the new position within boundaries
-        // In Standard mode, also snap to the nearest timeslot
-        newPosition = MathHelpers.clamp(newPosition, this.rangeStart, this.rangeEnd - this.audioWindow!.duration);
-        newPosition = this.audioWindow!.findTimeslotStartForTime(newPosition);
-        this.$emit("update:audioWindowStart", newPosition);
+        newPosition = MathHelpers.clamp(newPosition, this.rangeStart, this.rangeEnd);
+        this.$emit("update:currentAudioPosition", newPosition);
     }
 
     private onJumpToPosition(event: MouseEvent): void {
@@ -179,7 +128,7 @@ export default class Timeline extends Vue {
 <style scoped lang="less">
 @import "../../cssresources/theme.less";
 
-.timeline-container {
+.zoomline-container {
     width: 100%;
     height: 100%;
     background: @theme-focus-color;
@@ -223,22 +172,12 @@ export default class Timeline extends Vue {
         transform: translate(-115%, 0%);
     }
 }
-.standard-zoom-window {
+.zoomline-played-until-now-cover {
     position: absolute;
+    left: 0;
     top: 0;
     height: 100%;
     background: @theme-focus-color-2;
-    @border: 0.1em double white;
-    border-left: @border;
-    border-right: @border;
-    cursor: ew-resize;
-}
-.standard-chart {
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    position: absolute;
 }
 .current-play-position {
     position: relative;
@@ -247,6 +186,9 @@ export default class Timeline extends Vue {
     width: 0.5%;
     min-width: 3px;
     background: @theme-focus-color-4;
+}
+.zoomline-play-position {
+    cursor: ew-resize;
 }
 .current-play-position-label {
     padding-left: 0.5em;

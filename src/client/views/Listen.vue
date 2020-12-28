@@ -40,7 +40,7 @@ import CommentSection from "@/client/components/comments/CommentSection.vue";
         if (to.query.thread) {
             const threadIdToFocus: number = ~~to.query.thread;
             this.$nextTick(() => {
-                (this.$refs["comment-section"] as CommentSection).focusThread(threadIdToFocus!);
+                // (this.$refs["comment-section"] as CommentSection).focusThread(threadIdToFocus!);
             });
         }
 
@@ -91,7 +91,7 @@ export default class ListenView extends Vue {
         }
         if (this.threadIdToFocus) {
             this.$nextTick(() => {
-                (this.$refs["comment-section"] as CommentSection).focusThread(this.threadIdToFocus!);
+                // (this.$refs["comment-section"] as CommentSection).focusThread(this.threadIdToFocus!);
             });
         }
 
@@ -125,7 +125,7 @@ export default class ListenView extends Vue {
 @import "../cssresources/theme.less";
 
 .timeline-player {
-    height: 30vh;
+    height: 40vh;
     background-color:rgb(49, 49, 49);
 }
 
@@ -139,7 +139,7 @@ button {
 
 .comment-section-root {
     // This limits the size of all threads; TODO revisit and pick a better number at a later stage
-    height: 70vh;
+    height: 60vh;
     padding-bottom: 5vh;
 }
 </style>
