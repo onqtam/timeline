@@ -40,7 +40,7 @@ import CommentSection from "@/client/components/comments/CommentSection.vue";
         if (to.query.thread) {
             const threadIdToFocus: number = ~~to.query.thread;
             this.$nextTick(() => {
-                // (this.$refs["comment-section"] as CommentSection).focusThread(threadIdToFocus!);
+                (this.$refs["comment-section"] as CommentSection).focusThread(threadIdToFocus!);
             });
         }
 
@@ -91,7 +91,7 @@ export default class ListenView extends Vue {
         }
         if (this.threadIdToFocus) {
             this.$nextTick(() => {
-                // (this.$refs["comment-section"] as CommentSection).focusThread(this.threadIdToFocus!);
+                (this.$refs["comment-section"] as CommentSection).focusThread(this.threadIdToFocus!);
             });
         }
 

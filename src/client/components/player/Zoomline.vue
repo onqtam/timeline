@@ -5,6 +5,8 @@
         @click=onJumpToPosition
         @mousemove=onDrag
         @mouseleave=onStopDragging
+        @mousedown.left=onStartDragging
+        @mouseup.left=onStopDragging
     >
         <!-- Highlights the part of the audio which has already been played, only in Zoomline -->
         <div class="zoomline-played-until-now-cover"
@@ -22,15 +24,10 @@
             </div>
         </div>
 
-        <!-- Displays a vertical line denoting the current audio position;
-            Only bind handlers if this is a zoomline; Use the ugly v-on syntax as the other one doesn't support conditional binding
-            + make sure this isn't visible in the zoomline where the audioPos might now be in range
-        -->
+        <!-- Displays a vertical line denoting the current audio position; -->
         <div
             class="current-play-position zoomline-play-position"
             v-if="currentAudioPosition.seconds >= rangeStart && currentAudioPosition.seconds <= rangeEnd"
-            @mousedown="onStartDragging"
-            @mouseup="onStopDragging"
             :style="{ left: normalize(currentAudioPosition.seconds) + '%' }"
         >
             <div class="current-play-position-label">
@@ -77,7 +74,6 @@ export default class Zoomline extends Vue {
 
     // Internal data members
     // Whether the user is currently dragging the corresponding element
-    // In Zoomline mode, this is the play cursor
     private isDraggingPlayElement: boolean = false;
     private timepointMarks: Timepoint[] = [];
 
@@ -93,7 +89,7 @@ export default class Zoomline extends Vue {
     private setPlayElementPositionFromMouse(mouseX: number): void {
         const rect = (this.$refs["zoomline-container"] as HTMLElement).getBoundingClientRect();
         const offsetXAsPercentage = (mouseX - rect.left) / rect.width;
-        let newPosition = this.rangeStart + offsetXAsPercentage * (this.rangeEnd - this.rangeStart);
+        let newPosition = this.rangeStart + offsetXAsPercentage * (this.rangeEnd - this.rangeStart) - 1; // -1 in order to position the progress line better under the cursor
 
         // Clamp the new position within boundaries
         newPosition = MathHelpers.clamp(newPosition, this.rangeStart, this.rangeEnd);
@@ -178,6 +174,7 @@ export default class Zoomline extends Vue {
     top: 0;
     height: 100%;
     background: @theme-focus-color-2;
+    transition: @player-transition-time ease;
 }
 .current-play-position {
     position: relative;
@@ -186,6 +183,7 @@ export default class Zoomline extends Vue {
     width: 0.5%;
     min-width: 3px;
     background: @theme-focus-color-4;
+    transition: @player-transition-time ease;
 }
 .zoomline-play-position {
     cursor: ew-resize;

@@ -5,11 +5,11 @@
         @click=onJumpToPosition
         @mousemove=onDrag
         @mouseleave=onStopDragging
+        @mousedown.left=onStartDragging
+        @mouseup.left=onStopDragging
     >
         <!-- Highlights the part of the audio that should be zoomed, only in Standard -->
         <div class="standard-zoom-window"
-            @mousedown.left=onStartDragging
-            @mouseup.left=onStopDragging
             :style="{
                 left: normalize(audioWindow.start.seconds) + '%',
                 width: normalize(audioWindow.duration) + '%',
@@ -71,7 +71,6 @@ export default class Timeline extends Vue {
     public numberOfMarks!: number;
     @Prop({ type: Timepoint })
     public currentAudioPosition!: Timepoint;
-    // Only used in standard mode
     @Prop()
     public audioWindow?: AudioWindow;
 
@@ -124,7 +123,6 @@ export default class Timeline extends Vue {
 
     // Internal data members
     // Whether the user is currently dragging the corresponding element
-    // In Standard mode, this is the play window
     private isDraggingPlayElement: boolean = false;
     private timepointMarks: Timepoint[] = [];
     // Store the enum as a member to access it in the template
@@ -142,12 +140,14 @@ export default class Timeline extends Vue {
     private setPlayElementPositionFromMouse(mouseX: number): void {
         const rect = (this.$refs["timeline-container"] as HTMLElement).getBoundingClientRect();
         const offsetXAsPercentage = (mouseX - rect.left) / rect.width;
-        let newPosition = this.rangeStart + offsetXAsPercentage * (this.rangeEnd - this.rangeStart);
+        let newPosition = this.rangeStart +
+            offsetXAsPercentage * (this.rangeEnd - this.rangeStart)
+            - this.audioWindow!.duration / 2; // we want to position the window so that the cursor ends up in the middle of it
 
         // Clamp the new position within boundaries
-        // In Standard mode, also snap to the nearest timeslot
         newPosition = MathHelpers.clamp(newPosition, this.rangeStart, this.rangeEnd - this.audioWindow!.duration);
-        newPosition = this.audioWindow!.findTimeslotStartForTime(newPosition);
+        // In Standard mode, also snap to the nearest timeslot
+        // newPosition = this.audioWindow!.findTimeslotStartForTime(newPosition);
         this.$emit("update:audioWindowStart", newPosition);
     }
 
@@ -224,6 +224,7 @@ export default class Timeline extends Vue {
     }
 }
 .standard-zoom-window {
+    z-index: 1;
     position: absolute;
     top: 0;
     height: 100%;
@@ -232,6 +233,7 @@ export default class Timeline extends Vue {
     border-left: @border;
     border-right: @border;
     cursor: ew-resize;
+    transition: @player-transition-time ease;
 }
 .standard-chart {
     width: 100%;
@@ -247,6 +249,7 @@ export default class Timeline extends Vue {
     width: 0.5%;
     min-width: 3px;
     background: @theme-focus-color-4;
+    transition: @player-transition-time ease;
 }
 .current-play-position-label {
     padding-left: 0.5em;
