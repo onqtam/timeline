@@ -99,6 +99,7 @@ export default class Zoomline extends Vue {
     }
 
     private onStartDragging(event: MouseEvent): void {
+        this.onJumpToPosition(event);
         const leftMouseButton: number = 0;
         if (event.button === leftMouseButton) {
             this.isDraggingPlayElement = true;

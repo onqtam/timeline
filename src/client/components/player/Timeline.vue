@@ -151,10 +151,13 @@ export default class Timeline extends Vue {
     }
 
     private onJumpToPosition(event: MouseEvent): void {
+        // console.log("🚀 onJumpToPosition")
         this.setPlayElementPositionFromMouse(event.clientX);
     }
 
     private onStartDragging(event: MouseEvent): void {
+        this.onJumpToPosition(event);
+        // console.log("🚀 onStartDragging")
         const leftMouseButton: number = 0;
         if (event.button === leftMouseButton) {
             this.isDraggingPlayElement = true;
@@ -162,13 +165,16 @@ export default class Timeline extends Vue {
     }
 
     private onDrag(event: DragEvent): void {
+        // console.log("🚀 onDrag")
         if (!this.isDraggingPlayElement) {
             return;
         }
+        // console.log("🚀 onDrag ACTUAL")
         this.setPlayElementPositionFromMouse(event.clientX);
     }
 
     private onStopDragging(): void {
+        // console.log("🚀 onStopDragging")
         this.isDraggingPlayElement = false;
     }
 };

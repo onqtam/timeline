@@ -126,7 +126,7 @@ export default class ListenView extends Vue {
 
 .timeline-player {
     height: 40vh;
-    background-color:rgb(255, 255, 255);
+    background-color:rgb(36, 36, 36);
 }
 
 .timeline-player, .comment-section-root {
