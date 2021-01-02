@@ -34,8 +34,9 @@
         <Funnel
             class="funnel"
             ref="funnel"
-            :rangeStart=zoomlineRangeStart :rangeEnd=zoomlineRangeEnd
-            :currentAudioPosition=audioPos
+            :duration_full=audio.duration
+            :rangeStart_full=zoomlineRangeStart :rangeEnd_full=zoomlineRangeEnd
+            :currentAudioPosition_full=audioPos
             @update:currentAudioPosition=onZoomlinePositionMoved
         >
         </Funnel>
@@ -245,6 +246,7 @@ button {
 }
 
 .timeline-player {
+    background: white;
     // display: grid;
     // grid-template-areas:
     //     "controls controls"
@@ -293,4 +295,19 @@ button {
     display: inline-block;
     width: 75%;
 }
+</style>
+
+<style lang="less">
+@import "../../cssresources/theme.less";
+
+.current-play-position {
+    position: relative;
+    top: -100%;
+    height: 100%;
+    width: 0.5%;
+    min-width: 3px;
+    background: @theme-focus-color-4;
+    transition: @player-transition-time;
+}
+
 </style>

@@ -126,7 +126,7 @@ export default class Zoomline extends Vue {
     width: 100%;
     height: 100%;
     background: @theme-focus-color;
-    border: 2px solid @theme-focus-color-3;
+    // border: 2px solid @theme-focus-color-3;
     position: relative;
     user-select: none;
     cursor: pointer; /* Show we are clickable */
@@ -150,7 +150,7 @@ export default class Zoomline extends Vue {
     bottom: 0px;
     height: 1em;
     width: 2%;
-    min-width: 3px;
+    min-width: 2px;
     background: @theme-background;
 }
 .vertical-line-label {
@@ -172,16 +172,7 @@ export default class Zoomline extends Vue {
     top: 0;
     height: 100%;
     background: @theme-focus-color-2;
-    transition: @player-transition-time ease;
-}
-.current-play-position {
-    position: relative;
-    top: -100%;
-    height: 100%;
-    width: 0.5%;
-    min-width: 3px;
-    background: @theme-focus-color-4;
-    transition: @player-transition-time ease;
+    transition: @player-transition-time;
 }
 .zoomline-play-position {
     cursor: ew-resize;

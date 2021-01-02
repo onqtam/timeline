@@ -9,7 +9,7 @@
         @mouseup.left=onStopDragging
     >
         <!-- Highlights the part of the audio that should be zoomed, only in Standard -->
-        <div class="standard-zoom-window"
+        <div class="zoom-window"
             :style="{
                 left: normalize(audioWindow.start.seconds) + '%',
                 width: normalize(audioWindow.duration) + '%',
@@ -141,7 +141,7 @@ export default class Timeline extends Vue {
         const offsetXAsPercentage = (mouseX - rect.left) / rect.width;
         let newPosition = this.rangeStart +
             offsetXAsPercentage * (this.rangeEnd - this.rangeStart) -
-            this.audioWindow!.duration / 2; // we want to position the window so that the cursor ends up in the middle of it
+            this.audioWindow!.duration / 2 - 1; // we want to position the window so that the cursor ends up in the middle of it
 
         // Clamp the new position within boundaries
         newPosition = MathHelpers.clamp(newPosition, this.rangeStart, this.rangeEnd - this.audioWindow!.duration);
@@ -182,7 +182,7 @@ export default class Timeline extends Vue {
     width: 100%;
     height: 100%;
     background: @theme-focus-color;
-    border: 2px solid @theme-focus-color-3;
+    // border: 2px solid @theme-focus-color-3;
     position: relative;
     user-select: none;
     cursor: pointer; /* Show we are clickable */
@@ -222,7 +222,7 @@ export default class Timeline extends Vue {
         transform: translate(-115%, 0%);
     }
 }
-.standard-zoom-window {
+.zoom-window {
     z-index: 1;
     position: absolute;
     top: 0;
@@ -232,7 +232,7 @@ export default class Timeline extends Vue {
     border-left: @border;
     border-right: @border;
     cursor: ew-resize;
-    transition: @player-transition-time ease;
+    transition: @player-transition-time;
 }
 .standard-chart {
     width: 100%;
@@ -241,15 +241,7 @@ export default class Timeline extends Vue {
     left: 0;
     position: absolute;
 }
-.current-play-position {
-    position: relative;
-    top: -100%;
-    height: 100%;
-    width: 0.5%;
-    min-width: 3px;
-    background: @theme-focus-color-4;
-    transition: @player-transition-time ease;
-}
+
 .current-play-position-label {
     padding-left: 0.5em;
 }

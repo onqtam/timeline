@@ -2,8 +2,7 @@
     <div class="comment-section-root">
         <div class="new-thread-container">
             <template v-if="!isUserGuest">
-                <label>Start a new thread at current time: </label>
-                <input type="text" minlength="3" ref="new-comment-thread-content">
+                <input type="text" minlength="3" ref="new-comment-thread-content" placeholder="Start a new thread at current time">
                 <VButton @click=startNewCommentThread>Submit</VButton>
             </template>
             <template v-if="isUserGuest">

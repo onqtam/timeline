@@ -24,7 +24,7 @@
             </a>
             <div v-if=isReplyingTo>
                 <br/>
-                <input type="text" ref="reply-content">
+                <input type="text" ref="reply-content" placeholder="Write your reply here">
                 <a class="submit-reply-button" @click=submitReply>
                     <i class="fa fa-reply" aria-hidden="true"></i> Submit reply
                 </a>
