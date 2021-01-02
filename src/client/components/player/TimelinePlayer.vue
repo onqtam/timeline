@@ -20,7 +20,7 @@
                 </audio>
             </div>
         </div>
-        <div style="display: flex;">
+        <div style="display: flex; flex-wrap: wrap;">
             <Timeline
                 class="timeline"
                 ref="timeline"
@@ -245,8 +245,22 @@ button {
 .agenda {
     height: 100px;
     flex: 0 30%;
-    max-width: 30% // otherwise too long agenda items make this go 
+    max-width: 30% // otherwise too long agenda items make this go not where intended
 }
+
+// https://blog.francium.tech/responsive-web-design-device-resolution-and-viewport-width-e7b7f138d7b9
+@media screen and (max-width: 1200px) {
+    .timeline {
+        flex: 0 100%;
+        order: 2;
+    }
+    .agenda {
+        flex: 0 100%;
+        order: 1;
+        max-width: 100%
+    }
+}
+
 .zoomline {
     height: 100px;
 }
@@ -259,7 +273,7 @@ button {
     margin: 0;
 }
 .slider-controls {
-    width: 20%;
+    width: 100%;
     display: inline-block;
 }
 .volume-slider {
