@@ -50,11 +50,15 @@ ul {
 
 li {
     line-height: 1.4em;
+    // text cutoff: https://stackoverflow.com/a/26973672/3162383
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .agenda-container {
     border-style: dashed none;
-    padding: 1em 0;
+    padding: 0.1em 1em;
 }
 
 .agenda-item-active {

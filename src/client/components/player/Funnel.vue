@@ -15,6 +15,7 @@
                 <linearGradient id="light_grad" x1="0%" y1="0%" x2="0%" y2="100%">
                     <stop offset="0%" style="stop-color:rgb(190,190,210);stop-opacity:1"/>
                     <stop offset="100%" style="stop-color:rgb(235,235,255);stop-opacity:1"/>
+                    <!-- 255, 159, 0 -->
                 </linearGradient>
                 <linearGradient id="darker_grad" x1="0%" y1="0%" x2="0%" y2="100%">
                     <stop offset="0%" style="stop-color:rgb(100,100,145);stop-opacity:1"/>
@@ -43,6 +44,10 @@ export default class Funnel extends Vue {
     public rangeEnd_full!: number;
     @Prop({ type: Timepoint })
     public currentAudioPosition_full!: Timepoint;
+    @Prop({ type: Number })
+    public timelineWidthRatio!: number;
+
+    private get agendaWidthRatio() { return this.timelineWidthRatio + (1 - this.timelineWidthRatio) / 2; }
 
     private get normalizeRatio() { return this.duration_full / 1000; } // because the viewBox has a drawing width of 1000
 
@@ -63,15 +68,23 @@ export default class Funnel extends Vue {
     private get progress_bottom() { return this.duration * this.progress; }
     private get midpoint_fill() { return this.progress_bottom + (this.progress_end - this.progress_bottom) / 2; }
 
-    private static readonly progress_mid_height = Funnel.midHeight * 1.3;
+    private static readonly progress_mid_height = Funnel.midHeight * 1.5;
 
     private get funnel_fill() {
         return `M 0 ${Funnel.totalHeight}
-            C 0 ${Funnel.midHeight} 0 ${Funnel.midHeight} ${this.midpoint_left} ${Funnel.midHeight}
-            C ${this.rangeStart} ${Funnel.midHeight} ${this.rangeStart} ${Funnel.midHeight} ${this.rangeStart} 0
-            L ${this.rangeEnd} 0
-            C ${this.rangeEnd} ${Funnel.midHeight} ${this.rangeEnd} ${Funnel.midHeight} ${this.midpoint_right} ${Funnel.midHeight}
-            C ${this.duration} ${Funnel.midHeight} ${this.duration} ${Funnel.midHeight} ${this.duration} ${Funnel.totalHeight}
+            C 0 ${Funnel.midHeight}
+                0 ${Funnel.midHeight}
+                ${this.midpoint_left * this.timelineWidthRatio} ${Funnel.midHeight}
+            C ${this.rangeStart * this.timelineWidthRatio} ${Funnel.midHeight}
+                ${this.rangeStart * this.timelineWidthRatio} ${Funnel.midHeight}
+                ${this.rangeStart * this.timelineWidthRatio} 0
+            L ${this.rangeEnd * this.timelineWidthRatio} 0
+            C ${this.rangeEnd * this.timelineWidthRatio} ${Funnel.midHeight}
+                ${this.rangeEnd * this.timelineWidthRatio} ${Funnel.midHeight}
+                ${this.midpoint_right * this.agendaWidthRatio} ${Funnel.midHeight}
+            C ${this.duration} ${Funnel.midHeight}
+                ${this.duration} ${Funnel.midHeight}
+                ${this.duration} ${Funnel.totalHeight}
         `;
     }
 
@@ -81,12 +94,20 @@ export default class Funnel extends Vue {
             this.currentAudioPosition_full.seconds > this.rangeEnd_full) {
             return "";
         }
-        return `M 0 ${Funnel.totalHeight} 
-            C 0 ${Funnel.midHeight} 0 ${Funnel.midHeight} ${this.midpoint_left} ${Funnel.midHeight}
-            C ${this.rangeStart} ${Funnel.midHeight} ${this.rangeStart} ${Funnel.midHeight} ${this.rangeStart} 0
-            L ${this.progress_end} 0
-            C ${this.progress_end} ${Funnel.progress_mid_height} ${this.progress_end} ${Funnel.progress_mid_height} ${this.midpoint_fill} ${Funnel.progress_mid_height}
-            C ${this.progress_bottom} ${Funnel.progress_mid_height} ${this.progress_bottom} ${Funnel.progress_mid_height} ${this.progress_bottom} ${Funnel.totalHeight}
+        return `M 0 ${Funnel.totalHeight}
+            C 0 ${Funnel.midHeight}
+                0 ${Funnel.midHeight}
+                ${this.midpoint_left * this.timelineWidthRatio} ${Funnel.midHeight}
+            C ${this.rangeStart * this.timelineWidthRatio} ${Funnel.midHeight}
+                ${this.rangeStart * this.timelineWidthRatio} ${Funnel.midHeight}
+                ${this.rangeStart * this.timelineWidthRatio} 0
+            L ${this.progress_end * this.timelineWidthRatio} 0
+            C ${this.progress_end * this.timelineWidthRatio} ${Funnel.progress_mid_height}
+                ${this.progress_end * this.timelineWidthRatio} ${Funnel.progress_mid_height}
+                ${this.midpoint_fill * this.agendaWidthRatio} ${Funnel.progress_mid_height}
+            C ${this.progress_bottom} ${Funnel.progress_mid_height}
+                ${this.progress_bottom} ${Funnel.progress_mid_height}
+                ${this.progress_bottom} ${Funnel.totalHeight}
         `;
     }
 };

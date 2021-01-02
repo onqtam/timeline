@@ -20,7 +20,17 @@ export class AgendaItem implements IReviveFromJSON {
 }
 
 export class Agenda implements IReviveFromJSON {
-    public items: AgendaItem[] = [];
+    public items: AgendaItem[] = [
+        new AgendaItem("agenda 1    abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(100)),
+        new AgendaItem("agenda 2    abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(200)),
+        new AgendaItem("agenda 3    abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(300)),
+        new AgendaItem("agenda 4    abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(400)),
+        new AgendaItem("agenda 5    abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(500)),
+        new AgendaItem("agenda 6    abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(600)),
+        new AgendaItem("agenda 7    abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(700)),
+        new AgendaItem("agenda 8    abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(800)),
+        new AgendaItem("agenda 9    abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(900)),
+    ];
 
     public reviveSubObjects(): void {
         for (const item of this.items) {

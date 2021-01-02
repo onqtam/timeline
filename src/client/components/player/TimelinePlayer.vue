@@ -20,33 +20,36 @@
                 </audio>
             </div>
         </div>
-        <Timeline
-            class="timeline"
-            ref="timeline"
-            :audioWindow=audioWindow
-            :numberOfMarks=timelineMarkCount
-            :rangeStart=0 :rangeEnd=audio.duration
-            :currentAudioPosition=audioPos
-            @update:audioWindowStart=onTimelineWindowMoved
-        >
-        </Timeline>
-
+        <div style="display: flex;">
+            <Timeline
+                class="timeline"
+                ref="timeline"
+                :audioWindow=audioWindow
+                :numberOfMarks=timelineMarkCount
+                :rangeStart=0 :rangeEnd=audio.duration
+                :currentAudioPosition=audioPos
+                @update:audioWindowStart=onTimelineWindowMoved
+            >
+            </Timeline>
+            <AgendaComponent
+                class="agenda"
+                v-if=activeEpisode
+                :agenda=activeEpisode.agenda
+            >
+            </AgendaComponent>
+            
+        </div>
         <Funnel
             class="funnel"
             ref="funnel"
             :duration_full=audio.duration
             :rangeStart_full=zoomlineRangeStart :rangeEnd_full=zoomlineRangeEnd
             :currentAudioPosition_full=audioPos
+            :timelineWidthRatio=0.7
             @update:currentAudioPosition=onZoomlinePositionMoved
         >
         </Funnel>
 
-        <!-- <AgendaComponent
-            class="agenda"
-            v-if=activeEpisode
-            :agenda=activeEpisode.agenda
-        >
-        </AgendaComponent> -->
         <Zoomline
             class="zoomline"
             ref="zoomline"
@@ -226,38 +229,25 @@ export default class TimelinePlayer extends Vue {
 <style scoped lang="less">
 @import "../../cssresources/theme.less";
 
-// h3 {
-//   margin: 40px 0 0;
-// }
-// ul {
-//   list-style-type: none;
-//   padding: 0;
-// }
-// li {
-//   display: inline-block;
-//   margin: 0 10px;
-// }
-// a {
-//   color: #42b983;
-// }
+
 button {
     color: @theme-background;
     background: @theme-text-color;
 }
 
 .controls {
-    // grid-area: controls;
     height: 60px;
 }
 .timeline {
-    // grid-area: timeline;
     height: 100px;
+    flex: 0 70%;
 }
 .agenda {
-    // grid-area: agenda;
+    height: 100px;
+    flex: 0 30%;
+    max-width: 30% // otherwise too long agenda items make this go 
 }
 .zoomline {
-    // grid-area: zoomline;
     height: 100px;
 }
 
