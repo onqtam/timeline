@@ -47,18 +47,16 @@ export default class Funnel extends Vue {
     @Prop({ type: Number })
     public timelineWidthRatio!: number;
 
-    private get agendaWidthRatio() { return this.timelineWidthRatio + (1 - this.timelineWidthRatio) / 2; }
-
     private get normalizeRatio() { return this.duration_full / 1000; } // because the viewBox has a drawing width of 1000
 
     private get duration() { return this.duration_full / this.normalizeRatio; }
-    private get rangeStart() { return this.rangeStart_full / this.normalizeRatio; }
-    private get rangeEnd() { return this.rangeEnd_full / this.normalizeRatio; }
-    private get currentAudioPosition() { return this.currentAudioPosition_full.seconds / this.normalizeRatio; }
+    private get rangeStart() { return this.rangeStart_full / this.normalizeRatio * this.timelineWidthRatio; }
+    private get rangeEnd() { return this.rangeEnd_full / this.normalizeRatio * this.timelineWidthRatio; }
+    private get currentAudioPosition() { return this.currentAudioPosition_full.seconds / this.normalizeRatio * this.timelineWidthRatio; }
 
     private get windowWidth() { return this.rangeEnd - this.rangeStart; }
     private get midpoint_left() { return this.rangeStart / 2; }
-    private get midpoint_right() { return this.rangeEnd + (this.duration - (this.rangeStart + this.windowWidth)) / 2; }
+    private get midpoint_right() { return this.rangeEnd + (this.duration - this.rangeEnd) / 2; }
 
     private static readonly totalHeight = 20; // should be the same as the viewBox height
     private static readonly midHeight = Funnel.totalHeight / 2;
@@ -74,14 +72,14 @@ export default class Funnel extends Vue {
         return `M 0 ${Funnel.totalHeight}
             C 0 ${Funnel.midHeight}
                 0 ${Funnel.midHeight}
-                ${this.midpoint_left * this.timelineWidthRatio} ${Funnel.midHeight}
-            C ${this.rangeStart * this.timelineWidthRatio} ${Funnel.midHeight}
-                ${this.rangeStart * this.timelineWidthRatio} ${Funnel.midHeight}
-                ${this.rangeStart * this.timelineWidthRatio} 0
-            L ${this.rangeEnd * this.timelineWidthRatio} 0
-            C ${this.rangeEnd * this.timelineWidthRatio} ${Funnel.midHeight}
-                ${this.rangeEnd * this.timelineWidthRatio} ${Funnel.midHeight}
-                ${this.midpoint_right * this.agendaWidthRatio} ${Funnel.midHeight}
+                ${this.midpoint_left} ${Funnel.midHeight}
+            C ${this.rangeStart} ${Funnel.midHeight}
+                ${this.rangeStart } ${Funnel.midHeight}
+                ${this.rangeStart } 0
+            L ${this.rangeEnd } 0
+            C ${this.rangeEnd } ${Funnel.midHeight}
+                ${this.rangeEnd } ${Funnel.midHeight}
+                ${this.midpoint_right} ${Funnel.midHeight}
             C ${this.duration} ${Funnel.midHeight}
                 ${this.duration} ${Funnel.midHeight}
                 ${this.duration} ${Funnel.totalHeight}
@@ -97,14 +95,14 @@ export default class Funnel extends Vue {
         return `M 0 ${Funnel.totalHeight}
             C 0 ${Funnel.midHeight}
                 0 ${Funnel.midHeight}
-                ${this.midpoint_left * this.timelineWidthRatio} ${Funnel.midHeight}
-            C ${this.rangeStart * this.timelineWidthRatio} ${Funnel.midHeight}
-                ${this.rangeStart * this.timelineWidthRatio} ${Funnel.midHeight}
-                ${this.rangeStart * this.timelineWidthRatio} 0
-            L ${this.progress_end * this.timelineWidthRatio} 0
-            C ${this.progress_end * this.timelineWidthRatio} ${Funnel.progress_mid_height}
-                ${this.progress_end * this.timelineWidthRatio} ${Funnel.progress_mid_height}
-                ${this.midpoint_fill * this.agendaWidthRatio} ${Funnel.progress_mid_height}
+                ${this.midpoint_left} ${Funnel.midHeight}
+            C ${this.rangeStart} ${Funnel.midHeight}
+                ${this.rangeStart} ${Funnel.midHeight}
+                ${this.rangeStart} 0
+            L ${this.progress_end} 0
+            C ${this.progress_end} ${Funnel.progress_mid_height}
+                ${this.progress_end} ${Funnel.progress_mid_height}
+                ${this.midpoint_fill} ${Funnel.progress_mid_height}
             C ${this.progress_bottom} ${Funnel.progress_mid_height}
                 ${this.progress_bottom} ${Funnel.progress_mid_height}
                 ${this.progress_bottom} ${Funnel.totalHeight}
