@@ -29,7 +29,7 @@ export class Agenda implements IReviveFromJSON {
         new AgendaItem("agenda 6    abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(600)),
         new AgendaItem("agenda 7    abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(700)),
         new AgendaItem("agenda 8    abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(800)),
-        new AgendaItem("agenda 9    abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(900)),
+        new AgendaItem("agenda 9    abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(900))
     ];
 
     public reviveSubObjects(): void {

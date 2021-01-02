@@ -37,7 +37,6 @@
                 :agenda=activeEpisode.agenda
             >
             </AgendaComponent>
-            
         </div>
         <Funnel
             class="funnel"
@@ -228,7 +227,6 @@ export default class TimelinePlayer extends Vue {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="less">
 @import "../../cssresources/theme.less";
-
 
 button {
     color: @theme-background;

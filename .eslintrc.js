@@ -17,6 +17,7 @@ module.exports = {
     "semi": ["error", "always"],
     "quotes": ["error", "double", { "allowTemplateLiterals": true }],
     "indent": ["error", 4],
+    "template-curly-spacing": "off",
     "space-before-function-paren": ["error", {
         "anonymous": "always",
         "named": "never",
