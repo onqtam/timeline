@@ -75,13 +75,7 @@ export default class Zoomline extends Vue {
     private isDraggingPlayElement: boolean = false;
     private timepointMarks: Timepoint[] = [];
 
-    // Internal API
-    // Converts the given value in a percentage between the current rangeStart and rangeEnd, clamped in [0;100]
-    private normalize(value: number): number {
-        const percentage = 100 * (value - this.rangeStart)/(this.rangeEnd-this.rangeStart);
-        const normalized = MathHelpers.clamp(percentage, 0, 100);
-        return normalized;
-    }
+    private normalize(value: number): number { return MathHelpers.normalize(value, this.rangeStart, this.rangeEnd); }
 
     // Moves the corresponding play element (cursor or window) to the given mouse pos
     private setPlayElementPositionFromMouse(mouseX: number): void {
