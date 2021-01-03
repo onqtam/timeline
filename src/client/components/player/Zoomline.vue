@@ -51,26 +51,10 @@ export default class Zoomline extends Vue {
     // In seconds
     @Prop({ type: Number })
     public rangeEnd!: number;
-    @Prop({ type: Number })
-    public numberOfMarks!: number;
     @Prop({ type: Timepoint })
     public currentAudioPosition!: Timepoint;
 
-    public get computedMarks(): Timepoint[] {
-        return []; // TODO: we want 2 - one at the begining and one at the end
-
-        // if (!this.timepointMarks || this.timepointMarks.length !== this.numberOfMarks) {
-        //     this.timepointMarks = [];
-        // }
-        // for (let i = 0; i < this.numberOfMarks + 1; i++) {
-        //     const seconds = this.rangeStart + (i / this.numberOfMarks) * (this.rangeEnd - this.rangeStart);
-        //     if (!this.timepointMarks[i]) {
-        //         this.timepointMarks[i] = new Timepoint(0);
-        //     }
-        //     this.timepointMarks[i].seconds = seconds;
-        // }
-        // return this.timepointMarks;
-    }
+    public get computedMarks(): Timepoint[] { return [new Timepoint(this.rangeStart), new Timepoint(this.rangeEnd)]; }
 
     // Internal data members
     // Whether the user is currently dragging the corresponding element

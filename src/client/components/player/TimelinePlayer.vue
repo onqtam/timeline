@@ -67,7 +67,6 @@
         <Zoomline
             class="zoomline"
             ref="zoomline"
-            :numberOfMarks=zoomlineMarkCount
             :rangeStart=zoomlineRangeStart :rangeEnd=zoomlineRangeEnd
             :currentAudioPosition=audioPos
             @update:currentAudioPosition=onZoomlinePositionMoved
@@ -168,6 +167,8 @@ export default class TimelinePlayer extends Vue {
     }
     public seekTo(secondToSeekTo: number): void {
         store.commit.listen.moveAudioPos(secondToSeekTo);
+        const timeslotStart: number = this.audioWindow.findTimeslotStartForTime(new Timepoint(secondToSeekTo));
+        store.commit.listen.moveAudioWindow(timeslotStart);
         this.audioElement.currentTime = this.audioPos.seconds;
     }
     public togglePlay(): void {

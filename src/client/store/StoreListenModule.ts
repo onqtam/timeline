@@ -46,7 +46,7 @@ class StoreListenViewModel implements IStoreListenModule {
         this.audioFile = new AudioFile();
         this.audioPos = new Timepoint();
         this.audioWindow = new AudioWindow(this.audioFile, new Timepoint(0), 80, 4);
-        this.volume = 0.15;
+        this.volume = 0.95;
         this.allThreads = [];
 
         this.commentDensityHistogram = {
