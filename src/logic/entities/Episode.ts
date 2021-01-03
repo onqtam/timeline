@@ -20,16 +20,23 @@ export class AgendaItem implements IReviveFromJSON {
 }
 
 export class Agenda implements IReviveFromJSON {
+    // TODO make sure there is always an entry at timepoint 0
     public items: AgendaItem[] = [
-        new AgendaItem("agenda 1    abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(100)),
-        new AgendaItem("agenda 2    abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(200)),
-        new AgendaItem("agenda 3    abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(300)),
-        new AgendaItem("agenda 4    abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(400)),
-        new AgendaItem("agenda 5    abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(500)),
-        new AgendaItem("agenda 6    abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(600)),
-        new AgendaItem("agenda 7    abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(700)),
-        new AgendaItem("agenda 8    abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(800)),
-        new AgendaItem("agenda 9    abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(900))
+        new AgendaItem("agenda 0    beginning", new Timepoint(0)),
+        new AgendaItem("agenda 1    abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(400)),
+        new AgendaItem("agenda 4    abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(1600)),
+        new AgendaItem("agenda 5    abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(2000)),
+        new AgendaItem("agenda 7    abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(2800)),
+        new AgendaItem("agenda 11   abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(4400)),
+        new AgendaItem("agenda 12   abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(4800)),
+        new AgendaItem("agenda 13   abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(5200)),
+        new AgendaItem("agenda 15   abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(6000)),
+        new AgendaItem("agenda 19   abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(7600)),
+    //     new AgendaItem("agenda 20   abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(8000)),
+    //     new AgendaItem("agenda 21   abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(8400)),
+    //     new AgendaItem("agenda 22   abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(8800)),
+        new AgendaItem("agenda 23   abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(9200)),
+        new AgendaItem("agenda 25   abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(10000))
     ];
 
     public reviveSubObjects(): void {

@@ -125,7 +125,7 @@ export default class ListenView extends Vue {
 @import "../cssresources/theme.less";
 
 .timeline-player {
-    height: 40vh;
+    // height: 40vh;
     background-color:rgb(36, 36, 36);
 }
 

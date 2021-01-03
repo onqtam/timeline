@@ -58,7 +58,7 @@ li {
 
 .agenda-container {
     border-style: dashed none;
-    padding: 0.1em 1em;
+    padding: 0.1em 0 0 0.8em;
 }
 
 .agenda-item-active {

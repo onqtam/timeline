@@ -12,6 +12,11 @@
                     <i v-if="isMuted || volume === 0" class="fa fa-volume-off" aria-hidden="true"></i>
                 </VButton>
                 <VSlider class="volume-slider" :min=0 :max=1 :step=0.01 :value.sync=volume></VSlider>
+                <VButton>Comments</VButton>
+                <VButton>Bookmarks</VButton>
+                <input type="text" placeholder="omg"/>
+                <span style="display: inline-block; width: 100px;">Window Start: {{audioWindow.start.format()}}</span>
+                <!-- <span style="display: inline-block; width: 100px;">Window End: {{audioWindow.end.format()}}</span> -->
                 <audio nocontrols
                     class="audio-element"
                     ref="audio-element"
@@ -21,16 +26,26 @@
             </div>
         </div>
         <div style="display: flex; flex-wrap: wrap;">
-            <Timeline
-                class="timeline"
-                ref="timeline"
-                :audioWindow=audioWindow
-                :numberOfMarks=timelineMarkCount
-                :rangeStart=0 :rangeEnd=audio.duration
-                :currentAudioPosition=audioPos
-                @update:audioWindowStart=onTimelineWindowMoved
-            >
-            </Timeline>
+            <div class="timeline-and-annotations">
+                <Annotations
+                    class="annotations"
+                    ref="annotations"
+                    :currentAudioPosition=audioPos
+                    :agenda=activeEpisode.agenda
+                    :audioWindow=audioWindow
+                >
+                </Annotations>
+                <Timeline
+                    class="timeline"
+                    ref="timeline"
+                    :audioWindow=audioWindow
+                    :numberOfMarks=timelineMarkCount
+                    :rangeStart=0 :rangeEnd=audio.duration
+                    :currentAudioPosition=audioPos
+                    @update:audioWindowStart=onTimelineWindowMoved
+                >
+                </Timeline>
+            </div>
             <AgendaComponent
                 class="agenda"
                 v-if=activeEpisode
@@ -69,9 +84,10 @@ import Timepoint from "@/logic/entities/Timepoint";
 
 import VButton from "../primitives/VButton.vue";
 import VSlider from "../primitives/VSlider.vue";
+import { default as Annotations } from "./Annotations.vue";
 import { default as Timeline } from "./Timeline.vue";
-import { default as Zoomline } from "./Zoomline.vue";
 import { default as Funnel } from "./Funnel.vue";
+import { default as Zoomline } from "./Zoomline.vue";
 import AgendaComponent from "./Agenda.vue";
 import { Episode } from "@/logic/entities/Episode";
 import { ActiveAppMode } from "../../store/StoreDeviceInfoModule";
@@ -80,6 +96,7 @@ import { ActiveAppMode } from "../../store/StoreDeviceInfoModule";
     components: {
         VButton,
         VSlider,
+        Annotations,
         Timeline,
         Funnel,
         Zoomline,
@@ -234,11 +251,18 @@ button {
 }
 
 .controls {
-    height: 60px;
+    background: rgb(37, 37, 37);
 }
-.timeline {
+
+// .annotations {
+// }
+
+.timeline-and-annotations {
     height: 100px;
     flex: 0 70%;
+}
+.timeline {
+    height: 80px;
 }
 .agenda {
     height: 100px;
@@ -260,7 +284,7 @@ button {
 }
 
 .zoomline {
-    height: 100px;
+    height: 40px;
 }
 
 .audio-element {
@@ -272,13 +296,12 @@ button {
 }
 .slider-controls {
     width: 100%;
-    display: inline-block;
 }
 .volume-slider {
     // TODO: This needs to go as it overrides the v-slider's display: flex
     // may be wrap the vslider with another div so that it's not possible to be overriden?
     display: inline-block;
-    width: 75%;
+    width: 30%;
 }
 </style>
 

@@ -57,17 +57,19 @@ export default class Zoomline extends Vue {
     public currentAudioPosition!: Timepoint;
 
     public get computedMarks(): Timepoint[] {
-        if (!this.timepointMarks || this.timepointMarks.length !== this.numberOfMarks) {
-            this.timepointMarks = [];
-        }
-        for (let i = 0; i < this.numberOfMarks + 1; i++) {
-            const seconds = this.rangeStart + (i / this.numberOfMarks) * (this.rangeEnd - this.rangeStart);
-            if (!this.timepointMarks[i]) {
-                this.timepointMarks[i] = new Timepoint(0);
-            }
-            this.timepointMarks[i].seconds = seconds;
-        }
-        return this.timepointMarks;
+        return []; // TODO: we want 2 - one at the begining and one at the end
+
+        // if (!this.timepointMarks || this.timepointMarks.length !== this.numberOfMarks) {
+        //     this.timepointMarks = [];
+        // }
+        // for (let i = 0; i < this.numberOfMarks + 1; i++) {
+        //     const seconds = this.rangeStart + (i / this.numberOfMarks) * (this.rangeEnd - this.rangeStart);
+        //     if (!this.timepointMarks[i]) {
+        //         this.timepointMarks[i] = new Timepoint(0);
+        //     }
+        //     this.timepointMarks[i].seconds = seconds;
+        // }
+        // return this.timepointMarks;
     }
 
     // Internal data members
