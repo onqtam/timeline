@@ -66,14 +66,15 @@ export default class Annotations extends Vue {
     align-items: flex-end;
     overflow: hidden;
     height: 10px;
-    cursor: pointer; /* Show we are clickable */
+    cursor: pointer;
+
+    &:hover {
+        background-color: rgb(141, 132, 0);
+        margin-top: -3px;
+        height: 16px;
+    }
 }
 
-.annotation:hover {
-    background-color: rgb(141, 132, 0);
-    margin-top: -3px;
-    height: 16px;
-}
 
 // .annotations-container .annotation:first-child {
 //     border-top-left-radius: 6px;

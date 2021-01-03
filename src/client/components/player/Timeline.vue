@@ -140,8 +140,6 @@ export default class Timeline extends Vue {
 
         // Clamp the new position within boundaries
         newPosition = MathHelpers.clamp(newPosition, this.rangeStart, this.rangeEnd - this.audioWindow!.duration);
-        // In Standard mode, also snap to the nearest timeslot
-        // newPosition = this.audioWindow!.findTimeslotStartForTime(newPosition);
         this.$emit("update:audioWindowStart", newPosition);
     }
 
@@ -186,7 +184,7 @@ export default class Timeline extends Vue {
     // border: 2px solid @theme-focus-color-3;
     position: relative;
     user-select: none;
-    cursor: pointer; /* Show we are clickable */
+    cursor: pointer;
 }
 
 .mark-container {

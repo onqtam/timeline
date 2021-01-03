@@ -110,7 +110,7 @@ export default class Zoomline extends Vue {
     // border: 2px solid @theme-focus-color-3;
     position: relative;
     user-select: none;
-    cursor: pointer; /* Show we are clickable */
+    cursor: pointer;
 }
 
 .mark-container {

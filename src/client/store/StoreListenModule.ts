@@ -111,8 +111,6 @@ class StoreListenViewModel implements IStoreListenModule {
     }
     public moveAudioWindow(newStart: number): void {
         // TODO: Assert we are jumping to a timeslot
-        // Can we instead do the math here to avoid code duplication in caller sites?
-        // console.assert(this.audioWindow.findTimeslotStartForTime(newStart) === newStart);
         this.audioWindow.start.seconds = newStart;
     }
     public moveAudioPos(newStart: number): void {
