@@ -28,13 +28,12 @@ export default class Annotations extends Vue {
 
     computeStyle(item: AgendaItem, itemIndex: number) {
         // the computation here assumes that there is always an entry in the agenda at timepoint 0
-        const percent = 100 * ((itemIndex + 1 < this.agenda.items.length ?
-                                    this.agenda.items[itemIndex + 1].timestamp.seconds :
-                                    this.audioWindow!.audioFile.duration) -
+        const percent = 100 * ((itemIndex + 1 < this.agenda.items.length
+            ? this.agenda.items[itemIndex + 1].timestamp.seconds
+            : this.audioWindow!.audioFile.duration) -
                                 item.timestamp.seconds) / this.audioWindow!.audioFile.duration;
         return "width: calc(" + percent + "% - 0.2em)";
     }
-
 
     public isAgendaItemActive(itemIndex: number): boolean {
         return MathHelpers.isBetweenOpenEnded(store.state.listen.audioPos.seconds,

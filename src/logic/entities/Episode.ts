@@ -32,9 +32,9 @@ export class Agenda implements IReviveFromJSON {
         new AgendaItem("agenda 13   abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(5200)),
         new AgendaItem("agenda 15   abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(6000)),
         new AgendaItem("agenda 19   abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(7600)),
-    //     new AgendaItem("agenda 20   abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(8000)),
-    //     new AgendaItem("agenda 21   abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(8400)),
-    //     new AgendaItem("agenda 22   abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(8800)),
+        //     new AgendaItem("agenda 20   abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(8000)),
+        //     new AgendaItem("agenda 21   abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(8400)),
+        //     new AgendaItem("agenda 22   abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(8800)),
         new AgendaItem("agenda 23   abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(9200)),
         new AgendaItem("agenda 25   abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(10000))
     ];
