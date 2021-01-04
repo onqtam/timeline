@@ -11,12 +11,16 @@
                     <i v-if="!isMuted && volume <= 0.5 && volume > 0" class="fa fa-volume-down" aria-hidden="true"></i>
                     <i v-if="isMuted || volume === 0" class="fa fa-volume-off" aria-hidden="true"></i>
                 </VButton>
-                <VSlider class="volume-slider" :min=0 :max=1 :step=0.01 :value.sync=volume></VSlider>
+                <!-- commented out for now - takes too much space and isn't useful for now -->
+                <!-- <VSlider class="volume-slider" :min=0 :max=1 :step=0.01 :value.sync=volume></VSlider> -->
+                <label>Audio Window Size</label>
+                <VSlider class="volume-slider" :min=30 :max=600 :step=1 :value.sync=audioWindowDuration></VSlider>
+                <input type="text" placeholder="omg"/>
+                Window Start: {{audioWindow.start.format()}}
+                <!-- <span style="display: inline-block; width: 70px;">{{audioWindow.start.format()}}</span> -->
+                <!-- <span style="display: inline-block; width: 100px;">Window End: {{audioWindow.end.format()}}</span> -->
                 <VButton>Comments</VButton>
                 <VButton>Bookmarks</VButton>
-                <input type="text" placeholder="omg"/>
-                <span style="display: inline-block; width: 100px;">Window Start: {{audioWindow.start.format()}}</span>
-                <!-- <span style="display: inline-block; width: 100px;">Window End: {{audioWindow.end.format()}}</span> -->
                 <audio nocontrols
                     class="audio-element"
                     ref="audio-element"
@@ -103,7 +107,6 @@ import { ActiveAppMode } from "../../store/StoreDeviceInfoModule";
     }
 })
 export default class TimelinePlayer extends Vue {
-    // Props
     public get audio(): AudioFile {
         return store.state.listen.audioFile;
     }
@@ -116,6 +119,13 @@ export default class TimelinePlayer extends Vue {
     public set volume(value: number) {
         store.commit.listen.setVolume(value);
         this.audioElement.volume = value;
+    }
+    public get audioWindowDuration(): number {
+        return store.state.user.info.settings.audioWindowDuration;
+    }
+    public set audioWindowDuration(value: number) {
+        const payload = { key: "audioWindowDuration", value };
+        store.commit.user.localSetSettingValue(payload);
     }
     public get isMuted(): boolean {
         return !this.audioElement || this.audioElement.muted;
@@ -165,11 +175,10 @@ export default class TimelinePlayer extends Vue {
     public destroyed(): void {
         store.commit.device.removeOnAppModeChangedListener(this.onWindowResized.bind(this));
     }
-    public seekTo(secondToSeekTo: number, alsoMoveWindow: boolean): void {
-        console.log("seeking to");
+    public seekTo(secondToSeekTo: number): void {
         store.commit.listen.moveAudioPos(secondToSeekTo);
-        if (alsoMoveWindow) {
-            const timeslotStart: number = this.audioWindow.findTimeslotStartForTime(new Timepoint(secondToSeekTo));
+        if (!this.audioWindow.containsTimepoint(secondToSeekTo)) {
+            const timeslotStart: number = this.audioWindow.findTimeslotStartForTime(secondToSeekTo);
             store.commit.listen.moveAudioWindow(timeslotStart);
         }
         this.audioElement.currentTime = this.audioPos.seconds;
@@ -219,7 +228,7 @@ export default class TimelinePlayer extends Vue {
         }
     }
     private onZoomlinePositionMoved(newValue: number): void {
-        this.seekTo(newValue, false);
+        this.seekTo(newValue);
     }
     private onTimelineWindowMoved(newValue: number): void {
         store.commit.listen.moveAudioWindow(newValue);
@@ -276,7 +285,7 @@ button {
 
 // https://blog.francium.tech/responsive-web-design-device-resolution-and-viewport-width-e7b7f138d7b9
 @media screen and (max-width: 1200px) {
-    .timeline {
+    .timeline-and-annotations {
         flex: 0 100%;
         order: 2;
     }
@@ -305,7 +314,7 @@ button {
     // TODO: This needs to go as it overrides the v-slider's display: flex
     // may be wrap the vslider with another div so that it's not possible to be overriden?
     display: inline-block;
-    width: 30%;
+    width: 200px;
 }
 </style>
 

@@ -11,10 +11,6 @@
             <label>Number Of Timeslots</label>
             <VSlider class="timeslot-count-slider" :min=1 :max=5 :step=1 :value.sync=audioWindowTimeslotCount></VSlider>
         </div>
-        <div class="slider-controls">
-            <label>Audio Window Size</label>
-            <VSlider class="window-width-count-slider" :min=30 :max=300 :step=30 :value.sync=audioWindowDuration></VSlider>
-        </div>
     </div>
 </template>
 
@@ -51,16 +47,6 @@ export default class ProfileView extends Vue {
     }
     public get timeslotCountLimits(): ValueLimits {
         return UserSettings.TIMESLOT_LIMITS;
-    }
-    public get audioWindowDuration(): number {
-        return store.state.user.info.settings.audioWindowDuration;
-    }
-    public set audioWindowDuration(value: number) {
-        const payload = { key: "audioWindowDuration", value };
-        store.commit.user.localSetSettingValue(payload);
-    }
-    public get windowDurationLimits(): ValueLimits {
-        return UserSettings.WINDOW_DURATION_LIMITS;
     }
 }
 </script>

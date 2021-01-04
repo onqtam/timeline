@@ -210,6 +210,7 @@ input, button {
 }
 
 @top-row-shared-border: 2px solid @theme-focus-color-3;
+
 .new-thread-container {
     border-right: @top-row-shared-border;
 }
