@@ -34,6 +34,7 @@ export class AudioWindow {
 
     public findTimeslotStartForTime(time: Timepoint|number): number {
         const seconds: number = time instanceof Timepoint ? time.seconds : time;
-        return Math.floor(seconds / this.timeslotDuration) * this.timeslotDuration;
+        // we want to position the window so that the cursor is always at 10%, except in the corner cases^M
+        return Math.min(Math.max(0, seconds - this.duration * 1 / 10), this.audioFile.duration - this.duration);
     }
 }

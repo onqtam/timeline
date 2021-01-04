@@ -165,10 +165,13 @@ export default class TimelinePlayer extends Vue {
     public destroyed(): void {
         store.commit.device.removeOnAppModeChangedListener(this.onWindowResized.bind(this));
     }
-    public seekTo(secondToSeekTo: number): void {
+    public seekTo(secondToSeekTo: number, alsoMoveWindow: boolean): void {
+        console.log("seeking to");
         store.commit.listen.moveAudioPos(secondToSeekTo);
-        const timeslotStart: number = this.audioWindow.findTimeslotStartForTime(new Timepoint(secondToSeekTo));
-        store.commit.listen.moveAudioWindow(timeslotStart);
+        if (alsoMoveWindow) {
+            const timeslotStart: number = this.audioWindow.findTimeslotStartForTime(new Timepoint(secondToSeekTo));
+            store.commit.listen.moveAudioWindow(timeslotStart);
+        }
         this.audioElement.currentTime = this.audioPos.seconds;
     }
     public togglePlay(): void {
@@ -216,7 +219,7 @@ export default class TimelinePlayer extends Vue {
         }
     }
     private onZoomlinePositionMoved(newValue: number): void {
-        this.seekTo(newValue);
+        this.seekTo(newValue, false);
     }
     private onTimelineWindowMoved(newValue: number): void {
         store.commit.listen.moveAudioWindow(newValue);

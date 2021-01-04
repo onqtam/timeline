@@ -35,7 +35,7 @@ import CommentSection from "@/client/components/comments/CommentSection.vue";
         // Fetch the timepoint from the query
         const timepointToSyncTo: Timepoint|null = Timepoint.tryParseFromURL(to.query.t as string);
         if (timepointToSyncTo) {
-            (this.$refs["timeline-player"] as TimelinePlayer).seekTo(timepointToSyncTo.seconds);
+            (this.$refs["timeline-player"] as TimelinePlayer).seekTo(timepointToSyncTo.seconds, true);
         }
         if (to.query.thread) {
             const threadIdToFocus: number = ~~to.query.thread;
@@ -85,6 +85,8 @@ export default class ListenView extends Vue {
     }
     public mounted(): void {
         if (this.initialTimepoint) {
+            // (this.$refs["timeline-player"] as TimelinePlayer).seekTo(this.initialTimepoint.seconds, true);
+
             store.commit.listen.moveAudioPos(this.initialTimepoint.seconds);
             const timeslotStart: number = this.audioWindow.findTimeslotStartForTime(this.initialTimepoint);
             store.commit.listen.moveAudioWindow(timeslotStart);
