@@ -18,6 +18,7 @@ module.exports = {
     "quotes": ["error", "double", { "allowTemplateLiterals": true }],
     "indent": ["error", 4],
     "template-curly-spacing": "off",
+    "no-multiple-empty-lines": "off", // so annoying...
     "space-before-function-paren": ["error", {
         "anonymous": "always",
         "named": "never",
