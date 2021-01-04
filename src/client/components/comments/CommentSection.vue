@@ -1,55 +1,59 @@
 <template>
     <div class="comment-section-root">
-        <div class="new-thread-container">
-            <template v-if="!isUserGuest">
-                <input type="text" minlength="3" ref="new-comment-thread-content" placeholder="Start a new thread at current time">
-                <VButton @click=startNewCommentThread>Submit</VButton>
-            </template>
-            <template v-if="isUserGuest">
-                <label>You need to be logged in to write or vote on comments!</label>
-            </template>
+        <div class="flex-container">
+            <div class="new-thread-container">
+                <template v-if="!isUserGuest">
+                    <input type="text" minlength="3" ref="new-comment-thread-content" placeholder="Start a new thread at current time">
+                    <VButton @click=startNewCommentThread>Submit</VButton>
+                </template>
+                <template v-else>
+                    <label>You need to be logged in to write or vote on comments!</label>
+                </template>
+            </div>
+            <div class="comment-management-panel">
+                <VToggleButton
+                    :isActive=isSortingPredicateActive(SortingPredicate.Chronologically)
+                    @click=setSortingPredicate(SortingPredicate.Chronologically)
+                >
+                    Chronologically
+                </VToggleButton>
+                <VToggleButton
+                    :isActive=isSortingPredicateActive(SortingPredicate.Top)
+                    @click=setSortingPredicate(SortingPredicate.Top)
+                >
+                    Top
+                </VToggleButton>
+                <VToggleButton
+                    :isActive=isSortingPredicateActive(SortingPredicate.New)
+                    @click=setSortingPredicate(SortingPredicate.New)
+                >
+                    New
+                </VToggleButton>
+                <VToggleButton
+                    :isActive=isSortingPredicateActive(SortingPredicate.Hot)
+                    @click=setSortingPredicate(SortingPredicate.Hot)
+                >
+                    Hot
+                </VToggleButton>
+            </div>
         </div>
-        <div class="comment-management-panel">
-            <VToggleButton
-                :isActive=isSortingPredicateActive(SortingPredicate.Chronologically)
-                @click=setSortingPredicate(SortingPredicate.Chronologically)
+        <div class="flex-container">
+            <div class="timeslot"
+                v-for="(slot, index) in activeTimeslots" :key="slot.timepoint.seconds"
+                :class=getTimeslotAnimationClass(slot)
             >
-                Chronologically
-            </VToggleButton>
-            <VToggleButton
-                :isActive=isSortingPredicateActive(SortingPredicate.Top)
-                @click=setSortingPredicate(SortingPredicate.Top)
-            >
-                Top
-            </VToggleButton>
-            <VToggleButton
-                :isActive=isSortingPredicateActive(SortingPredicate.New)
-                @click=setSortingPredicate(SortingPredicate.New)
-            >
-                New
-            </VToggleButton>
-            <VToggleButton
-                :isActive=isSortingPredicateActive(SortingPredicate.Hot)
-                @click=setSortingPredicate(SortingPredicate.Hot)
-            >
-                Hot
-            </VToggleButton>
-        </div>
-        <div class="timeslot"
-            v-for="(slot, index) in activeTimeslots" :key="slot.timepoint.seconds"
-            :class=getTimeslotAnimationClass(slot)
-        >
-            <template v-if="slot.threads.length !== 0">
-                <CommentThreadComponent
-                    v-for="thread in slot.threads" :key="thread.id"
-                    :thread=thread
-                    :timeslotIndex=index
-                    :class="{ 'focused-thread': focusedThreadId === thread.id }"
-                />
-            </template>
-            <template v-else>
-                <p>Be the first to contribute in this range!</p>
-            </template>
+                <template v-if="slot.threads.length !== 0">
+                    <CommentThreadComponent
+                        v-for="thread in slot.threads" :key="thread.id"
+                        :thread=thread
+                        :timeslotIndex=index
+                        :class="{ 'focused-thread': focusedThreadId === thread.id }"
+                    />
+                </template>
+                <template v-else>
+                    <p>Be the first to contribute in this range!</p>
+                </template>
+            </div>
         </div>
     </div>
 </template>
@@ -194,7 +198,7 @@ export default class CommentSection extends Vue {
 <style scoped lang="less">
 @import "../../cssresources/theme.less";
 
-.comment-section-root {
+.flex-container {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;

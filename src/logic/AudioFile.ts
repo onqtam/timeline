@@ -1,4 +1,5 @@
 import Timepoint from "./entities/Timepoint";
+import MathHelpers from "@/logic/MathHelpers";
 
 export default class AudioFile {
     public filepath: string = "";
@@ -36,6 +37,6 @@ export class AudioWindow {
     public findTimeslotStartForTime(time: Timepoint|number): number {
         const seconds: number = time instanceof Timepoint ? time.seconds : time;
         // we want to position the window so that the cursor is always at 10%, except in the corner cases
-        return Math.min(Math.max(0, seconds - this.duration * 1 / 10), this.audioFile.duration - this.duration);
+        return MathHelpers.clamp(seconds - this.duration * 0.1, 0, this.audioFile.duration - this.duration);
     }
 }
