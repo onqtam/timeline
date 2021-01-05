@@ -67,7 +67,7 @@ export default class Zoomline extends Vue {
     private setPlayElementPositionFromMouse(mouseX: number): void {
         const rect = (this.$refs["zoomline-container"] as HTMLElement).getBoundingClientRect();
         const offsetXAsPercentage = (mouseX - rect.left) / rect.width;
-        let newPosition = this.rangeStart + offsetXAsPercentage * (this.rangeEnd - this.rangeStart) - 1; // -1 in order to position the progress line better under the cursor
+        let newPosition = this.rangeStart + offsetXAsPercentage * (this.rangeEnd - this.rangeStart);
 
         // Clamp the new position within boundaries
         newPosition = MathHelpers.clamp(newPosition, this.rangeStart, this.rangeEnd);

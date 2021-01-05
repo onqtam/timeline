@@ -43,7 +43,6 @@
                     class="timeline"
                     ref="timeline"
                     :audioWindow=audioWindow
-                    :numberOfMarks=timelineMarkCount
                     :rangeStart=0 :rangeEnd=audio.duration
                     :currentAudioPosition=audioPos
                     @update:audioWindowStart=onTimelineWindowMoved
@@ -149,7 +148,6 @@ export default class TimelinePlayer extends Vue {
     private get zoomlineMarkCount(): number {
         return store.state.listen.audioWindow.timeslotCount + 1;
     }
-    private timelineMarkCount: number = -1;
 
     // Internal Data members
     private get audioElement(): HTMLAudioElement {
@@ -235,20 +233,7 @@ export default class TimelinePlayer extends Vue {
     }
 
     private onWindowResized(): void {
-        switch (store.state.device.device.appMode) {
-        case ActiveAppMode.LargeDesktop:
-            this.timelineMarkCount = 12;
-            break;
-        case ActiveAppMode.StandardScreen:
-            this.timelineMarkCount = 5;
-            break;
-        case ActiveAppMode.Tablet:
-            this.timelineMarkCount = 5;
-            break;
-        case ActiveAppMode.Mobile:
-            this.timelineMarkCount = 3;
-            break;
-        }
+        console.log("window resized!");
     }
 };
 

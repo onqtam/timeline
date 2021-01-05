@@ -73,20 +73,21 @@ export default class Timeline extends Vue {
     @Prop()
     public audioWindow?: AudioWindow;
 
-    public get computedMarks(): Timepoint[] {
-        if (!this.timepointMarks || this.timepointMarks.length !== this.numberOfMarks) {
-            this.timepointMarks = [];
-        }
-        // for (let i = 0; i < this.numberOfMarks + 1; i++) {
-        for (let i = 0; i < 2; i++) {
-            const seconds = this.rangeStart + (i / this.numberOfMarks) * (this.rangeEnd - this.rangeStart);
-            if (!this.timepointMarks[i]) {
-                this.timepointMarks[i] = new Timepoint(0);
-            }
-            this.timepointMarks[i].seconds = seconds;
-        }
-        return this.timepointMarks;
-    }
+    public get computedMarks(): Timepoint[] { return [new Timepoint(0), new Timepoint(this.audioWindow?.audioFile.duration)]; }
+
+    // public get computedMarks(): Timepoint[] {
+    //     if (!this.timepointMarks || this.timepointMarks.length !== this.numberOfMarks) {
+    //         this.timepointMarks = [];
+    //     }
+    //     for (let i = 0; i < this.numberOfMarks + 1; i++) {
+    //         const seconds = this.rangeStart + (i / this.numberOfMarks) * (this.rangeEnd - this.rangeStart);
+    //         if (!this.timepointMarks[i]) {
+    //             this.timepointMarks[i] = new Timepoint(0);
+    //         }
+    //         this.timepointMarks[i].seconds = seconds;
+    //     }
+    //     return this.timepointMarks;
+    // }
 
     public get chartData(): IChartistData {
         const histogram = store.state.listen.commentDensityHistogram;
@@ -134,9 +135,7 @@ export default class Timeline extends Vue {
     private setPlayElementPositionFromMouse(mouseX: number): void {
         const rect = (this.$refs["timeline-container"] as HTMLElement).getBoundingClientRect();
         const offsetXAsPercentage = (mouseX - rect.left) / rect.width;
-        let newPosition = this.rangeStart +
-            offsetXAsPercentage * (this.rangeEnd - this.rangeStart) -
-            this.audioWindow!.duration / 2 - 1; // we want to position the window so that the cursor ends up in the middle of it
+        let newPosition = this.rangeStart + offsetXAsPercentage * (this.rangeEnd - this.rangeStart) - this.audioWindow!.duration / 2;
 
         // Clamp the new position within boundaries
         newPosition = MathHelpers.clamp(newPosition, this.rangeStart, this.rangeEnd - this.audioWindow!.duration);
