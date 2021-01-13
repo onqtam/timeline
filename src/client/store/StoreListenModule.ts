@@ -306,9 +306,11 @@ export default {
             state.setVolume(newVolume);
         },
         moveAudioWindow: (state: StoreListenViewModel, newStart: number): void => {
+        console.log("🚀 ~ file: StoreListenModule.ts ~ line 309 ~ newStart", newStart)
             state.moveAudioWindow(newStart);
         },
         moveAudioPos: (state: StoreListenViewModel, newStart: number): void => {
+        console.log("🚀 ~ file: StoreListenModule.ts ~ line 313 ~ newStart", newStart)
             state.moveAudioPos(newStart);
         },
         setAudioWindowSlots: (state: StoreListenViewModel, newSlots: number): void => {

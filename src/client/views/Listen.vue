@@ -38,6 +38,7 @@ import CommentSection from "@/client/components/comments/CommentSection.vue";
         if (to.query.thread) {
             const threadIdToFocus: number = ~~to.query.thread;
             this.$nextTick(() => {
+                console.log("🚀 ~ beforeRouteUpdate to.query.thread");
                 (this.$refs["comment-section"] as CommentSection).focusThread(threadIdToFocus!);
             });
         }
@@ -79,37 +80,37 @@ export default class ListenView extends Vue {
                 console.assert(episode, "No such episode exists!");
                 store.dispatch.listen.loadEpisode(episode!);
                 this.isDataLoaded = true;
+
+                if (this.initialTimepoint) {
+                    store.commit.listen.moveAudioPos(this.initialTimepoint.seconds);
+                    const timeslotStart: number = this.audioWindow.findTimeslotStartForTime(this.initialTimepoint);
+                    store.commit.listen.moveAudioWindow(timeslotStart);
+                }
+                if (this.threadIdToFocus) {
+                    this.$nextTick(() => {
+                        (this.$refs["comment-section"] as CommentSection).focusThread(this.threadIdToFocus!);
+                    });
+                }
             });
     }
     public mounted(): void {
-        if (this.initialTimepoint) {
-            store.commit.listen.moveAudioPos(this.initialTimepoint.seconds);
-            const timeslotStart: number = this.audioWindow.findTimeslotStartForTime(this.initialTimepoint);
-            store.commit.listen.moveAudioWindow(timeslotStart);
-        }
-        if (this.threadIdToFocus) {
-            this.$nextTick(() => {
-                (this.$refs["comment-section"] as CommentSection).focusThread(this.threadIdToFocus!);
-            });
-        }
-
         // Trigger timers for saving the progress
-        const localTimer: number = 5000;
-        const serverTimer: number = 60000;
-        this._localPlaybackStorageTimerId = window.setInterval(() => {
-            const payload = {
-                episodeId: store.state.listen.activeEpisode.id,
-                progress: store.state.listen.audioPos
-            };
-            store.commit.user.localSavePlaybackProgress(payload);
-        }, localTimer);
-        this._serverPlaybackStorageTimerId = window.setInterval(() => {
-            const payload = {
-                episodeId: store.state.listen.activeEpisode.id,
-                progress: store.state.listen.audioPos
-            };
-            store.dispatch.user.savePlaybackProgress(payload);
-        }, serverTimer);
+        // const localTimer: number = 5000;
+        // const serverTimer: number = 60000;
+        // this._localPlaybackStorageTimerId = window.setInterval(() => {
+        //     const payload = {
+        //         episodeId: store.state.listen.activeEpisode.id,
+        //         progress: store.state.listen.audioPos
+        //     };
+        //     store.commit.user.localSavePlaybackProgress(payload);
+        // }, localTimer);
+        // this._serverPlaybackStorageTimerId = window.setInterval(() => {
+        //     const payload = {
+        //         episodeId: store.state.listen.activeEpisode.id,
+        //         progress: store.state.listen.audioPos
+        //     };
+        //     store.dispatch.user.savePlaybackProgress(payload);
+        // }, serverTimer);
     }
 
     public destroyed(): void {
