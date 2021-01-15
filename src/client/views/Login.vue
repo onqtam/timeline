@@ -7,9 +7,9 @@
             <template v-slot:body>
                 Via...
                 <hr>
-                <VButton @click=login>
-                    <i class="fa fa-google" aria-hidden="true"></i>
-                </VButton>
+                <v-btn @click=login>
+                    <v-icon>mdi-google</v-icon>
+                </v-btn>
             </template>
         </VModal>
     </div>
@@ -19,12 +19,10 @@
 import { Component, Vue } from "vue-property-decorator";
 import store from "@/client/store";
 
-import VButton from "@/client/components/primitives/VButton.vue";
 import VModal from "@/client/components/primitives/VModal.vue";
 
 @Component({
     components: {
-        VButton,
         VModal
     }
 })

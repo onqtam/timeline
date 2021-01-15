@@ -1,10 +1,10 @@
 <template>
     <v-app id="app">
         <v-navigation-drawer app id="nav">
-            <router-link to="/">Home</router-link> |
-            <router-link to="/about">About</router-link>
-            <VButton @click=login>Login</VButton>
-            <router-link to="/profile">Profile</router-link>
+            <v-btn to="/">Home</v-btn>
+            <v-btn to="/about">About</v-btn>
+            <v-btn to="/profile">Profile</v-btn>
+            <v-btn @click=login>Login</v-btn>
         </v-navigation-drawer>
 
         <v-main>
@@ -22,14 +22,12 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import VButton from "@/client/components/primitives/VButton.vue";
 import LoginModal from "@/client/views/Login.vue";
 import store from "./store";
 import User from "@/logic/entities/User";
 
 @Component({
     components: {
-        VButton,
         LoginModal
     }
 })
@@ -82,13 +80,7 @@ body {
 }
 
 #nav {
-    background-color: rgb(228, 228, 228);
-    padding: 30px;
-
     a {
-        font-weight: bold;
-        color: #2c3e50;
-
         &.router-link-exact-active {
             color: #42b983;
         }

@@ -13,7 +13,7 @@
             <div class="podcast-description" v-html=podcastFilteredDescription>
             </div>
         </div>
-        <VButton class="read-more-button" @click=toggleMore>Read more</VButton>
+        <v-btn class="read-more-button" @click=toggleMore>Read more</v-btn>
     </div>
 </template>
 
@@ -23,11 +23,8 @@ import { Component, Vue, Prop } from "vue-property-decorator";
 import Timepoint from "@/logic/entities/Timepoint";
 import { Podcast } from "@/logic/entities/Podcast";
 
-import VButton from "@/client/components/primitives/VButton.vue";
-
 @Component({
     components: {
-        VButton
     }
 })
 export default class PodcastComponent extends Vue {

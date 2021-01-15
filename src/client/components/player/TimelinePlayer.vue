@@ -2,25 +2,27 @@
     <div class="timeline-player">
         <div class="controls">
             <div class="slider-controls">
-                <VButton class="play-button" @click=togglePlay>
-                    <i v-if=isPaused class="fa fa-play" aria-hidden="true"></i>
-                    <i v-if=!isPaused class="fa fa-pause" aria-hidden="true"></i>
-                </VButton>
-                <VButton class="mute-button" @click=toggleMute>
-                    <i v-if="!isMuted && volume > 0.5" class="fa fa-volume-up" aria-hidden="true"></i>
-                    <i v-if="!isMuted && volume <= 0.5 && volume > 0" class="fa fa-volume-down" aria-hidden="true"></i>
-                    <i v-if="isMuted || volume === 0" class="fa fa-volume-off" aria-hidden="true"></i>
-                </VButton>
+                <v-btn class="play-button" @click=togglePlay>
+                    <v-icon v-if=isPaused>mdi-play</v-icon>
+                    <v-icon v-if=!isPaused>mdi-pause</v-icon>
+                </v-btn>
+                <v-btn class="mute-button" @click=toggleMute>
+                    <v-icon v-if="!isMuted && volume > 0.5">mdi-volume-high</v-icon>
+                    <v-icon v-if="!isMuted && volume <= 0.5 && volume > 0">mdi-volume-medium</v-icon>
+                    <v-icon v-if="isMuted || volume === 0">mdi-volume-off</v-icon>
+                </v-btn>
                 <!-- commented out for now - takes too much space and isn't useful for now -->
-                <!-- <VSlider class="volume-slider" :min=0 :max=1 :step=0.01 :value.sync=volume></VSlider> -->
-                <label>Audio Window Size</label>
-                <VSlider class="volume-slider" :min=30 :max=600 :step=1 :value.sync=audioWindowDuration></VSlider>
-                <input type="text" placeholder="omg"/>
+                <!-- <v-slider class="volume-slider" :min=0 :max=1 :step=0.01 :value.sync=volume></v-slider> -->
+                <v-slider class="volume-slider"
+                    min=30 max=600 step=1 label="Window Size" thumb-label="always"
+                    :model=audioWindowDuration>
+                </v-slider>
+                <v-text-field label="omg" style="display: inline-block;"></v-text-field>
                 Window Start: {{audioWindow.start.format()}}
                 <!-- <span style="display: inline-block; width: 70px;">{{audioWindow.start.format()}}</span> -->
                 <!-- <span style="display: inline-block; width: 100px;">Window End: {{audioWindow.end.format()}}</span> -->
-                <VButton>Comments</VButton>
-                <VButton>Bookmarks</VButton>
+                <v-btn>Comments</v-btn>
+                <v-btn>Bookmarks</v-btn>
                 <audio nocontrols
                     class="audio-element"
                     ref="audio-element"
@@ -84,8 +86,6 @@ import store from "@/client/store";
 import { default as AudioFile, AudioWindow } from "@/logic/AudioFile";
 import Timepoint from "@/logic/entities/Timepoint";
 
-import VButton from "../primitives/VButton.vue";
-import VSlider from "../primitives/VSlider.vue";
 import { default as Annotations } from "./Annotations.vue";
 import { default as Timeline } from "./Timeline.vue";
 import { default as Funnel } from "./Funnel.vue";
@@ -96,8 +96,6 @@ import { ActiveAppMode } from "../../store/StoreDeviceInfoModule";
 
 @Component({
     components: {
-        VButton,
-        VSlider,
         Annotations,
         Timeline,
         Funnel,
@@ -297,7 +295,7 @@ button {
 }
 .volume-slider {
     // TODO: This needs to go as it overrides the v-slider's display: flex
-    // may be wrap the vslider with another div so that it's not possible to be overriden?
+    // may be wrap the v-slider with another div so that it's not possible to be overriden?
     display: inline-block;
     width: 200px;
 }

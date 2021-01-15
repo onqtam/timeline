@@ -16,17 +16,17 @@
             <span class="separator"> · </span>
             <!-- TODO Create a button component -->
             <a v-if="!isUserGuest" class="start-reply-button" @click=toggleIsReplyingTo>
-                <i class="fa fa-reply" aria-hidden="true"></i>
+                <v-icon>mdi-reply</v-icon>
             </a>
             <span class="separator"> · </span>
             <a v-if="!isUserGuest" class="delete-button" @click=deleteComment>
-                <i class="fa fa-trash" aria-hidden="true"></i>
+                <v-icon>mdi-trash</v-icon>
             </a>
             <div v-if=isReplyingTo>
                 <br/>
-                <input type="text" ref="reply-content" placeholder="Write your reply here">
+                <v-text-field label="Write your reply here" ref="reply-content"></v-text-field>
                 <a class="submit-reply-button" @click=submitReply>
-                    <i class="fa fa-reply" aria-hidden="true"></i> Submit reply
+                    <v-icon>mdi-reply"</v-icon> Submit reply
                 </a>
             </div>
             <p class="comment-section" v-if=isExpanded>

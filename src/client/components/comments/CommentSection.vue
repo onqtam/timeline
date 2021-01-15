@@ -3,39 +3,31 @@
         <div class="flex-container">
             <div class="new-thread-container">
                 <template v-if="!isUserGuest">
-                    <input type="text" minlength="3" ref="new-comment-thread-content" placeholder="Start a new thread at current time">
-                    <VButton @click=startNewCommentThread>Submit</VButton>
+                    <v-text-field ref="new-comment-thread-content" label="Start a new thread at current time"></v-text-field>
+                    <v-btn @click=startNewCommentThread>Submit</v-btn>
                 </template>
                 <template v-else>
                     <label>You need to be logged in to write or vote on comments!</label>
                 </template>
             </div>
-            <div class="comment-management-panel">
-                <VToggleButton
-                    :isActive=isSortingPredicateActive(SortingPredicate.Chronologically)
-                    @click=setSortingPredicate(SortingPredicate.Chronologically)
-                >
+            <v-btn-toggle
+                mandatory
+                :model=sortingPredicate
+                class="comment-management-panel"
+            >
+                <v-btn :value=SortingPredicate.Chronologically>
                     Chronologically
-                </VToggleButton>
-                <VToggleButton
-                    :isActive=isSortingPredicateActive(SortingPredicate.Top)
-                    @click=setSortingPredicate(SortingPredicate.Top)
-                >
+                </v-btn>
+                <v-btn :value=SortingPredicate.Top>
                     Top
-                </VToggleButton>
-                <VToggleButton
-                    :isActive=isSortingPredicateActive(SortingPredicate.New)
-                    @click=setSortingPredicate(SortingPredicate.New)
-                >
+                </v-btn>
+                <v-btn :value=SortingPredicate.New>
                     New
-                </VToggleButton>
-                <VToggleButton
-                    :isActive=isSortingPredicateActive(SortingPredicate.Hot)
-                    @click=setSortingPredicate(SortingPredicate.Hot)
-                >
+                </v-btn>
+                <v-btn :value=SortingPredicate.Hot>
                     Hot
-                </VToggleButton>
-            </div>
+                </v-btn>
+            </v-btn-toggle>
         </div>
         <div class="flex-container">
             <div class="timeslot"
@@ -68,8 +60,6 @@ import { AudioWindow } from "@/logic/AudioFile";
 import Timepoint from "@/logic/entities/Timepoint";
 import MathHelpers from "@/logic/MathHelpers";
 
-import VButton from "@/client/components/primitives/VButton.vue";
-import VToggleButton from "@/client/components//primitives/VToggleButton.vue";
 import CommentThreadComponent from "./CommentThread.vue";
 
 class Timeslot {
@@ -86,8 +76,6 @@ enum SortingPredicate {
 
 @Component({
     components: {
-        VButton,
-        VToggleButton,
         CommentThreadComponent
     }
 })

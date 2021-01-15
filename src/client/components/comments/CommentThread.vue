@@ -7,9 +7,9 @@
             :to="'?t=' + thread.timepoint.formatAsUrlParam() + '&thread=' + thread.id"
         >
             <!-- Switch the order if we are close to the end -->
-            <i v-if=routerLinkPlacePointerOnLeft class="fa fa-caret-up" aria-hidden="true"></i>
+            <v-icon v-if=routerLinkPlacePointerOnLeft>mdi-caret-up</v-icon>
             {{ thread.timepoint.format() }}
-            <i v-if=!routerLinkPlacePointerOnLeft class="fa fa-caret-up" aria-hidden="true"></i>
+            <v-icon v-if=!routerLinkPlacePointerOnLeft>mdi-caret-up</v-icon>
         </router-link>
         <CommentControlsComponent
             :key=thread.id

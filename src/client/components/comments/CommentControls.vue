@@ -7,13 +7,13 @@
                 :class="{ 'active-vote': hasVotedUp() }"
                 @click=voteUp
             >
-                <i class="fa fa-arrow-up"></i>
+                <v-icon>mdi-arrow-up</v-icon>
             </a>
             <a class="vote-button"
                 :class="{ 'active-vote': hasVotedDown }"
                 @click=voteDown
             >
-                <i class="fa fa-arrow-down"></i>
+                <v-icon>mdi-arrow-down</v-icon>
             </a>
             <div
                 class="collapsible-border"

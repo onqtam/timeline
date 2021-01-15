@@ -16,7 +16,6 @@ import store from "@/client/store";
 
 import { Podcast } from "@/logic/entities/Podcast";
 
-import VButton from "@/client/components/primitives/VButton.vue";
 import EpisodeComponent from "@/client/components/Episode.vue";
 
 const beforeRouteChange = (to: Route, from: Route, next: NavigationGuardNext<EpisodesView>, existingView: EpisodesView|undefined) => {
@@ -42,7 +41,6 @@ const beforeRouteChange = (to: Route, from: Route, next: NavigationGuardNext<Epi
 
 @Component({
     components: {
-        VButton,
         EpisodeComponent
     },
     beforeRouteEnter(to: Route, from: Route, next: NavigationGuardNext<EpisodesView>) {

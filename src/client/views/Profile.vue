@@ -9,7 +9,7 @@
         </div>
         <div class="slider-controls">
             <label>Number Of Timeslots</label>
-            <VSlider class="timeslot-count-slider" :min=1 :max=5 :step=1 :value.sync=audioWindowTimeslotCount></VSlider>
+            <v-slider class="timeslot-count-slider" min=1 max=5 step=1 thumb-label="always" :model=audioWindowTimeslotCount></v-slider>
         </div>
     </div>
 </template>
@@ -17,8 +17,6 @@
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 
-import VButton from "@/client/components/primitives/VButton.vue";
-import VSlider from "@/client/components/primitives/VSlider.vue";
 import store from "../store";
 import User from "../../logic/entities/User";
 import UserSettings, { ValueLimits } from "../../logic/entities/UserSettings";
@@ -26,8 +24,6 @@ import { NavigationGuardNext, Route } from "vue-router";
 
 @Component({
     components: {
-        VButton,
-        VSlider
     },
     beforeRouteLeave: function (to: Route, from: Route, next: NavigationGuardNext<ProfileView>) {
         store.dispatch.user.saveSettings();

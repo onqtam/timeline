@@ -16,12 +16,10 @@ import store from "@/client/store";
 
 import { Podcast } from "@/logic/entities/Podcast";
 
-import VButton from "@/client/components/primitives/VButton.vue";
 import PodcastComponent from "@/client/components/Podcast.vue";
 
 @Component({
     components: {
-        VButton,
         PodcastComponent
     },
     beforeRouteEnter(to: Route, from: Route, next: NavigationGuardNext<PodcastsView>) {

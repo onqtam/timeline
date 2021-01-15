@@ -102,6 +102,7 @@ Alongside Vue, these Vue extensions are installed:
 * Vuex - Vue's state management library. Vue's Flux. It's purpose is to be a heterogenous, global storage of variables used throughout the entire client side.
 * Direct Vuex - A small open-source library which acts as a TypeScript-wrapper around Vuex
 * Vue Router - Used for routing (history, back, forward, etc.)
+* Vuetify - A popular UI framework
 * Vue-CLI - This is the collection of Vue's tools. They are used everywhere on the client side to build, run dev server, install new vue plugins, etc.
 
 #### Build/configuration system

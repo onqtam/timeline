@@ -16,13 +16,11 @@ import Timepoint from "@/logic/entities/Timepoint";
 import { default as AudioFile, AudioWindow } from "@/logic/AudioFile";
 import { default as Comment } from "@/logic/entities/Comments";
 
-import VButton from "@/client/components/primitives/VButton.vue";
 import TimelinePlayer from "@/client/components/player/TimelinePlayer.vue";
 import CommentSection from "@/client/components/comments/CommentSection.vue";
 
 @Component({
     components: {
-        VButton,
         TimelinePlayer,
         CommentSection
     },

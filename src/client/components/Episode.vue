@@ -1,7 +1,7 @@
 <template>
     <div class="episode-slot" :class="{ 'active-episode-slot': isReadingMore }">
-        <div class="episode-thumbnail" :style="{ 'background-image': 'url(' + episode.imageURL +')' }" >
-        </div>
+        <v-img class="episode-thumbnail" :src=episode.imageURL>
+        </v-img>
         <div class="episode-content">
             <router-link :to="`/listen/${podcast.titleAsURL}/${episode.titleAsURL}`">
                 <h3 class="episode-title">{{ episode.title }}</h3>
@@ -13,7 +13,7 @@
             <div class="episode-description" v-html=episodeFilteredDescription>
             </div>
         </div>
-        <VButton class="read-more-button" @click=toggleMore>Read more</VButton>
+        <v-btn class="read-more-button" @click=toggleMore>Read more</v-btn>
     </div>
 </template>
 
@@ -23,11 +23,8 @@ import { Component, Vue, Prop } from "vue-property-decorator";
 import Timepoint from "@/logic/entities/Timepoint";
 import { Episode, Podcast } from "@/logic/entities/Podcast";
 
-import VButton from "@/client/components/primitives/VButton.vue";
-
 @Component({
     components: {
-        VButton
     }
 })
 export default class EpisodeComponent extends Vue {
