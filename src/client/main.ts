@@ -1,5 +1,6 @@
 import Vue from "vue";
 import store from "./store";
+import vuetifyInstance from "./plugins/vuetify";
 import App from "./App.vue";
 import router from "./router";
 import { installVueRecompute } from "./utils/VueRecompute";
@@ -14,5 +15,6 @@ installVueRecompute();
 (window as any).app = new Vue({
     router,
     store: store.original,
+    vuetify: vuetifyInstance,
     render: h => h(App)
 }).$mount("#app");

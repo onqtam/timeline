@@ -1,17 +1,23 @@
 <template>
-    <div id="app">
-        <header id="nav">
+    <v-app id="app">
+        <v-navigation-drawer app id="nav">
             <router-link to="/">Home</router-link> |
             <router-link to="/about">About</router-link>
             <VButton @click=login>Login</VButton>
             <router-link to="/profile">Profile</router-link>
-        </header>
-        <LoginModal ref="login"></LoginModal>
-        <router-view/>
-        <footer>
+        </v-navigation-drawer>
+
+        <v-main>
+            <v-container fluid>
+                <LoginModal ref="login"></LoginModal>
+                <router-view/>
+            </v-container>
+        </v-main>
+
+        <v-footer app>
             @@@copyright
-        </footer>
-    </div>
+        </v-footer>
+    </v-app>
 </template>
 
 <script lang="ts">
