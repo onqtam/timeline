@@ -12,19 +12,17 @@
             </div>
             <v-btn-toggle
                 mandatory
-                :model=sortingPredicate
+                v-model="sortingPredicate"
                 class="comment-management-panel"
             >
-                <v-btn :value=SortingPredicate.Chronologically>
-                    Chronologically
-                </v-btn>
                 <v-btn :value=SortingPredicate.Top>
                     Top
                 </v-btn>
                 <v-btn :value=SortingPredicate.New>
                     New
                 </v-btn>
-                <v-btn :value=SortingPredicate.Hot>
+                <!-- TODO why can't I make this alert work ?!?!?!     https://codesandbox.io/s/rough-resonance-z19kd?file=/src/App.vue -->
+                <v-btn :value=SortingPredicate.Hot @click="console.alert('not implemented!')">
                     Hot
                 </v-btn>
             </v-btn-toggle>
@@ -68,7 +66,6 @@ class Timeslot {
 }
 
 enum SortingPredicate {
-    Chronologically,
     Top,
     New,
     Hot
@@ -116,7 +113,7 @@ export default class CommentSection extends Vue {
     public focusedThreadId: number = -1;
 
     private SortingPredicate = SortingPredicate;
-    private sortingPredicate: SortingPredicate = SortingPredicate.Chronologically;
+    private sortingPredicate: SortingPredicate = SortingPredicate.New;
 
     public mounted(): void {
         // Update the number of timeslots CSS var every time we are mounted to make sure it never goes out of sync
@@ -170,13 +167,13 @@ export default class CommentSection extends Vue {
 
     private compareCommentThreads(lhs: Comment, rhs: Comment) {
         switch (this.sortingPredicate) {
-        case SortingPredicate.Top:
-            return rhs.totalVotes - lhs.totalVotes;
         case SortingPredicate.New:
             return rhs.date.valueOf() - lhs.date.valueOf();
-        case SortingPredicate.Chronologically:
-        default: // fall through, no hot yet
-            return lhs.timepoint.seconds - rhs.timepoint.seconds;
+        case SortingPredicate.Hot: // fall through, no hot yet
+        case SortingPredicate.Top:
+        default:
+            return rhs.totalVotes - lhs.totalVotes;
+            // return lhs.timepoint.seconds - rhs.timepoint.seconds; // this is chronological sorting
         }
     }
 }

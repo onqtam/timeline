@@ -15,7 +15,7 @@
                 <!-- <v-slider class="volume-slider" :min=0 :max=1 :step=0.01 :value.sync=volume></v-slider> -->
                 <v-slider class="volume-slider"
                     min=30 max=600 step=1 label="Window Size" thumb-label="always"
-                    :model=audioWindowDuration>
+                    v-model=audioWindowDuration>
                 </v-slider>
                 <v-text-field label="omg" style="display: inline-block;"></v-text-field>
                 Window Start: {{audioWindow.start.format()}}

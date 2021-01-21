@@ -9,7 +9,7 @@
         </div>
         <div class="slider-controls">
             <label>Number Of Timeslots</label>
-            <v-slider class="timeslot-count-slider" min=1 max=5 step=1 thumb-label="always" :model=audioWindowTimeslotCount></v-slider>
+            <v-slider class="timeslot-count-slider" min=1 max=5 step=1 thumb-label="always" v-model=audioWindowTimeslotCount></v-slider>
         </div>
     </div>
 </template>
