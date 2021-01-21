@@ -2,7 +2,7 @@
     <div class="timeline-player">
         <div class="controls">
             <div class="slider-controls">
-                <v-btn class="play-button" @click=togglePlay>
+                <v-btn @click=togglePlay>
                     <v-icon v-if=isPaused>mdi-play</v-icon>
                     <v-icon v-else>mdi-pause</v-icon>
                 </v-btn>
@@ -292,9 +292,6 @@ button {
     display: none;
 }
 
-.play-button {
-    margin: 0;
-}
 .slider-controls {
     width: 100%;
 }
