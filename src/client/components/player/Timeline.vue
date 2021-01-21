@@ -141,6 +141,7 @@ export default class Timeline extends Vue {
         // Clamp the new position within boundaries
         newPosition = MathHelpers.clamp(newPosition, this.rangeStart, this.rangeEnd - this.audioWindow!.duration);
         this.$emit("update:audioWindowStart", newPosition);
+        this.$emit("update:currentAudioPosition", newPosition + this.audioWindow!.duration / 2);
     }
 
     private onJumpToPosition(event: MouseEvent): void {

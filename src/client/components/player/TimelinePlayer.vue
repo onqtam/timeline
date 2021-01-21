@@ -51,6 +51,7 @@
                     :rangeStart=0 :rangeEnd=audio.duration
                     :currentAudioPosition=audioPos
                     @update:audioWindowStart=onTimelineWindowMoved
+                    @update:currentAudioPosition=onZoomlinePositionMoved
                 >
                 </Timeline>
             </div>
