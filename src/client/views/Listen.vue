@@ -133,7 +133,7 @@ export default class ListenView extends Vue {
 }
 
 .comment-section-root {
-    // This limits the size of all threads; TODO revisit and pick a better number at a later stage
+    // This limits the size of all threads; TODO: revisit and pick a better number at a later stage
     height: 60vh;
     padding-bottom: 5vh;
 }

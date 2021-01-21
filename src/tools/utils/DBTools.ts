@@ -294,7 +294,7 @@ export default class DBTools {
             currentLevelComments = currentLevelComments.flatMap(c => c.replies || []);
             allComments.splice(allComments.length - 1, 0, ...currentLevelComments);
         }
-        // generator.generateRandomVotes(allComments); // TODO viktor: fixme!
+        // generator.generateRandomVotes(allComments); // TODO: viktor: fixme!
 
         // User activities should now be filled, save them
         // const allActivities: UserActivity[] = users.map(u => u.activity);

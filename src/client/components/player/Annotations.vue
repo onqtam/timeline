@@ -7,6 +7,8 @@
         <v-tooltip top v-for="(item, index) in agenda.items" :key=item.timestamp.seconds transition="fade-transition">
             <template v-slot:activator="{ on }">
                 <div v-on="on" class="annotation" :style="computeStyle(item, index)">
+                    <!-- TODO: because of this v-if there is flickering when transitioning from one agenda item to the next.
+                    The problem is that this item first disappears and only then does isAgendaItemCompleted in computeStyle return true. -->
                     <div v-if="isAgendaItemActive(index)" :style="computeActiveItemProgressStyle(item, index)"/>
                 </div>
             </template>
@@ -44,7 +46,7 @@ export default class Annotations extends Vue {
     }
 
     computeActiveItemProgressStyle(item: AgendaItem, itemIndex: number) {
-        // TODO sadly this computation doesn't account for the gaps so when near the
+        // TODO: sadly this computation doesn't account for the gaps so when near the
         // end the coloring doesn't 100% align with the progress bar on the timeline
         const percent = 100 * (this.currentAudioPosition.seconds - item.timestamp.seconds) /
             (this.getEndOfItem(itemIndex) - item.timestamp.seconds);

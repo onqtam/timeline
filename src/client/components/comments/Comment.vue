@@ -14,7 +14,7 @@
             <span class="separator"> · </span>
             <span class="date">{{ formatCommentDate() }}</span>
             <span class="separator"> · </span>
-            <!-- TODO Create a button component -->
+            <!-- TODO: Create a button component -->
             <a v-if="!isUserGuest" class="start-reply-button" @click=toggleIsReplyingTo>
                 <v-icon>mdi-reply</v-icon>
             </a>

@@ -122,7 +122,7 @@ export default class Funnel extends Vue {
 #funnel {
     height: 1.5em;
     width: 100%;
-    margin-bottom: -5px; // TODO why is this necessary?
+    margin-bottom: -5px; // TODO: why is this necessary?
 }
 
 #funnel path {

@@ -205,7 +205,7 @@ class StoreListenViewModel implements IStoreListenModule {
         if (!store.state.user.info.isGuest) {
             const loadVotesURL: string = `${CommonParams.APIServerRootURL}/comments/votes/${episode.id}`;
             const query_votes = AsyncLoader.makeRestRequest(loadVotesURL, HTTPVerb.Get, null) as Promise<VoteCommentRecord[]>;
-            // TODO ideally we would await all 3 at the same time
+            // TODO: ideally we would await all 3 at the same time
             votesByUser = await query_votes;
         }
 
@@ -229,7 +229,7 @@ class StoreListenViewModel implements IStoreListenModule {
         console.log(comment);
         const requestBody = {
             commentId: comment.id,
-            episodeId: this.activeEpisode.id, // TODO change with comment.episodeId
+            episodeId: this.activeEpisode.id, // TODO: change with comment.episodeId
             wasVotePositive: wasVotePositive
         };
         console.log(requestBody);

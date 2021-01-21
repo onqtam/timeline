@@ -20,7 +20,7 @@ export class AgendaItem implements IReviveFromJSON {
 }
 
 export class Agenda implements IReviveFromJSON {
-    // TODO make sure there is always an entry at timepoint 0
+    // TODO: make sure there is always an entry at timepoint 0
     public items: AgendaItem[] = [
         new AgendaItem("agenda 0    beginning", new Timepoint(0)),
         new AgendaItem("agenda 1    abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(400)),

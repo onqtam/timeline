@@ -14,7 +14,7 @@
                 <!-- commented out for now - takes too much space and isn't useful for now -->
                 <!-- <v-slider class="volume-slider" :min=0 :max=1 :step=0.01 :value.sync=volume></v-slider> -->
                 <v-slider class="volume-slider"
-                    min=30 max=600 step=1 label="Window Size" thumb-label="always"
+                    min=30 max=1200 step=1 label="Window Size" thumb-label="always"
                     v-model=audioWindowDuration>
                 </v-slider>
                 <v-text-field label="omg" style="display: inline-block;"></v-text-field>

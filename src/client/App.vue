@@ -18,7 +18,7 @@
                 <v-row>
                     <v-col> -->
                         <!-- <LoginModal ref="login"></LoginModal> -->
-                        <router-view class="brown darken-4" style="width:1000px;"/>
+                        <router-view class="brown darken-4" style="width:1500px;"/>
                     <!-- </v-col>
                 </v-row>
             </v-container> -->

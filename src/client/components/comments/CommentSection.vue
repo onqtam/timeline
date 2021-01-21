@@ -21,7 +21,7 @@
                 <v-btn :value=SortingPredicate.New>
                     New
                 </v-btn>
-                <!-- TODO why can't I make this alert work ?!?!?!     https://codesandbox.io/s/rough-resonance-z19kd?file=/src/App.vue -->
+                <!-- TODO: why can't I make this alert work ?!?!?!     https://codesandbox.io/s/rough-resonance-z19kd?file=/src/App.vue -->
                 <v-btn :value=SortingPredicate.Hot @click="console.alert('not implemented!')">
                     Hot
                 </v-btn>
