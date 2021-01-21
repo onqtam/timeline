@@ -1,17 +1,27 @@
 <template>
-    <v-app id="app">
-        <v-navigation-drawer app id="nav">
-            <v-btn to="/">Home</v-btn>
-            <v-btn to="/about">About</v-btn>
-            <v-btn to="/profile">Profile</v-btn>
-            <v-btn @click=login>Login</v-btn>
-        </v-navigation-drawer>
+    <v-app id="app" style="display: grid; justify-content: center;">
+        <v-app-bar app>
+            <v-tabs
+                centered
+                class="ml-n9"
+                color="grey darken-1"
+            >
+                <v-tab to="/">Home</v-tab>
+                <v-tab to="/about">About</v-tab>
+                <v-tab to="/profile">Profile</v-tab>
+                <v-tab @click=login>Login</v-tab>
+            </v-tabs>
+        </v-app-bar>
 
-        <v-main>
-            <v-container fluid>
-                <LoginModal ref="login"></LoginModal>
-                <router-view/>
-            </v-container>
+        <v-main app>
+            <!-- <v-container fluid>
+                <v-row>
+                    <v-col> -->
+                        <!-- <LoginModal ref="login"></LoginModal> -->
+                        <router-view class="brown darken-4" style="width:1000px;"/>
+                    <!-- </v-col>
+                </v-row>
+            </v-container> -->
         </v-main>
 
         <v-footer app>
@@ -45,45 +55,4 @@ export default class App extends Vue {
 
 <style lang="less">
 @import "./cssresources/theme.less";
-
-* {
-    color: @theme-text-color;
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    background: rgb(66, 66, 66);
-    display: grid;
-    justify-content: center;
-    // place-content: center; // same effect as justify-content
-
-    font-family: Avenir, Helvetica, Arial, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-align: center;
-}
-
-// https://web.dev/min-max-clamp/
-#app {
-    // https://stackoverflow.com/questions/17904088/disable-less-css-overwriting-calc
-    width: ~"max(80vw, calc(800px - 3vw))";
-    max-width: 1500px;
-}
-
-// https://blog.francium.tech/responsive-web-design-device-resolution-and-viewport-width-e7b7f138d7b9
-@media screen and (max-width: 800px) {
-    #app {
-        width: 97vw; // otherwise (with 100vw) a horizontal scroll bar might appear
-    }
-}
-
-#nav {
-    a {
-        &.router-link-exact-active {
-            color: #42b983;
-        }
-    }
-}
 </style>

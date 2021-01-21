@@ -1,9 +1,9 @@
 <template>
     <div>
         <!-- controls=0 -->
-        <iframe width="100%" height="700px" src="https://www.youtube.com/embed/nM9f0W2KD5s?" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-        <TimelinePlayer v-if=isDataLoaded ref="timeline-player" class="timeline-player" />
-        <CommentSection v-if=isDataLoaded ref="comment-section" />
+        <iframe width="100%" height="500px" src="https://www.youtube.com/embed/nM9f0W2KD5s?" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen/>
+        <TimelinePlayer v-if=isDataLoaded ref="timeline-player" class="timeline-player"/>
+        <CommentSection v-if=isDataLoaded ref="comment-section"/>
     </div>
 </template>
 
@@ -123,17 +123,13 @@ export default class ListenView extends Vue {
 <style scoped lang="less">
 @import "../cssresources/theme.less";
 
-.timeline-player {
-    // height: 40vh;
-    background-color:rgb(36, 36, 36);
-}
+// .timeline-player {
+//     // height: 40vh;
+//     background-color:rgb(0, 24, 75);
+// }
 
 .timeline-player, .comment-section-root {
     margin: 0 1em;
-}
-
-button {
-    color: @theme-background;
 }
 
 .comment-section-root {

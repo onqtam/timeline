@@ -3,7 +3,13 @@
         ref="annotations-container"
         class="annotations-container"
     >
-        <div v-for="(item, index) in agenda.items" :key=item.timestamp.seconds class="annotation" :style="computeStyle(item, index)"/>
+        <v-tooltip top v-for="(item, index) in agenda.items" :key=item.timestamp.seconds transition="fade-transition">
+            <template v-slot:activator="{ on }">
+                <div v-on="on" class="annotation" :style="computeStyle(item, index)"/>
+            </template>
+            <!-- TODO: CLAMP LENGTH OF TEXT -->
+            <span>{{item.text}}</span>
+        </v-tooltip>
     </div>
 </template>
 
@@ -74,7 +80,6 @@ export default class Annotations extends Vue {
         height: 16px;
     }
 }
-
 
 // .annotations-container .annotation:first-child {
 //     border-top-left-radius: 6px;

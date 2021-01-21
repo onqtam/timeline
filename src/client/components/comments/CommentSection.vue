@@ -186,6 +186,10 @@ export default class CommentSection extends Vue {
 <style scoped lang="less">
 @import "../../cssresources/theme.less";
 
+// .comment-section-root {
+//     width: 1500px;
+// }
+
 .flex-container {
     display: flex;
     flex-direction: row;

@@ -7,6 +7,7 @@
         @mouseleave=onStopDragging
         @mousedown.left=onStartDragging
         @mouseup.left=onStopDragging
+        v-ripple
     >
         <!-- Highlights the part of the audio that should be zoomed, only in Standard -->
         <div class="zoom-window"

@@ -4,7 +4,7 @@
             <div class="slider-controls">
                 <v-btn class="play-button" @click=togglePlay>
                     <v-icon v-if=isPaused>mdi-play</v-icon>
-                    <v-icon v-if=!isPaused>mdi-pause</v-icon>
+                    <v-icon v-else>mdi-pause</v-icon>
                 </v-btn>
                 <v-btn class="mute-button" @click=toggleMute>
                     <v-icon v-if="!isMuted && volume > 0.5">mdi-volume-high</v-icon>
@@ -21,8 +21,11 @@
                 Window Start: {{audioWindow.start.format()}}
                 <!-- <span style="display: inline-block; width: 70px;">{{audioWindow.start.format()}}</span> -->
                 <!-- <span style="display: inline-block; width: 100px;">Window End: {{audioWindow.end.format()}}</span> -->
-                <v-btn>Comments</v-btn>
-                <v-btn>Bookmarks</v-btn>
+
+
+                <!-- TODO: use button-groups - mutually-exclusive toggles -->
+                <!-- <v-btn>Comments</v-btn>
+                <v-btn>Bookmarks</v-btn> -->
                 <audio nocontrols
                     class="audio-element"
                     ref="audio-element"
@@ -268,17 +271,17 @@ button {
 }
 
 // https://blog.francium.tech/responsive-web-design-device-resolution-and-viewport-width-e7b7f138d7b9
-@media screen and (max-width: 1200px) {
-    .timeline-and-annotations {
-        flex: 0 100%;
-        order: 2;
-    }
-    .agenda {
-        flex: 0 100%;
-        order: 1;
-        max-width: 100%
-    }
-}
+// @media screen and (max-width: 1200px) {
+//     .timeline-and-annotations {
+//         flex: 0 100%;
+//         order: 2;
+//     }
+//     .agenda {
+//         flex: 0 100%;
+//         order: 1;
+//         max-width: 100%
+//     }
+// }
 
 .zoomline {
     height: 40px;
