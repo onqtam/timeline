@@ -2,10 +2,13 @@
     <div
         ref="annotations-container"
         class="annotations-container"
+        v-if="agenda.items.length > 0"
     >
         <v-tooltip top v-for="(item, index) in agenda.items" :key=item.timestamp.seconds transition="fade-transition">
             <template v-slot:activator="{ on }">
-                <div v-on="on" class="annotation" :style="computeStyle(item, index)"/>
+                <div v-on="on" class="annotation" :style="computeStyle(item, index)">
+                    <div v-if="isAgendaItemActive(index)" :style="computeActiveItemProgressStyle(item, index)"/>
+                </div>
             </template>
             <!-- TODO: CLAMP LENGTH OF TEXT -->
             <span>{{item.text}}</span>
@@ -20,8 +23,6 @@ import { AudioWindow } from "@/logic/AudioFile";
 import { Agenda, AgendaItem } from "@/logic/entities/Episode";
 import MathHelpers from "@/logic/MathHelpers";
 
-import store from "@/client/store";
-
 @Component
 export default class Annotations extends Vue {
     // Props
@@ -34,17 +35,36 @@ export default class Annotations extends Vue {
 
     computeStyle(item: AgendaItem, itemIndex: number) {
         // the computation here assumes that there is always an entry in the agenda at timepoint 0
-        const percent = 100 * ((itemIndex + 1 < this.agenda.items.length
+        const percentOfTotalEpiside = 100 * ((itemIndex + 1 < this.agenda.items.length
             ? this.agenda.items[itemIndex + 1].timestamp.seconds
             : this.audioWindow!.audioFile.duration) -
                                 item.timestamp.seconds) / this.audioWindow!.audioFile.duration;
-        return "width: calc(" + percent + "% - 0.2em)";
+        const color = this.isAgendaItemCompleted(itemIndex) ? "red" : "yellow";
+        return "width: calc(" + percentOfTotalEpiside + "% - 0.2em); background: " + color;
     }
 
-    public isAgendaItemActive(itemIndex: number): boolean {
-        return MathHelpers.isBetweenOpenEnded(store.state.listen.audioPos.seconds,
+    computeActiveItemProgressStyle(item: AgendaItem, itemIndex: number) {
+        // TODO sadly this computation doesn't account for the gaps so when near the
+        // end the coloring doesn't 100% align with the progress bar on the timeline
+        const percent = 100 * (this.currentAudioPosition.seconds - item.timestamp.seconds) /
+            (this.getEndOfItem(itemIndex) - item.timestamp.seconds);
+        return "background: red; height: 100%; width: " + percent + "%;";
+    }
+
+    getEndOfItem(itemIndex: number): number {
+        return itemIndex + 1 < this.agenda.items.length
+            ? this.agenda.items[itemIndex + 1].timestamp.seconds
+            : this.audioWindow!.audioFile.duration;
+    }
+
+    isAgendaItemActive(itemIndex: number): boolean {
+        return MathHelpers.isBetweenOpenEnded(this.currentAudioPosition.seconds,
             this.agenda.items[itemIndex].timestamp.seconds,
             this.agenda.items[itemIndex + 1]?.timestamp.seconds || Number.POSITIVE_INFINITY);
+    }
+
+    isAgendaItemCompleted(itemIndex: number): boolean {
+        return this.currentAudioPosition.seconds > this.getEndOfItem(itemIndex);
     }
 };
 </script>

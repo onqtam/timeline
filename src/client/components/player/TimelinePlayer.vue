@@ -178,7 +178,7 @@ export default class TimelinePlayer extends Vue {
         store.commit.listen.moveAudioPos(secondToSeekTo);
         if (!this.audioWindow.containsTimepoint(secondToSeekTo)) {
             const timeslotStart: number = this.audioWindow.findTimeslotStartForTime(secondToSeekTo);
-            console.log("🚀 ~ file: TimelinePlayer.vue ~ line 180 ~ TimelinePlayer ~ seekTo ~ timeslotStart", timeslotStart)
+            console.log("🚀 ~ file: TimelinePlayer.vue ~ line 180 ~ TimelinePlayer ~ seekTo ~ timeslotStart", timeslotStart);
             store.commit.listen.moveAudioWindow(timeslotStart);
         }
         this.audioElement.currentTime = this.audioPos.seconds;
