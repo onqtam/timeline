@@ -23,6 +23,7 @@ export type SettingPair = {key: string; value: any};
 
 export class StoreUserViewModel implements IStoreUserModule {
     public info: User;
+    public showLoginDialog = false;
     public get settingsModifiedEvent(): ISimpleEvent<SettingPair> {
         return this._settingsModifiedEvent.asEvent();
     }
@@ -191,6 +192,9 @@ export default {
         },
         localSavePlaybackProgress: (state: StoreUserViewModel, payload: { episodeId: number; progress: Timepoint}): void => {
             state.localSavePlaybackProgress(payload);
+        },
+        setShowLoginDialog: (state: StoreUserViewModel, payload: boolean): void => {
+            state.showLoginDialog = payload;
         }
     },
     actions: {
@@ -226,7 +230,7 @@ export default {
         },
         savePlaybackProgress: (context: ActionContext<StoreUserViewModel, StoreUserViewModel>, _payload: { episodeId: number; progress: Timepoint}): Promise<void> => {
             if (!context.state.info.isGuest) {
-                // TODO: remporarilycommented out to avoid spammy db updates on the server
+                // TODO: remporarily commented out to avoid spammy db updates on the server
                 // return context.state.serverStorePlaybackProgress(payload);
             }
             return Promise.resolve();

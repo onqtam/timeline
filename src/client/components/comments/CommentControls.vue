@@ -70,23 +70,36 @@ export default class CommentControlsComponent extends Vue {
         this.$emit("update:isExpanded", this.isExpanded);
     }
 
+    // TODO: how to reuse this code with other components?
+    checkAndShowLoginDialog(): boolean {
+        if (store.state.user.info.isGuest) {
+            store.commit.user.setShowLoginDialog(true);
+            return false;
+        }
+        return true;
+    }
+
     private voteUp(): void {
-        console.log("== voteUp pressed!");
-        if (this.hasVotedUp()) {
-            console.log("== voteUp reverting!");
-            store.dispatch.listen.revertVote(this.comment);
-        } else {
-            console.log("== voteUp voting!");
-            store.dispatch.listen.vote({ comment: this.comment, isVotePositive: true });
+        if (this.checkAndShowLoginDialog()) {
+            console.log("== voteUp pressed!");
+            if (this.hasVotedUp()) {
+                console.log("== voteUp reverting!");
+                store.dispatch.listen.revertVote(this.comment);
+            } else {
+                console.log("== voteUp voting!");
+                store.dispatch.listen.vote({ comment: this.comment, isVotePositive: true });
+            }
         }
     }
 
     private voteDown(): void {
-        console.log("== voteDown pressed!");
-        if (this.hasVotedDown) {
-            store.dispatch.listen.revertVote(this.comment);
-        } else {
-            store.dispatch.listen.vote({ comment: this.comment, isVotePositive: false });
+        if (this.checkAndShowLoginDialog()) {
+            console.log("== voteDown pressed!");
+            if (this.hasVotedDown) {
+                store.dispatch.listen.revertVote(this.comment);
+            } else {
+                store.dispatch.listen.vote({ comment: this.comment, isVotePositive: false });
+            }
         }
     }
 }

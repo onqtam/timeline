@@ -2,12 +2,10 @@
     <div class="comment-section-root">
         <div class="flex-container">
             <div class="new-thread-container">
-                <template v-if="!isUserGuest">
-                    <v-text-field ref="new-comment-thread-content" label="Start a new thread at current time"></v-text-field>
+                <template>
+                    <v-text-field @input="checkAndShowLoginDialog"
+                        ref="new-comment-thread-content" label="Start a new thread at current time"></v-text-field>
                     <v-btn @click=startNewCommentThread>Submit</v-btn>
-                </template>
-                <template v-else>
-                    <label>You need to be logged in to write or vote on comments!</label>
                 </template>
             </div>
             <v-btn-toggle
@@ -87,8 +85,14 @@ export default class CommentSection extends Vue {
     public get audioPos(): Timepoint {
         return store.state.listen.audioPos;
     }
-    public get isUserGuest(): boolean {
-        return store.state.user.info.isGuest;
+
+    // TODO: how to reuse this code with other components?
+    checkAndShowLoginDialog(): boolean {
+        if (store.state.user.info.isGuest) {
+            store.commit.user.setShowLoginDialog(true);
+            return false;
+        }
+        return true;
     }
 
     public get activeTimeslots(): Timeslot[] {
@@ -149,8 +153,10 @@ export default class CommentSection extends Vue {
     }
 
     private startNewCommentThread(): void {
-        const inputElement = this.$refs["new-comment-thread-content"] as HTMLInputElement;
-        store.dispatch.listen.postComment({ commentToReplyTo: undefined, content: inputElement.value });
+        if (this.checkAndShowLoginDialog()) {
+            const inputElement = this.$refs["new-comment-thread-content"] as HTMLInputElement;
+            store.dispatch.listen.postComment({ commentToReplyTo: undefined, content: inputElement.value });
+        }
     }
 
     private setSortingPredicate(predicate: SortingPredicate): void {

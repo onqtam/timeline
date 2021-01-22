@@ -14,20 +14,20 @@
             <span class="separator"> · </span>
             <span class="date">{{ formatCommentDate() }}</span>
             <span class="separator"> · </span>
-            <!-- TODO: Create a button component -->
-            <a v-if="!isUserGuest" class="start-reply-button" @click=toggleIsReplyingTo>
+            <a class="start-reply-button" @click=toggleIsReplyingTo>
                 <v-icon>mdi-reply</v-icon>
             </a>
             <span class="separator"> · </span>
-            <a v-if="!isUserGuest" class="delete-button" @click=deleteComment>
-                <v-icon>mdi-trash</v-icon>
+            <a v-if="isCommentFromCurrentUser" class="delete-button" @click=deleteComment>
+                <v-icon>mdi-delete</v-icon>
             </a>
-            <div v-if=isReplyingTo>
-                <br/>
+            <!-- using v-show instead of v-if because we want the text a
+            user might have entered to be preserved if we toggle it twice -->
+            <div v-show=isReplyingTo>
                 <v-text-field label="Write your reply here" ref="reply-content"></v-text-field>
-                <a class="submit-reply-button" @click=submitReply>
-                    <v-icon>mdi-reply"</v-icon> Submit reply
-                </a>
+                <v-btn class="submit-reply-button" @click=submitReply>
+                    <v-icon>mdi-reply</v-icon> Submit reply
+                </v-btn>
             </div>
             <p class="comment-section" v-if=isExpanded>
                 {{ contentToDisplay }}
@@ -58,8 +58,8 @@ export default class CommentComponent extends Vue {
     @Prop({ type: Boolean })
     public shouldShowOnlyPreview!: boolean;
 
-    public get isUserGuest(): boolean {
-        return store.state.user.info.isGuest;
+    public get isCommentFromCurrentUser(): boolean {
+        return this.comment.author.id === store.state.user.info.id;
     }
 
     public get contentToDisplay(): string {
@@ -84,7 +84,9 @@ export default class CommentComponent extends Vue {
     }
 
     private toggleIsReplyingTo(): void {
-        this.isReplyingTo = !this.isReplyingTo;
+        if (this.checkAndShowLoginDialog()) {
+            this.isReplyingTo = !this.isReplyingTo;
+        }
     }
 
     private submitReply(): void {
@@ -95,6 +97,15 @@ export default class CommentComponent extends Vue {
             store.dispatch.listen.postComment(payload);
             inputElement.value = "";
         }
+    }
+
+    // TODO: how to reuse this code with other components?
+    checkAndShowLoginDialog(): boolean {
+        if (store.state.user.info.isGuest) {
+            store.commit.user.setShowLoginDialog(true);
+            return false;
+        }
+        return true;
     }
 
     private deleteComment(): void {
