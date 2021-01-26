@@ -136,9 +136,9 @@ class StoreListenViewModel implements IStoreListenModule {
     public generateNewLocalComment(content: string): Comment {
         const comment = new Comment();
         comment.id = ~~(Math.random() * 99999); // Generate a random id to avoid conflicting keys in vue
-        comment.author = store.state.user.info;
-        comment.authorName = comment.author.shortName;
-        comment.episode = this.activeEpisode;
+        comment.authorId = store.state.user.info.id;
+        comment.authorName = store.state.user.info.shortName;
+        comment.episodeId = this.activeEpisode.id;
         comment.content = content;
         comment.date = new Date();
         comment.timepoint = new Timepoint(this.audioPos.seconds);
@@ -159,9 +159,9 @@ class StoreListenViewModel implements IStoreListenModule {
     public localDeleteComment(comment: Comment): void {
         // TODO: In several places in code we repeat the same actions on the server and client
         // Consider how to combine them if possible
-        comment.author = User.deletedUser;
-        comment.authorName = User.deletedUser.shortName;
-        comment.content = "[Deleted]";
+        comment.authorId = User.deletedUserId;
+        comment.authorName = User.deletedUserName;
+        comment.content = Comment.deletedCommentContents;
     }
 
     // This trivial method only exists to cope with the rule of not modifying store data outside of z
@@ -306,11 +306,11 @@ export default {
             state.setVolume(newVolume);
         },
         moveAudioWindow: (state: StoreListenViewModel, newStart: number): void => {
-            console.log("🚀 ~ file: StoreListenModule.ts ~ line 309 ~ newStart", newStart);
+            // console.log("🚀 ~ file: StoreListenModule.ts ~ line 309 ~ newStart", newStart);
             state.moveAudioWindow(newStart);
         },
         moveAudioPos: (state: StoreListenViewModel, newStart: number): void => {
-            console.log("🚀 ~ file: StoreListenModule.ts ~ line 313 ~ newStart", newStart);
+            // console.log("🚀 ~ file: StoreListenModule.ts ~ line 313 ~ newStart", newStart);
             state.moveAudioPos(newStart);
         },
         setAudioWindowSlots: (state: StoreListenViewModel, newSlots: number): void => {

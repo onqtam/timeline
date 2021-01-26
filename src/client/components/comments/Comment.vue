@@ -24,7 +24,7 @@
             <!-- using v-show instead of v-if because we want the text a
             user might have entered to be preserved if we toggle it twice -->
             <div v-show=isReplyingTo>
-                <v-text-field label="Write your reply here" ref="reply-content"></v-text-field>
+                <v-text-field label="Write your reply here" autocomplete="off" v-model="postContent"/>
                 <v-btn class="submit-reply-button" @click=submitReply>
                     <v-icon>mdi-reply</v-icon> Submit reply
                 </v-btn>
@@ -59,7 +59,7 @@ export default class CommentComponent extends Vue {
     public shouldShowOnlyPreview!: boolean;
 
     public get isCommentFromCurrentUser(): boolean {
-        return this.comment.author.id === store.state.user.info.id;
+        return this.comment.authorId === store.state.user.info.id;
     }
 
     public get contentToDisplay(): string {
@@ -72,6 +72,7 @@ export default class CommentComponent extends Vue {
 
     private isExpanded: boolean = true;
     private isReplyingTo: boolean = false;
+    private postContent: string = "";
 
     private get shouldShowDelimiter(): boolean {
         const parentReplies: Comment[]|undefined = this.parentThread?.replies;
@@ -90,12 +91,10 @@ export default class CommentComponent extends Vue {
     }
 
     private submitReply(): void {
-        const inputElement: HTMLInputElement = this.$refs["reply-content"] as HTMLInputElement;
-        const postContent: string = inputElement.value;
-        if (postContent) {
-            const payload = { commentToReplyTo: this.comment, content: postContent };
+        if (this.postContent) {
+            const payload = { commentToReplyTo: this.comment, content: this.postContent };
             store.dispatch.listen.postComment(payload);
-            inputElement.value = "";
+            this.postContent = "";
         }
     }
 

@@ -3,8 +3,8 @@
         <div class="flex-container">
             <div class="new-thread-container">
                 <template>
-                    <v-text-field @input="checkAndShowLoginDialog"
-                        ref="new-comment-thread-content" label="Start a new thread at current time"></v-text-field>
+                    <v-text-field @input="checkAndShowLoginDialog" v-model="postContent"
+                        autocomplete="off" label="Start a new thread at current time"/>
                     <v-btn @click=startNewCommentThread>Submit</v-btn>
                 </template>
             </div>
@@ -86,6 +86,8 @@ export default class CommentSection extends Vue {
         return store.state.listen.audioPos;
     }
 
+    private postContent: string = "";
+
     // TODO: how to reuse this code with other components?
     checkAndShowLoginDialog(): boolean {
         if (store.state.user.info.isGuest) {
@@ -154,8 +156,11 @@ export default class CommentSection extends Vue {
 
     private startNewCommentThread(): void {
         if (this.checkAndShowLoginDialog()) {
-            const inputElement = this.$refs["new-comment-thread-content"] as HTMLInputElement;
-            store.dispatch.listen.postComment({ commentToReplyTo: undefined, content: inputElement.value });
+            if (this.postContent) {
+                const payload = { commentToReplyTo: undefined, content: this.postContent };
+                store.dispatch.listen.postComment(payload);
+                this.postContent = "";
+            }
         }
     }
 

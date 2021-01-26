@@ -11,10 +11,10 @@ import CommonParams from "../CommonParams";
 export default class Comment {
     @PrimaryGeneratedColumn()
     public id!: number;
-    @ManyToOne(() => Episode, { nullable: false })
-    public episode!: Episode;
-    @ManyToOne(() => User, { nullable: false })
-    public author!: User;
+    @Column()
+    public episodeId!: number;
+    @Column()
+    public authorId!: number;
     // This is a duplicate of this.author.name
     // It exists for the sole purpose of removing the necessity of making a join
     // when fetching comments
@@ -39,6 +39,8 @@ export default class Comment {
     // TypeORM bug 123: We don't need to know the parentComment...but TypeORM does (even though it has all the information already)
     @TreeParent()
     public parentComment!: Comment;
+
+    public static deletedCommentContents = "[Deleted]";
 
     constructor() {
         if (CommonParams.IsRunningOnClient) {
@@ -74,9 +76,6 @@ export default class Comment {
         this.timepoint = new Timepoint(this.timepoint.seconds);
         for (const reply of this.replies) {
             EncodingUtils.reviveObjectAs(reply, Comment);
-        }
-        if (this.author) {
-            EncodingUtils.reviveObjectAs(this.author, User);
         }
     }
 }

@@ -53,6 +53,9 @@ export default class User implements IReviveFromJSON {
         return this._deletedUser;
     }
 
+    public static deletedUserId = -1;
+    public static deletedUserName = "[Deleted]";
+
     public static async initSpecialUsers(): Promise<void> {
         console.log(" ====  initSpecialUsers ====== ");
         if (CommonParams.IsRunningOnClient) {
@@ -80,6 +83,7 @@ export default class User implements IReviveFromJSON {
     // TODO: Check the server doesn't let the guest user to do anything!
     public static createGuestUser(): User {
         const user = new User();
+        user.id = -2;
         user.shortName = "Guest";
         user.email = "guest@guest.guest";
         user.settings = new UserSettings();
@@ -89,6 +93,7 @@ export default class User implements IReviveFromJSON {
     // TODO: Check the server doesn't let the deleted user to do anything!
     public static createDeletedUser(): User {
         const user = new User();
+        user.id = -1;
         user.shortName = "deleted";
         user.email = "deleted@deleted.deleted";
         user.settings = new UserSettings();

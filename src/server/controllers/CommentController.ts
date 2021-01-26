@@ -66,7 +66,7 @@ export default class CommentController {
             .andWhere(`comment."episodeId" = :episodeId`, params) // For this episode
             .andWhere(`comment."timepointSeconds" >= :intervalStart`, params) // In the given interval
             .andWhere(`comment."timepointSeconds" <= :intervalEnd`, params)
-            .leftJoinAndSelect("comment.author", "author")
+            // .leftJoinAndSelect("comment.author", "author")
             // .leftJoinAndSelect("comment.episode", "episode")
             .getMany();
 
@@ -254,6 +254,8 @@ export default class CommentController {
         };
         console.log("\n== postComment - Received params: ", JSON.stringify(params));
 
+        console.assert(params.content.length);
+
         const query_episode: Promise<Episode | undefined> = getConnection()
             .createQueryBuilder(Episode, "episode")
             .whereInIds([params.episodeId])
@@ -268,9 +270,9 @@ export default class CommentController {
         newComment.downVotes = 0;
         newComment.upVotes = 0;
         newComment.timepoint = new Timepoint(params.timepointSeconds);
-        newComment.author = user;
-        newComment.authorName = newComment.author.shortName;
-        newComment.episode = (await query_episode)!;
+        newComment.authorId = user.id;
+        newComment.authorName = user.shortName;
+        newComment.episodeId = (await query_episode)!.id;
         newComment.replies = [];
 
         // This operation is impossible to write with SQL Builder
@@ -307,15 +309,15 @@ export default class CommentController {
 
         // Replace the comment's content and user
         const deletedCommentValues: QueryDeepPartialEntity<Comment> = {
-            author: User.deletedUser,
-            authorName: User.deletedUser.shortName,
-            content: "[Deleted]"
+            authorId: User.deletedUserId,
+            authorName: User.deletedUserName,
+            content: Comment.deletedCommentContents
         };
 
         // TODO: Check and report errors
         await getConnection()
-            .createQueryBuilder(Comment, "")
-            .update()
+            .createQueryBuilder()
+            .update(Comment)
             .where(`"id" = :commentId`, params)
             .andWhere(`"authorId" = :id`, user)
             .set(deletedCommentValues)
