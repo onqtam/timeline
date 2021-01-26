@@ -1,8 +1,6 @@
-import { Entity, Tree, PrimaryGeneratedColumn, Column, TreeChildren, TreeParent, ManyToOne } from "typeorm";
+import { Entity, Tree, PrimaryGeneratedColumn, Column, TreeChildren, TreeParent } from "typeorm";
 import { Min, IsDate } from "class-validator";
 import Timepoint from "./Timepoint";
-import User from "./User";
-import { Episode } from "./Podcast";
 import EncodingUtils from "../EncodingUtils";
 import CommonParams from "../CommonParams";
 
