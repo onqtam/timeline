@@ -3,7 +3,7 @@
         <div class="flex-container">
             <div class="new-thread-container">
                 <template>
-                    <v-text-field @input="checkAndShowLoginDialog" v-model="postContent"
+                    <v-text-field @focus="checkAndShowLoginDialog" v-model="postContent" id="newCommentTextField"
                         autocomplete="off" label="Start a new thread at current time"/>
                     <v-btn @click=startNewCommentThread>Submit</v-btn>
                 </template>
@@ -88,10 +88,14 @@ export default class CommentSection extends Vue {
 
     private postContent: string = "";
 
-    // TODO: how to reuse this code with other components?
     checkAndShowLoginDialog(): boolean {
         if (store.state.user.info.isGuest) {
-            store.commit.user.setShowLoginDialog(true);
+            // first unfocus (otherwise one would have to "escape" twice)
+            (document.getElementById("newCommentTextField") as HTMLElement).blur();
+            // and then on the next rendering frame show the login dialog - otherwise the unfocus wouldn't work
+            this.$nextTick(() => {
+                store.commit.user.setShowLoginDialog(true);
+            });
             return false;
         }
         return true;
