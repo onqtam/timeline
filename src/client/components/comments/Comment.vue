@@ -109,8 +109,7 @@ export default class CommentComponent extends Vue {
     }
 
     private deleteComment(): void {
-        // TODO: prompt if the user is sure
-        store.dispatch.listen.deleteComment(this.comment);
+        store.commit.listen.setCommentToDelete(this.comment);
     }
 
     private formatCommentDate(): string {

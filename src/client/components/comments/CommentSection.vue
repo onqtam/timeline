@@ -43,6 +43,25 @@
                 </template>
             </div>
         </div>
+
+        <!-- this is the dialog for deleting comments - here because it should be shared with all comments -->
+        <template>
+            <v-dialog v-model="showDeleteCommentDialog" max-width="400">
+            <v-card>
+                <v-card-title class="headline">
+                Are you sure you want to delete this comment?
+                </v-card-title>
+                <v-card-actions>
+                <v-btn text color="grey darken-1" @click="deleteComment(true)">
+                    Yes
+                </v-btn>
+                <v-btn text color="grey darken-1" @click="deleteComment(false)">
+                    No
+                </v-btn>
+                </v-card-actions>
+            </v-card>
+            </v-dialog>
+        </template>
     </div>
 </template>
 
@@ -84,6 +103,19 @@ export default class CommentSection extends Vue {
     }
     public get audioPos(): Timepoint {
         return store.state.listen.audioPos;
+    }
+
+    get showDeleteCommentDialog() {
+        return store.state.listen.commentToDelete !== undefined;
+    }
+    set showDeleteCommentDialog(newVal: boolean) {
+        store.commit.listen.setCommentToDelete(undefined);
+    }
+    deleteComment(shouldDelete: boolean) {
+        if (shouldDelete) {
+            store.dispatch.listen.deleteComment(store.state.listen.commentToDelete!);
+        }
+        store.commit.listen.setCommentToDelete(undefined);
     }
 
     private postContent: string = "";

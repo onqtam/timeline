@@ -40,9 +40,10 @@ class StoreListenViewModel implements IStoreListenModule {
     public volume!: number;
     public allThreads!: Comment[];
     public commentDensityHistogram: Histogram;
-    public upvotes: Set<number>;
-    public downvotes: Set<number>;
+    public upvotes: Set<number>; // this being in user instead of listen is arbitrary
+    public downvotes: Set<number>; // this being in user instead of listen is arbitrary
     public activeEpisode!: Episode;
+    public commentToDelete?: Comment = undefined;
 
     constructor() {
         this.audioFile = new AudioFile();
@@ -318,6 +319,9 @@ export default {
         },
         updateTimeslotCount: (state: StoreListenViewModel, appMode: ActiveAppMode): void => {
             state.updateTimeslotCount(appMode);
+        },
+        setCommentToDelete: (state: StoreListenViewModel, payload?: Comment): void => {
+            state.commentToDelete = payload;
         }
     },
     actions: {
