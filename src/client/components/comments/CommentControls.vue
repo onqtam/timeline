@@ -4,7 +4,7 @@
             v-if=isExpanded
         >
             <a class="vote-button"
-                :class="{ 'active-vote': hasVotedUp() }"
+                :class="{ 'active-vote': hasVotedUp }"
                 @click=voteUp
             >
                 <v-icon>mdi-arrow-up</v-icon>
@@ -46,17 +46,11 @@ export default class CommentControlsComponent extends Vue {
     @Prop({ type: Boolean })
     public readonly isCollapsible!: boolean;
 
-    public hasVotedUp(): boolean {
-        // console.log("== get hasVotedUp");
-        const res = store.state.user.info.getVoteOnComment(this.comment.id) === true;
-        // console.log(res);
-        return res;
+    get hasVotedUp(): boolean {
+        return store.state.listen.upvotes.has(this.comment.id);
     }
-    public get hasVotedDown(): boolean {
-        // console.log("== get hasVotedDown");
-        const res = store.state.user.info.getVoteOnComment(this.comment.id) === false;
-        // console.log(res);
-        return res;
+    get hasVotedDown(): boolean {
+        return store.state.listen.downvotes.has(this.comment.id);
     }
 
     public mounted(): void {
@@ -81,25 +75,13 @@ export default class CommentControlsComponent extends Vue {
 
     private voteUp(): void {
         if (this.checkAndShowLoginDialog()) {
-            console.log("== voteUp pressed!");
-            if (this.hasVotedUp()) {
-                console.log("== voteUp reverting!");
-                store.dispatch.listen.revertVote(this.comment);
-            } else {
-                console.log("== voteUp voting!");
-                store.dispatch.listen.vote({ comment: this.comment, isVotePositive: true });
-            }
+            store.dispatch.listen.vote({ comment: this.comment, isVotePositive: true });
         }
     }
 
     private voteDown(): void {
         if (this.checkAndShowLoginDialog()) {
-            console.log("== voteDown pressed!");
-            if (this.hasVotedDown) {
-                store.dispatch.listen.revertVote(this.comment);
-            } else {
-                store.dispatch.listen.vote({ comment: this.comment, isVotePositive: false });
-            }
+            store.dispatch.listen.vote({ comment: this.comment, isVotePositive: false });
         }
     }
 }

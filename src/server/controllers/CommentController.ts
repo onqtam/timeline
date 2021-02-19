@@ -10,7 +10,7 @@ import Timepoint from "../../logic/entities/Timepoint";
 import User from "../../logic/entities/User";
 import VoteCommentRecord from "../../logic/entities/VoteCommentRecord";
 import { Episode } from "../../logic/entities/Episode";
-import { QB } from "../utils/dbutils";
+import { QBE, QB } from "../utils/dbutils";
 
 export default class CommentController {
     public static getRoutes(): RouteInfo[] {
@@ -44,11 +44,6 @@ export default class CommentController {
             verb: HTTPVerb.Post,
             requiresAuthentication: true,
             callback: CommentController.recordVote
-        }, {
-            path: "/comments/vote/",
-            verb: HTTPVerb.Delete,
-            requiresAuthentication: true,
-            callback: CommentController.revertVote
         }];
     }
 
@@ -75,10 +70,7 @@ export default class CommentController {
             return commentRepository.findDescendantsTree(c);
         };
         const query_completeTrees: Promise<Comment[]> = Promise.all(rootsWithinInterval.map(getTreeOfRoot));
-        const completeTrees: Comment[] = await query_completeTrees;
-        console.log("== LOGGING LOTS OF STUFF:");
-        console.log(completeTrees);
-        response.end(EncodingUtils.jsonify(completeTrees));
+        response.end(EncodingUtils.jsonify(await query_completeTrees));
     }
 
     private static async getCommentDensityChartData(request: Request, response: Response): Promise<void> {
@@ -126,16 +118,13 @@ export default class CommentController {
         const user: User = request.user! as User;
         console.assert(user);
 
-        const query_allVotesForEpisode: Promise<VoteCommentRecord[]> = QB(VoteCommentRecord, "voteRecord")
+        const query_allVotesForEpisode: Promise<VoteCommentRecord[]> = QBE(VoteCommentRecord, "voteRecord")
             .select()
             .where(`"voteRecord"."userId" = :uid`, { uid: user.id })
             .andWhere(`"voteRecord"."episodeId" = :eid`, { eid: params.episodeId })
             .getMany();
 
-        const res: VoteCommentRecord[] = await query_allVotesForEpisode;
-        console.log(res);
-
-        response.end(EncodingUtils.jsonify(res));
+        response.end(EncodingUtils.jsonify(await query_allVotesForEpisode));
     }
 
     private static async recordVote(request: Request, response: Response): Promise<void> {
@@ -149,99 +138,74 @@ export default class CommentController {
         const user: User = request.user! as User;
         console.assert(user);
 
-        const query_existingRecord: Promise<VoteCommentRecord | undefined> = getConnection()
-            .createQueryBuilder(VoteCommentRecord, "voteRecord")
+        const existingRecord: VoteCommentRecord | undefined = await QBE(VoteCommentRecord, "voteRecord")
             .select()
             .where(`"voteRecord"."userId" = :uid`, { uid: user.id })
             .andWhere(`"voteRecord"."commentId" = :cid`, { cid: params.commentId })
             .getOne();
 
-        // Also load the relevant comment to update the counters;
-        // TODO: Move the update to SQL? Stored procedure or something?
-        const query_comment: Promise<Comment | undefined> = getConnection()
-            .createQueryBuilder(Comment, "comment")
-            .select()
-            .whereInIds([params.commentId])
-            .getOne();
-
-        const existingRecord: VoteCommentRecord | undefined = await query_existingRecord;
         let query_upsertRecord: Promise<void>;
-        if (!existingRecord) {
-            const record = new VoteCommentRecord(params.commentId, user.id, params.episodeId, params.wasVotePositive);
+        // this is with how much we should update the comment up/down counters later
+        let upVotes = 0;
+        let downVotes = 0;
 
-            query_upsertRecord = getConnection().createQueryBuilder(VoteCommentRecord, "voteRecord")
+        if (!existingRecord) {
+            // new vote - no previous votes from this user for this comment
+            query_upsertRecord = QBE(VoteCommentRecord, "voteRecord")
                 .insert()
-                .values([record])
+                .values([new VoteCommentRecord(params.commentId, user.id, params.episodeId, params.wasVotePositive)])
                 .execute() as unknown as Promise<void>;
-        } else if (existingRecord.wasVotePositive !== params.wasVotePositive) {
-            query_upsertRecord = getConnection()
-                .createQueryBuilder(VoteCommentRecord, "")
-                .update()
-                .where(`"userId" = :uid`, { uid: user.id })
-                .andWhere(`"commentId" = :cid`, { cid: params.commentId })
-                .set({ wasVotePositive: params.wasVotePositive })
-                .execute() as unknown as Promise<void>;
+            // handle the comment counters as well
+            if (params.wasVotePositive) {
+                upVotes++;
+            } else {
+                downVotes++;
+            }
         } else {
-            console.error("\n== bogus request to set a vote's value to it's former value (no change)\n");
-            return;
+            if (existingRecord.wasVotePositive !== params.wasVotePositive) {
+                // changing vote for record
+                query_upsertRecord = QB()
+                    .update(VoteCommentRecord)
+                    .where(`"userId" = :uid`, { uid: user.id })
+                    .andWhere(`"commentId" = :cid`, { cid: params.commentId })
+                    .set({ wasVotePositive: params.wasVotePositive })
+                    .execute() as unknown as Promise<void>;
+                // handle the comment counters as well
+                if (params.wasVotePositive) {
+                    upVotes++;
+                    downVotes--;
+                } else {
+                    upVotes--;
+                    downVotes++;
+                }
+            } else {
+                // reverting vote for record
+                query_upsertRecord = QB()
+                    .delete()
+                    .from(VoteCommentRecord)
+                    .where(`"userId" = :uid`, { uid: user.id })
+                    .andWhere(`"commentId" = :cid`, { cid: params.commentId })
+                    .execute() as unknown as Promise<void>;
+                // handle the comment counters as well
+                if (params.wasVotePositive) {
+                    upVotes--;
+                } else {
+                    downVotes--;
+                }
+            }
         }
+
+        const query_updateCommentCounters = QB()
+            .update(Comment)
+            .set({
+                upVotes: () => `"upVotes" + ` + upVotes,
+                downVotes: () => `"downVotes" + ` + downVotes
+            })
+            .execute();
 
         // TODO: update user karma - not who is voting but whoever owns the comment
 
-        const comment_res: Comment | undefined = await query_comment;
-        console.assert(comment_res);
-        const comment = comment_res as Comment;
-
-        if (existingRecord) {
-            comment.upVotes -= ~~existingRecord.wasVotePositive;
-            comment.downVotes -= ~~!existingRecord.wasVotePositive;
-        }
-        comment.upVotes += ~~params.wasVotePositive;
-        comment.downVotes += ~~!params.wasVotePositive;
-
-        console.log(comment.id);
-        console.log(comment.upVotes);
-        console.log(comment.downVotes);
-
-        const query_updateCommentCounters = getConnection().createQueryBuilder(Comment, "comment")
-            .update()
-            .whereInIds([comment.id])
-            .set({ upVotes: comment.upVotes, downVotes: comment.downVotes })
-            .execute();
-
         await Promise.all([query_upsertRecord, query_updateCommentCounters]);
-        response.end();
-    }
-
-    private static async revertVote(request: Request, response: Response): Promise<void> {
-        const params = {
-            commentId: ~~request.body.commentId
-        };
-        console.log("\n== revertVote - Received params: ", JSON.stringify(params));
-
-        const user: User = request.user! as User;
-        console.assert(user);
-
-        const wasVotePositive: boolean = await QB(VoteCommentRecord, "voteRecord")
-            .delete()
-            .where(`"userId" = :id`, user)
-            .andWhere(`"commentId" = :cid`, { cid: params.commentId })
-            .returning(`"wasVotePositive"`)
-            .execute() as unknown as boolean;
-
-        // update the counters to the relevant comment
-        if (wasVotePositive) {
-            await getConnection().createQueryBuilder()
-                .update(Comment)
-                .set({ upVotes: () => `"upVotes" - 1` })
-                .execute();
-        } else {
-            await getConnection().createQueryBuilder()
-                .update(Comment)
-                .set({ downVotes: () => `"downVotes" - 1` })
-                .execute();
-        }
-
         response.end();
     }
 
@@ -256,8 +220,7 @@ export default class CommentController {
 
         console.assert(params.content.length);
 
-        const query_episode: Promise<Episode | undefined> = getConnection()
-            .createQueryBuilder(Episode, "episode")
+        const query_episode: Promise<Episode | undefined> = QBE(Episode, "episode")
             .whereInIds([params.episodeId])
             .getOne();
 
@@ -315,13 +278,14 @@ export default class CommentController {
         };
 
         // TODO: Check and report errors
-        await getConnection()
-            .createQueryBuilder()
+        await QB()
             .update(Comment)
             .where(`"id" = :commentId`, params)
             .andWhere(`"authorId" = :id`, user)
             .set(deletedCommentValues)
             .execute();
+
+        // TODO: remove the vote comment records? or not
 
         response.end();
     }

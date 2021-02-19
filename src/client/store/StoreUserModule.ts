@@ -2,7 +2,6 @@ import { ActionContext } from "vuex";
 import { SimpleEventDispatcher, ISimpleEvent } from "ste-simple-events";
 
 import User from "@/logic/entities/User";
-import VoteCommentRecord from "@/logic/entities/VoteCommentRecord";
 import CommonParams from "@/logic/CommonParams";
 import AsyncLoader from "../utils/AsyncLoader";
 import { HTTPVerb } from "@/logic/HTTPVerb";
@@ -41,27 +40,6 @@ export class StoreUserViewModel implements IStoreUserModule {
         return new Timepoint(this._episodeIdToPlaybackProgress[episodeId] || 0);
     }
 
-    // Should only be called by other modules!
-    public recordVote(votedComment: {commentId: number; wasVotePositive: boolean}): void {
-        // TODO: move to a map and don't bother with management of existing keys
-        const record = this.info.voteRecords.find(record => record.commentId === votedComment.commentId);
-        if (record) {
-            console.log("== found and changed!");
-            record.wasVotePositive = votedComment.wasVotePositive;
-        } else {
-            console.log("== pushed!");
-            this.info.voteRecords.push(new VoteCommentRecord(votedComment.commentId, this.info.id, 0, votedComment.wasVotePositive));
-
-            console.log(this.info.voteRecords);
-        }
-    }
-    public revertVote(commentId: number): void {
-        // TODO: Server-side
-        const recordIndex = this.info.voteRecords.findIndex(record => record.commentId === commentId);
-        if (recordIndex !== -1) {
-            this.info.voteRecords.splice(recordIndex, 1);
-        }
-    }
     public async loadUser(): Promise<User> {
         console.log("Fetching user data");
         const restURL: string = `${CommonParams.APIServerRootURL}/user/`;
@@ -172,12 +150,6 @@ export default {
     namespaced: true as true,
     state: userModule,
     mutations: {
-        localRecordVote: (state: StoreUserViewModel, votedComment: {commentId: number; wasVotePositive: boolean}): void => {
-            state.recordVote(votedComment);
-        },
-        localRevertVote: (state: StoreUserViewModel, commentId: number): void => {
-            state.revertVote(commentId);
-        },
         internalLoadLocalData: (state: StoreUserViewModel): void => {
             state.localLoadData();
         },

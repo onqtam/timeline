@@ -1,9 +1,9 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn, Index, getConnection } from "typeorm";
+import { Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn, Index } from "typeorm";
 import { IsEmail } from "class-validator";
-import VoteCommentRecord from "./VoteCommentRecord";
 import EncodingUtils, { IReviveFromJSON } from "../EncodingUtils";
 import CommonParams from "../CommonParams";
 import UserSettings from "./UserSettings";
+import { QBE } from "../../server/utils/dbutils";
 
 const GUEST_USER_EMAIL: string = "guest@guest.guest";
 
@@ -23,18 +23,6 @@ export default class User implements IReviveFromJSON {
     @OneToOne(() => UserSettings)
     @JoinColumn()
     public settings!: UserSettings;
-
-    public voteRecords!: VoteCommentRecord[];
-    // Returns true if the user voted positive, false if the vote was negative, undefined if he hasn't voted
-    public getVoteOnComment(commentId: number): boolean|undefined {
-        const voteRecord = this.voteRecords.find(record => record.commentId === commentId);
-
-        if (voteRecord?.wasVotePositive === true) {
-            console.log("== OMGGG TRUE", commentId);
-        }
-
-        return voteRecord?.wasVotePositive;
-    }
 
     public get isGuest(): boolean {
         return this.email === GUEST_USER_EMAIL;
@@ -63,14 +51,12 @@ export default class User implements IReviveFromJSON {
             this._deletedUser = User.createDeletedUser();
         } else {
             const defaultGuest: User = this.createGuestUser();
-            this._guestUser = (await getConnection()
-                .createQueryBuilder(User, "user")
+            this._guestUser = (await QBE(User, "user")
                 .where(`"user"."email" = :email`, defaultGuest)
                 .getOne())!;
 
             const defaultDeleted: User = this.createDeletedUser();
-            this._deletedUser = (await getConnection()
-                .createQueryBuilder(User, "user")
+            this._deletedUser = (await QBE(User, "user")
                 .where(`"user"."email" = :email`, defaultDeleted)
                 .getOne())!;
 

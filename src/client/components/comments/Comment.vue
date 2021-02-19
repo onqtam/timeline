@@ -95,6 +95,7 @@ export default class CommentComponent extends Vue {
             const payload = { commentToReplyTo: this.comment, content: this.postContent };
             store.dispatch.listen.postComment(payload);
             this.postContent = "";
+            this.toggleIsReplyingTo();
         }
     }
 
@@ -108,6 +109,7 @@ export default class CommentComponent extends Vue {
     }
 
     private deleteComment(): void {
+        // TODO: prompt if the user is sure
         store.dispatch.listen.deleteComment(this.comment);
     }
 
