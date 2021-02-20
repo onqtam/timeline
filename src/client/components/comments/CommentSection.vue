@@ -215,7 +215,7 @@ export default class CommentSection extends Vue {
     private compareCommentThreads(lhs: Comment, rhs: Comment) {
         switch (this.sortingPredicate) {
         case SortingPredicate.New:
-            return rhs.date.valueOf() - lhs.date.valueOf();
+            return rhs.date_added.valueOf() - lhs.date_added.valueOf();
         case SortingPredicate.Hot: // fall through, no hot yet
         case SortingPredicate.Top:
         default:

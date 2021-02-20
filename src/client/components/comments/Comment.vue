@@ -21,17 +21,31 @@
             <a v-if="isCommentFromCurrentUser" class="delete-button" @click=deleteComment>
                 <v-icon>mdi-delete</v-icon>
             </a>
-            <!-- using v-show instead of v-if because we want the text a
-            user might have entered to be preserved if we toggle it twice -->
+            <a v-if="isCommentFromCurrentUser" class="edit-button" @click=toggleIsEditing>
+                <v-icon>mdi-pencil-outline</v-icon>
+            </a>
+            <!--
+            using v-show instead of v-if because we want the text a
+            user might have entered to be preserved if we toggle it twice.
+            TODO: rethink this - it adds unnecessary DOM weight to every comment
+            https://vuejs.org/v2/guide/conditional.html#v-if-vs-v-show
+            We can also preserve the reply text in other ways - without v-show
+            -->
             <div v-show=isReplyingTo>
-                <v-text-field label="Write your reply here" autocomplete="off" v-model="postContent"/>
+                <v-text-field label="Write your reply here" autocomplete="off" v-model="replyContent"/>
                 <v-btn class="submit-reply-button" @click=submitReply>
                     <v-icon>mdi-reply</v-icon> Submit reply
                 </v-btn>
             </div>
-            <p class="comment-section" v-if=isExpanded>
+            <p class="comment-section" v-if="isExpanded && !isEditing" >
                 {{ contentToDisplay }}
             </p>
+            <div v-if=isEditing>
+                <v-text-field label="Edit your comment here" autocomplete="off" v-model="editContent"/>
+                <v-btn class="submit-edit-button" @click=submitEdit>
+                    <v-icon>mdi-pencil-outline</v-icon> Submit edits
+                </v-btn>
+            </div>
         </div>
         <hr v-if=shouldShowDelimiter>
     </div>
@@ -72,7 +86,9 @@ export default class CommentComponent extends Vue {
 
     private isExpanded: boolean = true;
     private isReplyingTo: boolean = false;
-    private postContent: string = "";
+    private isEditing: boolean = false;
+    private replyContent: string = "";
+    private editContent: string = "";
 
     private get shouldShowDelimiter(): boolean {
         const parentReplies: Comment[]|undefined = this.parentThread?.replies;
@@ -90,12 +106,28 @@ export default class CommentComponent extends Vue {
         }
     }
 
+    private toggleIsEditing(): void {
+        this.isEditing = !this.isEditing;
+        if (this.isEditing) {
+            this.editContent = this.comment.content;
+        }
+    }
+
     private submitReply(): void {
-        if (this.postContent) {
-            const payload = { commentToReplyTo: this.comment, content: this.postContent };
+        if (this.replyContent) {
+            const payload = { commentToReplyTo: this.comment, content: this.replyContent };
             store.dispatch.listen.postComment(payload);
-            this.postContent = "";
+            this.replyContent = "";
             this.toggleIsReplyingTo();
+        }
+    }
+
+    private submitEdit(): void {
+        if (this.editContent) {
+            const payload = { comment: this.comment, content: this.editContent };
+            store.dispatch.listen.editComment(payload);
+            this.editContent = "";
+            this.toggleIsEditing();
         }
     }
 
@@ -113,7 +145,7 @@ export default class CommentComponent extends Vue {
     }
 
     private formatCommentDate(): string {
-        const timeSinceComment = new Date().valueOf() - this.comment.date.valueOf();
+        const timeSinceComment = new Date().valueOf() - this.comment.date_added.valueOf();
         const MS_TO_SECONDS: number = 1/1000;
         const MS_TO_MINUTES: number = MS_TO_SECONDS / 60;
         const MS_TO_HOURS: number = MS_TO_MINUTES / 60;
@@ -129,7 +161,7 @@ export default class CommentComponent extends Vue {
         let value: number;
         if (days >= 7) {
             const dateFormatOptions = { day: "2-digit", month: "2-digit", year: "2-digit" };
-            return this.comment.date.toLocaleDateString("en-GB", dateFormatOptions);
+            return this.comment.date_added.toLocaleDateString("en-GB", dateFormatOptions);
         } else if (days >= 1) {
             timePeriod = "day";
             value = days;
@@ -164,7 +196,7 @@ export default class CommentComponent extends Vue {
 .votes, .date, .separator {
     color: @theme-neutral-color;
 }
-.start-reply-button, .submit-reply-button, .delete-button {
+.start-reply-button, .submit-reply-button, .delete-button, .edit-button, .submit-edit-button {
     font-weight: bold;
     cursor: pointer;
 

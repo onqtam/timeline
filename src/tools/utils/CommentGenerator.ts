@@ -77,7 +77,8 @@ export default class CommentGenerator {
         comment.timepoint = timepoint;
         // Pick a random date earlier in 2020
         const now = new Date();
-        comment.date = new Date(2020, Math.random() * (now.getMonth() - 1), Math.random() * 28);
+        comment.date_added = new Date(2020, Math.random() * (now.getMonth() - 1), Math.random() * 28);
+        comment.date_modified = comment.date_added;
         comment.content = RandomString.ofLength(commentLength);
         comment.upVotes = 0;
         comment.downVotes = 0;

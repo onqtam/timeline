@@ -22,7 +22,10 @@ export default class Comment {
     public content!: string;
     @Column()
     @IsDate()
-    public date!: Date;
+    public date_added!: Date;
+    @Column()
+    @IsDate()
+    public date_modified!: Date;
     @Column()
     @Min(0)
     public upVotes: number = 0;
@@ -44,7 +47,8 @@ export default class Comment {
         if (CommonParams.IsRunningOnClient) {
             this.id = -1;
             this.content = "";
-            this.date = new Date();
+            this.date_added = new Date();
+            this.date_modified = new Date();
             this.upVotes = 0;
             this.downVotes = 0;
             this.timepoint = new Timepoint();
@@ -70,7 +74,8 @@ export default class Comment {
     }
 
     public reviveSubObjects(): void {
-        this.date = new Date(this.date);
+        this.date_added = new Date(this.date_added);
+        this.date_modified = new Date(this.date_modified);
         this.timepoint = new Timepoint(this.timepoint.seconds);
         for (const reply of this.replies) {
             EncodingUtils.reviveObjectAs(reply, Comment);

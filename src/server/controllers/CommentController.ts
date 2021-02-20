@@ -31,6 +31,11 @@ export default class CommentController {
             callback: CommentController.postComment
         }, {
             path: "/comments/",
+            verb: HTTPVerb.Put,
+            requiresAuthentication: true,
+            callback: CommentController.editComment
+        }, {
+            path: "/comments/",
             verb: HTTPVerb.Delete,
             requiresAuthentication: true,
             callback: CommentController.deleteComment
@@ -223,6 +228,7 @@ export default class CommentController {
 
         console.assert(params.content.length);
 
+        // TODO: why do we need this? just to validate that the episodeId from the request matches reality? But then we would have to also check that the parent comment (if this is a reply) is also from the same episode...
         const query_episode: Promise<Episode | undefined> = QBE(Episode, "episode")
             .whereInIds([params.episodeId])
             .getOne();
@@ -232,7 +238,8 @@ export default class CommentController {
 
         const newComment = new Comment();
         newComment.content = params.content;
-        newComment.date = new Date();
+        newComment.date_added = new Date();
+        newComment.date_modified = new Date();
         newComment.downVotes = 0;
         newComment.upVotes = 0;
         newComment.timepoint = new Timepoint(params.timepointSeconds);
@@ -264,6 +271,34 @@ export default class CommentController {
         response.end(EncodingUtils.jsonify(returnValue));
     }
 
+    private static async editComment(request: Request, response: Response): Promise<void> {
+        const params = {
+            episodeId: request.body.episodeId as number,
+            commentId: request.body.commentId as number,
+            content: request.body.content as string
+        };
+        console.log("\n== editComment - Received params: ", JSON.stringify(params));
+
+        console.assert(params.content.length);
+
+        const user: User = request.user! as User;
+        console.assert(user);
+
+        // TODO: Check and report errors
+        await QB()
+            .update(Comment)
+            .where(`"id" = :commentId`, params)
+            .andWhere(`"episodeId" = :episodeId`, params)
+            .andWhere(`"authorId" = :id`, user)
+            .set({
+                content: params.content,
+                date_modified: new Date()
+            })
+            .execute();
+
+        response.end();
+    }
+
     private static async deleteComment(request: Request, response: Response): Promise<void> {
         const params = {
             commentId: request.body.commentId as number
@@ -277,7 +312,8 @@ export default class CommentController {
         const deletedCommentValues: QueryDeepPartialEntity<Comment> = {
             authorId: User.deletedUserId,
             authorName: User.deletedUserName,
-            content: Comment.deletedCommentContents
+            content: Comment.deletedCommentContents,
+            date_modified: new Date()
         };
 
         // TODO: Check and report errors
@@ -288,7 +324,14 @@ export default class CommentController {
             .set(deletedCommentValues)
             .execute();
 
-        // TODO: remove the vote comment records? or not
+        // TODO: remove the vote comment records for this comment?
+        // TODO: look how reddit handles this... and if votes on deleted comments show up in user's profiles
+        // = QB()
+        //     .delete()
+        //     .from(VoteCommentRecord)
+        //     .where(`"userId" = :uid`, { uid: user.id })
+        //     .andWhere(`"commentId" = :cid`, { cid: params.commentId })
+        //     .execute() as unknown as Promise<void>;
 
         response.end();
     }

@@ -153,7 +153,8 @@ class StoreListenViewModel implements IStoreListenModule {
         comment.authorName = store.state.user.info.shortName;
         comment.episodeId = this.activeEpisode.id;
         comment.content = content;
-        comment.date = new Date();
+        comment.date_added = new Date();
+        comment.date_modified = new Date();
         comment.timepoint = new Timepoint(this.audioPos.seconds);
         comment.upVotes = 0;
         comment.downVotes = 0;
@@ -167,6 +168,10 @@ class StoreListenViewModel implements IStoreListenModule {
         } else {
             this.allThreads.push(newLocalComment);
         }
+    }
+
+    public localEditComment(comment: Comment, content: string): void {
+        comment.content = content;
     }
 
     public localDeleteComment(comment: Comment): void {
@@ -263,6 +268,18 @@ class StoreListenViewModel implements IStoreListenModule {
         return query_postNewComment;
     }
 
+    public async storeServerEditComment(commentId: number, content: string): Promise<{ commentId: number }> {
+        const URL: string = `${CommonParams.APIServerRootURL}/comments/`;
+        const requestBody = {
+            commentId: commentId,
+            episodeId: this.activeEpisode.id,
+            content: content
+        };
+        const query_postNewComment = AsyncLoader.makeRestRequest(URL, HTTPVerb.Put, requestBody) as Promise<{ commentId: number }>;
+        return query_postNewComment;
+    }
+
+
     public async deleteServerComment(comment: Comment): Promise<void> {
         const URL: string = `${CommonParams.APIServerRootURL}/comments/`;
         const requestBody = {
@@ -293,6 +310,9 @@ export default {
         },
         internalLocalPostNewComment: (state: StoreListenViewModel, payload: { newLocalComment: Comment; commentToReplyTo: Comment|undefined }): void => {
             state.localPostNewComment(payload.newLocalComment, payload.commentToReplyTo);
+        },
+        internalLocalEditComment: (state: StoreListenViewModel, payload: { comment: Comment; content: string }): void => {
+            state.localEditComment(payload.comment, payload.content);
         },
         internalLocalUpdateCommentIdFromServer: (state: StoreListenViewModel, payload: { comment: Comment; serverId: number }): void => {
             state.localUpdateCommentIdFromServer(payload.comment, payload.serverId);
@@ -346,6 +366,11 @@ export default {
                     serverId: commentResult.commentId
                 });
             });
+            return serverQuery as unknown as Promise<void>;
+        },
+        editComment: (context: ActionContext<StoreListenViewModel, StoreListenViewModel>, payload: { comment: Comment; content: string }): Promise<void> => {
+            context.commit("internalLocalEditComment", payload);
+            const serverQuery = context.state.storeServerEditComment(payload.comment.id, payload.content);
             return serverQuery as unknown as Promise<void>;
         },
         deleteComment: (context: ActionContext<StoreListenViewModel, StoreListenViewModel>, comment: Comment): Promise<void> => {
