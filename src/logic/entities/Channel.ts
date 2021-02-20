@@ -7,7 +7,7 @@ import EncodingUtils, { IReviveFromJSON } from "../EncodingUtils";
 export { Episode, AgendaItem };
 
 @Entity()
-export class Podcast implements IReviveFromJSON {
+export class Channel implements IReviveFromJSON {
     @PrimaryGeneratedColumn()
     public id!: number;
     @Column()
@@ -20,7 +20,7 @@ export class Podcast implements IReviveFromJSON {
     public link!: string;
     @Column()
     public imageURL!: string;
-    @OneToMany(() => Episode, episode => episode.owningPodcast, { cascade: true, eager: true })
+    @OneToMany(() => Episode, episode => episode.owningChannel, { cascade: true, eager: true })
     public episodes!: Episode[];
 
     public get titleAsURL(): string {

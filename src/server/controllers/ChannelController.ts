@@ -1,61 +1,61 @@
 import { Request, Response } from "express";
 import { getConnection } from "typeorm";
-import { Podcast, Episode } from "../../logic/entities/Podcast";
+import { Channel, Episode } from "../../logic/entities/Channel";
 import RouteInfo from "../RouteInfo";
 import EncodingUtils from "../../logic/EncodingUtils";
 import { HTTPVerb } from "../../logic/HTTPVerb";
 
-export default class PodcastController {
+export default class ChannelController {
     public static getRoutes(): RouteInfo[] {
         return [{
-            path: "/podcasts",
+            path: "/channels",
             verb: HTTPVerb.Get,
             requiresAuthentication: false,
-            callback: PodcastController.getAllPodcasts
+            callback: ChannelController.getAllChannels
         }, {
-            path: "/episodes/:podcastId",
+            path: "/episodes/:channelId",
             verb: HTTPVerb.Get,
             requiresAuthentication: false,
-            callback: PodcastController.getEpisodesFor
+            callback: ChannelController.getEpisodesFor
         }, {
-            path: "/episodes/:podcastURL/:episodeURL",
+            path: "/episodes/:channelURL/:episodeURL",
             verb: HTTPVerb.Get,
             requiresAuthentication: false,
-            callback: PodcastController.getEpisodeFromURL
+            callback: ChannelController.getEpisodeFromURL
         }];
     }
 
-    private static async getAllPodcasts(request: Request, response: Response): Promise<void> {
-        const podcasts: Podcast[] = await getConnection()
-            .createQueryBuilder(Podcast, "podcast")
-            .leftJoinAndSelect("podcast.episodes", "episode")
+    private static async getAllChannels(request: Request, response: Response): Promise<void> {
+        const channels: Channel[] = await getConnection()
+            .createQueryBuilder(Channel, "channel")
+            .leftJoinAndSelect("channel.episodes", "episode")
             .getMany();
-        response.end(EncodingUtils.jsonify(podcasts));
+        response.end(EncodingUtils.jsonify(channels));
     }
 
     private static async getEpisodesFor(request: Request, response: Response): Promise<void> {
-        type PodcastParams = { podcastId: number };
-        const podcastId: number = (request.params as unknown as PodcastParams).podcastId;
+        type ChannelParams = { channelId: number };
+        const channelId: number = (request.params as unknown as ChannelParams).channelId;
         const episodes: Episode[] = await getConnection()
             .createQueryBuilder()
-            .relation(Podcast, "episodes")
-            .of(podcastId)
+            .relation(Channel, "episodes")
+            .of(channelId)
             .loadMany();
         response.end(EncodingUtils.jsonify(episodes));
     }
 
     private static async getEpisodeFromURL(request: Request, response: Response): Promise<void> {
         const params = {
-            podcastTitle: EncodingUtils.urlAsTitle(request.params.podcastURL),
+            channelTitle: EncodingUtils.urlAsTitle(request.params.channelURL),
             episodeTitle: EncodingUtils.urlAsTitle(request.params.episodeURL)
         };
-        const podcast: Podcast|undefined = (await getConnection()
+        const channel: Channel|undefined = (await getConnection()
             .createQueryBuilder()
             .select()
-            .from(Podcast, "podcast")
-            .where(`podcast."title" = :podcastTitle`, params)
+            .from(Channel, "channel")
+            .where(`channel."title" = :channelTitle`, params)
             .execute())[0];
-        if (!podcast) {
+        if (!channel) {
             response.status(404).end();
         }
 
@@ -64,7 +64,7 @@ export default class PodcastController {
             .select()
             .from(Episode, "episode")
             .where(`episode."title" = :episodeTitle`, params)
-            .andWhere(`episode."owningPodcastId" = :podcastId`, { podcastId: podcast?.id })
+            .andWhere(`episode."owningChannelId" = :channelId`, { channelId: channel?.id })
             .execute())[0];
 
         if (!episode) {

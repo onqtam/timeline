@@ -3,7 +3,7 @@ import VueRouter, { RouteConfig } from "vue-router";
 import Home from "../views/Home.vue";
 import ListenView from "../views/Listen.vue";
 import EpisodesView from "../views/Episodes.vue";
-import PodcastsView from "../views/Podcasts.vue";
+import ChannelsView from "../views/Channels.vue";
 import ProfileView from "../views/Profile.vue";
 import Timepoint from "@/logic/entities/Timepoint";
 
@@ -24,26 +24,26 @@ const routes: Array<RouteConfig> = [
         component: () => import(/* webpackChunkName: "about" */ "../views/About.vue")
     },
     {
-        path: "/listen/:podcastTitle/:episodeTitle",
+        path: "/listen/:channelTitle/:episodeTitle",
         name: "Listen",
         component: ListenView,
         props: (route) => ({
             initialTimepoint: Timepoint.tryParseFromURL(route.query.t as string),
             threadIdToFocus: ~~(route.query.thread as string),
-            podcastTitleURL: route.params.podcastTitle,
+            channelTitleURL: route.params.channelTitle,
             episodeTitleURL: route.params.episodeTitle
         })
     },
     {
-        path: "/episodes/:podcastTitle",
+        path: "/episodes/:channelTitle",
         name: "Episodes",
         component: EpisodesView,
         props: true
     },
     {
-        path: "/podcasts",
-        name: "Podcasts",
-        component: PodcastsView,
+        path: "/channels",
+        name: "Channels",
+        component: ChannelsView,
         props: true
     },
     {
@@ -54,7 +54,7 @@ const routes: Array<RouteConfig> = [
     },
     {
         path: "/",
-        // TODO: Obviously hard-coding a podcast isn't perfect but it's a necessity during development
+        // TODO: Obviously hard-coding a channel isn't perfect but it's a necessity during development
         redirect: "/episodes/The%20Portal"
     }
 ];

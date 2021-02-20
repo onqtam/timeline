@@ -1,8 +1,8 @@
 <template>
     <div class="episode-view-container">
         <EpisodeComponent class="episode-slot"
-            v-for="episode in podcast.episodes" :key=episode.title
-            :podcast=podcast :episode=episode
+            v-for="episode in channel.episodes" :key=episode.title
+            :channel=channel :episode=episode
         >
         </EpisodeComponent>
         <hr>
@@ -14,29 +14,29 @@ import { Component, Vue } from "vue-property-decorator";
 import { Route, NavigationGuardNext } from "vue-router";
 import store from "@/client/store";
 
-import { Podcast } from "@/logic/entities/Podcast";
+import { Channel } from "@/logic/entities/Channel";
 
 import EpisodeComponent from "@/client/components/Episode.vue";
 
 const beforeRouteChange = (to: Route, from: Route, next: NavigationGuardNext<EpisodesView>, existingView: EpisodesView|undefined) => {
-    const podcastTitle = to.params.podcastTitle as string;
-    console.assert(podcastTitle !== undefined);
+    const channelTitle = to.params.channelTitle as string;
+    console.assert(channelTitle !== undefined);
 
     const displayPage = () => {
-        // Important p.title === podcastTitle only works because Vue router automatically decodes the URL
-        const podcast: Podcast|undefined = store.state.podcast.allPodcasts.find(p => p.title === podcastTitle);
+        // Important p.title === channelTitle only works because Vue router automatically decodes the URL
+        const channel: Channel|undefined = store.state.channel.allChannels.find(p => p.title === channelTitle);
         // TODO: handle not found case
         // TODO: handle data not yet loaded case
         if (existingView) {
-            Object.assign(existingView.podcast, podcast);
+            Object.assign(existingView.channel, channel);
         } else {
             next(view => {
                 console.log(view);
-                Object.assign(view.podcast, podcast);
+                Object.assign(view.channel, channel);
             });
         }
     };
-    store.dispatch.podcast.initPodcastData().then(displayPage);
+    store.dispatch.channel.initChannelData().then(displayPage);
 };
 
 @Component({
@@ -51,7 +51,7 @@ const beforeRouteChange = (to: Route, from: Route, next: NavigationGuardNext<Epi
     }
 })
 export default class EpisodesView extends Vue {
-    public podcast: Podcast = new Podcast();
+    public channel: Channel = new Channel();
 }
 </script>
 

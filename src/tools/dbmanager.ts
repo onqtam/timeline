@@ -4,7 +4,7 @@ import User from "@/logic/entities/User";
 
 async function updateExternalData(): Promise<void> {
     await DBTools.initDatabaseConnection();
-    await DBTools.updatePodcastInfo();
+    await DBTools.updateChannelInfo();
 }
 
 async function randomizeInternalData(): Promise<void> {
@@ -20,7 +20,7 @@ async function main(): Promise<void> {
     yargs
         .demandCommand(1)
         .command(
-            "update", "Updates any externally fetched data like Podcast info", {},
+            "update", "Updates any externally fetched data like Channel info", {},
             async () => await updateExternalData()
         )
         .command(

@@ -2,7 +2,7 @@ import { getConnectionOptions, Connection, createConnection, getConnection } fro
 import xmldom from "xmldom";
 import pgtools from "pgtools";
 
-import { Podcast, Episode, AgendaItem } from "../../logic/entities/Podcast";
+import { Channel, Episode, AgendaItem } from "../../logic/entities/Channel";
 import Timepoint from "../../logic/entities/Timepoint";
 import AsyncLoader from "./AsyncLoader";
 import { RandomString } from "../../logic/RandomHelpers";
@@ -14,7 +14,7 @@ import VoteCommentRecord from "../../logic/entities/VoteCommentRecord";
 import UserSettings from "../../logic/entities/UserSettings";
 import PlaybackProgressRecord from "../../logic/entities/PlaybackProgressRecord";
 
-// Podcast Info handling
+// Channel Info handling
 class ElementParserHelper {
     public element: Element;
 
@@ -46,8 +46,8 @@ class ElementParserHelper {
     };
 }
 
-function parsePodcastFromRSS(rssContent: string): Podcast | null {
-    const podcast = new Podcast();
+function parseChannelFromRSS(rssContent: string): Channel | null {
+    const channel = new Channel();
     const xmlParser = new xmldom.DOMParser();
     const xmlDoc = xmlParser.parseFromString(rssContent, "text/xml");
     const docHelper = new ElementParserHelper(xmlDoc.documentElement);
@@ -55,32 +55,32 @@ function parsePodcastFromRSS(rssContent: string): Podcast | null {
         console.error("Parsing RSS Failed. Reason: ", docHelper.firstChild("parseError").firstChild("div").getText());
         return null;
     }
-    const channel = docHelper.firstChild("channel");
-    if (!channel) {
+    const channelNode = docHelper.firstChild("channel");
+    if (!channelNode) {
         console.error("Can't parse RSS - doesn't have channel node");
         return null;
     }
     // The code below loads various nodes & attributes from the rss xml
-    // into the podcast data structure.
+    // into the channel data structure.
 
     // The "// usually" comments denote places where elements are under a namespace
     // CSS selectors don't support namespaces so they just fetch any element of the same tag, regardless of NS
     // so they work fine even though it looks wrong
 
-    podcast.title = channel.firstChild("title").getText();
-    podcast.description = channel.firstChild("description").getText();
-    podcast.author = channel.firstChild("author").getText(); // usually itunes:author
-    podcast.link = channel.firstChild("link").getText();
-    podcast.imageURL = channel.firstChild("image").getAttr("href");
+    channel.title = channelNode.firstChild("title").getText();
+    channel.description = channelNode.firstChild("description").getText();
+    channel.author = channelNode.firstChild("author").getText(); // usually itunes:author
+    channel.link = channelNode.firstChild("link").getText();
+    channel.imageURL = channelNode.firstChild("image").getAttr("href");
 
-    podcast.episodes = [];
-    const episodeNodes = channel.allChildren("item");
+    channel.episodes = [];
+    const episodeNodes = channelNode.allChildren("item");
     for (const episodeItem of episodeNodes) {
         const episode = new Episode();
 
-        // force set owningPodcast; cast to any as the prop is normally readonly but in this case it's appropriate to set it
+        // force set owningChannel; cast to any as the prop is normally readonly but in this case it's appropriate to set it
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (episode as unknown as any).owningPodcast = podcast;
+        (episode as unknown as any).owningChannel = channel;
         episode.title = episodeItem.firstChild("title").getText();
         episode.description = episodeItem.firstChild("description").getText();
         episode.publicationDate = new Date(episodeItem.firstChild("pubDate").getText());
@@ -94,7 +94,7 @@ function parsePodcastFromRSS(rssContent: string): Podcast | null {
         episode.audioURL = episodeItem.firstChild("enclosure").getAttr("url");
         episode.imageURL =episodeItem.firstChild("image").getAttr("href");
 
-        // podcasts don't yet gave actual agenda so generate a random one
+        // channels don't yet gave actual agenda so generate a random one
         // new item every X +- Y seconds
         const AGENDA_ITEM_INTERVAL = 600; // 10mins
         const AGENDA_ITEM_DEVIATION = 180; // with a deviation of 3mins
@@ -103,19 +103,19 @@ function parsePodcastFromRSS(rssContent: string): Podcast | null {
             const item = new AgendaItem(RandomString.ofLength(30), new Timepoint(i));
             episode.agenda.items.push(item);
         }
-        podcast.episodes.push(episode);
+        channel.episodes.push(episode);
     }
-    return podcast;
+    return channel;
 };
 
-async function downloadAllRss(): Promise<Podcast[]> {
-    const onFetchFailed = async (): Promise<Podcast> => {
+async function downloadAllRss(): Promise<Channel[]> {
+    const onFetchFailed = async (): Promise<Channel> => {
         return Promise.reject(new Error("Download failed!"));
     };
-    const parseWithPromise = async (rssContent: string): Promise<Podcast> => {
-        const parsedPodcast: Podcast | null = parsePodcastFromRSS(rssContent);
-        if (parsedPodcast) {
-            return parsedPodcast;
+    const parseWithPromise = async (rssContent: string): Promise<Channel> => {
+        const parsedChannel: Channel | null = parseChannelFromRSS(rssContent);
+        if (parsedChannel) {
+            return parsedChannel;
         } else {
             return Promise.reject(new Error("Parsing failed!"));
         }
@@ -125,9 +125,9 @@ async function downloadAllRss(): Promise<Podcast[]> {
         "the-portal": "https://rss.art19.com/the-portal"
     };
     // Fire all requests at once, wait and process sequentially after that
-    const promises: Promise<Podcast>[] = [];
-    for (const podcast in PODCAST_TO_RSS) {
-        const rssPromise = AsyncLoader.fetchTextFile(PODCAST_TO_RSS[podcast]).then(parseWithPromise, onFetchFailed);
+    const promises: Promise<Channel>[] = [];
+    for (const channel in PODCAST_TO_RSS) {
+        const rssPromise = AsyncLoader.fetchTextFile(PODCAST_TO_RSS[channel]).then(parseWithPromise, onFetchFailed);
         promises.push(rssPromise);
     }
     return Promise.all(promises);
@@ -165,13 +165,13 @@ export default class DBTools {
         return connection;
     }
 
-    static async updatePodcastInfo(): Promise<void> {
+    static async updateChannelInfo(): Promise<void> {
         console.log("Fetching latest data");
-        const allPodcasts: Promise<Podcast[]> = downloadAllRss();
+        const allChannels: Promise<Channel[]> = downloadAllRss();
 
         const connection: Connection = getConnection();
         console.log("Deleting existing data");
-        // Can't execute the deletions in parallel - deleting a podcast without deleting its episodes firsts
+        // Can't execute the deletions in parallel - deleting a channel without deleting its episodes firsts
         // will cause the FKs to become null and which will fail validation
         await connection.createQueryBuilder()
             .delete()
@@ -179,20 +179,20 @@ export default class DBTools {
             .execute();
         await connection.createQueryBuilder()
             .delete()
-            .from(Podcast)
+            .from(Channel)
             .execute();
 
-        const parsedPodcasts: Podcast[] = await allPodcasts;
+        const parsedChannels: Channel[] = await allChannels;
 
         console.log("Inserting new data");
-        // Can't execute the insertions in parallel - podcasts need to be inserted first so that their PKs are generated.
-        // Otherwise inserting the episodes will insert null FKs for podcastOwner
+        // Can't execute the insertions in parallel - channels need to be inserted first so that their PKs are generated.
+        // Otherwise inserting the episodes will insert null FKs for channelOwner
         await connection.createQueryBuilder()
             .insert()
-            .into(Podcast)
-            .values(parsedPodcasts)
+            .into(Channel)
+            .values(parsedChannels)
             .execute();
-        const allEpisodes = parsedPodcasts.flatMap(p => p.episodes);
+        const allEpisodes = parsedChannels.flatMap(p => p.episodes);
         await connection.createQueryBuilder()
             .insert()
             .into(Episode)
@@ -245,7 +245,7 @@ export default class DBTools {
 
     static async randomizeUsers(): Promise<User[]> {
         console.log("Inserting new data");
-        const names = ["Nikola", "Viktor", "Dimitroff", "Kirilov", "onqtam", "podcastfan99"];
+        const names = ["Nikola", "Viktor", "Dimitroff", "Kirilov", "onqtam", "channelfan99"];
         const specialUsers: User[] = [User.createGuestUser(), User.createDeletedUser()];
         const users: User[] = specialUsers.slice();
         for (const name of names) {

@@ -52,7 +52,7 @@ export default class ListenView extends Vue {
     @Prop({ type: Number })
     public threadIdToFocus?: number;
     @Prop({ type: String })
-    public podcastTitleURL!: string;
+    public channelTitleURL!: string;
     @Prop({ type: String })
     public episodeTitleURL!: string;
 
@@ -72,9 +72,9 @@ export default class ListenView extends Vue {
     private _serverPlaybackStorageTimerId: number = -1;
 
     public beforeMount(): void {
-        console.assert(this.podcastTitleURL !== undefined && this.episodeTitleURL !== undefined);
-        const dispatchPayload = { podcastURL: this.podcastTitleURL, episodeURL: this.episodeTitleURL };
-        store.dispatch.podcast
+        console.assert(this.channelTitleURL !== undefined && this.episodeTitleURL !== undefined);
+        const dispatchPayload = { channelURL: this.channelTitleURL, episodeURL: this.episodeTitleURL };
+        store.dispatch.channel
             .loadEpisodeData(dispatchPayload)
             .then(episode => {
                 console.assert(episode, "No such episode exists!");

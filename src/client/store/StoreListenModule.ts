@@ -5,7 +5,7 @@ import { default as AudioFile, AudioWindow } from "@/logic/AudioFile";
 import Comment from "@/logic/entities/Comments";
 import VoteCommentRecord from "@/logic/entities/VoteCommentRecord";
 import MathHelpers from "@/logic/MathHelpers";
-import { Episode } from "@/logic/entities/Podcast";
+import { Episode } from "@/logic/entities/Channel";
 import { ActiveAppMode } from "./StoreDeviceInfoModule";
 import AsyncLoader from "../utils/AsyncLoader";
 import CommonParams from "@/logic/CommonParams";

@@ -7,7 +7,7 @@ import passport from "passport";
 import CommonParams from "../logic/CommonParams";
 import RouteInfo from "./RouteInfo";
 import CommentController from "./controllers/CommentController";
-import PodcastController from "./controllers/PodcastController";
+import ChannelController from "./controllers/ChannelController";
 import UserController from "./controllers/UserController";
 import AuthenticationController from "./controllers/AuthenticationController";
 import User from "../logic/entities/User";
@@ -54,7 +54,7 @@ export default class Server {
 
         let routes: RouteInfo[] = [];
         routes = routes.concat(CommentController.getRoutes());
-        routes = routes.concat(PodcastController.getRoutes());
+        routes = routes.concat(ChannelController.getRoutes());
         routes = routes.concat(UserController.getRoutes());
 
         for (const route of routes) {

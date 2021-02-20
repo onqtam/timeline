@@ -4,7 +4,7 @@ import { createDirectStore } from "direct-vuex";
 
 import { default as storeListenModule } from "./StoreListenModule";
 import { default as storeUserModule } from "./StoreUserModule";
-import { default as storePodcastModule } from "./StorePodcastModule";
+import { default as storeChannelModule } from "./StoreChannelModule";
 import { default as storeDeviceModule } from "./StoreDeviceInfoModule";
 
 Vue.use(Vuex);
@@ -20,7 +20,7 @@ const {
     modules: {
         listen: storeListenModule,
         user: storeUserModule,
-        podcast: storePodcastModule,
+        channel: storeChannelModule,
         device: storeDeviceModule
     },
     strict: true

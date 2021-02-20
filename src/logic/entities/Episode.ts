@@ -2,7 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from "typeorm";
 import { IsDate, Min } from "class-validator";
 
 import Timepoint from "./Timepoint";
-import { Podcast } from "./Podcast";
+import { Channel } from "./Channel";
 import CommonParams from "../CommonParams";
 import EncodingUtils, { IReviveFromJSON } from "../EncodingUtils";
 
@@ -67,8 +67,8 @@ export class Episode implements IReviveFromJSON {
     public imageURL!: string;
     public agenda: Agenda = new Agenda();
 
-    @ManyToOne(() => Podcast, podcast => podcast.episodes, { nullable: false })
-    public readonly owningPodcast!: Podcast;
+    @ManyToOne(() => Channel, channel => channel.episodes, { nullable: false })
+    public readonly owningChannel!: Channel;
 
     public get titleAsURL(): string {
         return EncodingUtils.titleAsURL(this.title);
