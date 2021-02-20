@@ -168,7 +168,10 @@ export default class CommentController {
                     .update(VoteCommentRecord)
                     .where(`"userId" = :uid`, { uid: user.id })
                     .andWhere(`"commentId" = :cid`, { cid: params.commentId })
-                    .set({ wasVotePositive: params.wasVotePositive })
+                    .set({
+                        wasVotePositive: params.wasVotePositive,
+                        date: new Date()
+                    })
                     .execute() as unknown as Promise<void>;
                 // handle the comment counters as well
                 if (params.wasVotePositive) {
