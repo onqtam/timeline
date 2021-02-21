@@ -49,5 +49,5 @@ declare module "vuex" {
 
 // App-specific init of global store
 store.state.device.setup();
-store.commit.device.addOnAppModeChangedPlayer(() => store.commit.play.updateTimeslotCount(store.state.device.device.appMode));
+store.commit.device.addOnAppModeChangedListener(() => store.commit.play.updateTimeslotCount(store.state.device.device.appMode));
 store.commit.play.setup();

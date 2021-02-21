@@ -164,7 +164,7 @@ export default class TimelinePlayer extends Vue {
     }
     public mounted(): void {
         this.onWindowResized();
-        store.commit.device.addOnAppModeChangedPlayer(this.onWindowResized.bind(this));
+        store.commit.device.addOnAppModeChangedListener(this.onWindowResized.bind(this));
         const playbackProgress: number = store.state.user.getPlaybackProgressForEpisode(this.activeEpisode.id).seconds;
         store.commit.play.moveAudioPos(playbackProgress);
         this.$recompute("audioElement");
@@ -173,7 +173,7 @@ export default class TimelinePlayer extends Vue {
         this.$destroyRecomputables();
     }
     public destroyed(): void {
-        store.commit.device.removeOnAppModeChangedPlayer(this.onWindowResized.bind(this));
+        store.commit.device.removeOnAppModeChangedListener(this.onWindowResized.bind(this));
     }
     public seekTo(secondToSeekTo: number): void {
         store.commit.play.moveAudioPos(secondToSeekTo);

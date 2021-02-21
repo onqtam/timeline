@@ -35,12 +35,12 @@ export type AppModeChangedCallback = () => void;
 
 export class StoreDeviceInfoViewModel implements IStoreDeviceInfoModule {
     public device: DeviceInfo;
-    private appModeChangedPlayers: AppModeChangedCallback[];
+    private appModeChangedListeners: AppModeChangedCallback[];
 
     constructor() {
         this.device = new DeviceInfo();
         this.device.deviceName = StoreDeviceInfoViewModel.extractBrowserName();
-        this.appModeChangedPlayers = [];
+        this.appModeChangedListeners = [];
         this.updateDeviceScreenDimensions();
     }
 
@@ -49,13 +49,13 @@ export class StoreDeviceInfoViewModel implements IStoreDeviceInfoModule {
     }
 
     // TODO: Move to the SimpleEvent library
-    public addOnAppModeChangedPlayer(callback: () => void): void {
-        this.appModeChangedPlayers.push(callback);
+    public addOnAppModeChangedListener(callback: () => void): void {
+        this.appModeChangedListeners.push(callback);
     }
-    public removeOnAppModeChangedPlayer(callback: () => void): void {
-        const indexOfCallback: number = this.appModeChangedPlayers.indexOf(callback);
-        this.appModeChangedPlayers[indexOfCallback] = this.appModeChangedPlayers[this.appModeChangedPlayers.length - 1];
-        this.appModeChangedPlayers.pop();
+    public removeOnAppModeChangedListener(callback: () => void): void {
+        const indexOfCallback: number = this.appModeChangedListeners.indexOf(callback);
+        this.appModeChangedListeners[indexOfCallback] = this.appModeChangedListeners[this.appModeChangedListeners.length - 1];
+        this.appModeChangedListeners.pop();
     }
 
     public updateDeviceScreenDimensions(): void {
@@ -71,7 +71,7 @@ export class StoreDeviceInfoViewModel implements IStoreDeviceInfoModule {
             this.device.appMode = ActiveAppMode.Mobile;
         }
 
-        for (const callback of this.appModeChangedPlayers) {
+        for (const callback of this.appModeChangedListeners) {
             callback();
         }
     }
@@ -99,11 +99,11 @@ export default {
     namespaced: true as true,
     state: DeviceModule,
     mutations: {
-        addOnAppModeChangedPlayer: (state: StoreDeviceInfoViewModel, player: AppModeChangedCallback): void => {
-            state.addOnAppModeChangedPlayer(player);
+        addOnAppModeChangedListener: (state: StoreDeviceInfoViewModel, listener: AppModeChangedCallback): void => {
+            state.addOnAppModeChangedListener(listener);
         },
-        removeOnAppModeChangedPlayer: (state: StoreDeviceInfoViewModel, player: AppModeChangedCallback): void => {
-            state.removeOnAppModeChangedPlayer(player);
+        removeOnAppModeChangedListener: (state: StoreDeviceInfoViewModel, listener: AppModeChangedCallback): void => {
+            state.removeOnAppModeChangedListener(listener);
         },
         updateDeviceScreenDimensions: (state: StoreDeviceInfoViewModel): void => {
             state.updateDeviceScreenDimensions();

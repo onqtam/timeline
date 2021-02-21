@@ -33,6 +33,6 @@ export default class UserSettings {
     public initDefaultValues() {
         this.id = -1;
         this.audioWindowTimeslotCount = UserSettings.TIMESLOT_LIMITS.min;
-        this.audioWindowDuration = 60;
+        this.audioWindowDuration = 1200;
     }
 }
