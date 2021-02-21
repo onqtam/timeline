@@ -72,7 +72,7 @@ function parseChannelFromRSS(rssContent: string): Channel | null {
     channel.author = channelNode.firstChild("author").getText(); // usually itunes:author
     channel.link = channelNode.firstChild("link").getText();
     // TODO: the image tag differs in rss feeds - sometimes there's a href attribute, and sometimes there are nested <url> tags
-    channel.imageURL = "";//channelNode.firstChild("image").getAttr("href");
+    channel.imageURL = ""; // channelNode.firstChild("image").getAttr("href");
 
     channel.episodes = [];
     const episodeNodes = channelNode.allChildren("item");
@@ -86,7 +86,7 @@ function parseChannelFromRSS(rssContent: string): Channel | null {
         episode.description = episodeItem.firstChild("description").getText();
         episode.publicationDate = new Date(episodeItem.firstChild("pubDate").getText());
         // TODO: some episodes don't have a duration element
-        if (episodeItem.firstChild("duration").element == undefined) {
+        if (episodeItem.firstChild("duration").element === undefined) {
             continue;
         }
         const durationText: string = episodeItem.firstChild("duration").getText(); // usually itunes:duration
