@@ -56,6 +56,7 @@ const routes: Array<RouteConfig> = [
         path: "/",
         // TODO: Obviously hard-coding a channel isn't perfect but it's a necessity during development
         redirect: "/episodes/The%20Portal"
+        // redirect: "/episodes/Making%20Sense%20with%20Sam%20Harris"
     }
 ];
 

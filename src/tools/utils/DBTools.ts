@@ -71,7 +71,8 @@ function parseChannelFromRSS(rssContent: string): Channel | null {
     channel.description = channelNode.firstChild("description").getText();
     channel.author = channelNode.firstChild("author").getText(); // usually itunes:author
     channel.link = channelNode.firstChild("link").getText();
-    channel.imageURL = channelNode.firstChild("image").getAttr("href");
+    // TODO: the image tag differs in rss feeds - sometimes there's a href attribute, and sometimes there are nested <url> tags
+    channel.imageURL = "";//channelNode.firstChild("image").getAttr("href");
 
     channel.episodes = [];
     const episodeNodes = channelNode.allChildren("item");
@@ -84,11 +85,15 @@ function parseChannelFromRSS(rssContent: string): Channel | null {
         episode.title = episodeItem.firstChild("title").getText();
         episode.description = episodeItem.firstChild("description").getText();
         episode.publicationDate = new Date(episodeItem.firstChild("pubDate").getText());
-        const durationText: string = episodeItem.firstChild("duration").getText(); // usually itunes:author
-        const asTimepoint: Timepoint|null = Timepoint.tryParseFromFormattedText(durationText);
-        if (!asTimepoint) {
-            console.error("Failed to parse duration of episode with title: ", episode.title);
+        // TODO: some episodes don't have a duration element
+        if (episodeItem.firstChild("duration").element == undefined) {
             continue;
+        }
+        const durationText: string = episodeItem.firstChild("duration").getText(); // usually itunes:duration
+        let asTimepoint: Timepoint|null = Timepoint.tryParseFromFormattedText(durationText);
+        if (!asTimepoint) {
+            // if there aren't timepoints with ":" delimiters then it's just total seconds
+            asTimepoint = new Timepoint(~~durationText);
         }
         episode.durationInSeconds = asTimepoint.seconds;
         episode.audioURL = episodeItem.firstChild("enclosure").getAttr("url");
@@ -122,7 +127,9 @@ async function downloadAllRss(): Promise<Channel[]> {
     };
 
     const PODCAST_TO_RSS: Record<string, string> = {
-        "the-portal": "https://rss.art19.com/the-portal"
+        // "the-portal": "https://rss.art19.com/the-portal"
+        // "making-sense": "https://wakingup.libsyn.com/rss"
+        "the-portal": "https://www.omnycontent.com/d/playlist/9b7dacdf-a925-4f95-84dc-ac46003451ff/1713c520-edb6-43a3-b1b9-acb8002fdae7/58e33a0c-f86b-41c5-a11c-acb8002fdaf5/podcast.rss"
     };
     // Fire all requests at once, wait and process sequentially after that
     const promises: Promise<Channel>[] = [];
