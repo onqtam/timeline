@@ -96,26 +96,26 @@ enum SortingPredicate {
 export default class CommentSection extends Vue {
     // Props
     public get commentThreads(): Comment[] {
-        return store.state.listen.allThreads;
+        return store.state.play.allThreads;
     }
     public get audioWindow(): AudioWindow {
-        return store.state.listen.audioWindow;
+        return store.state.play.audioWindow;
     }
     public get audioPos(): Timepoint {
-        return store.state.listen.audioPos;
+        return store.state.play.audioPos;
     }
 
     get showDeleteCommentDialog() {
-        return store.state.listen.commentToDelete !== undefined;
+        return store.state.play.commentToDelete !== undefined;
     }
     set showDeleteCommentDialog(newVal: boolean) {
-        store.commit.listen.setCommentToDelete(undefined);
+        store.commit.play.setCommentToDelete(undefined);
     }
     deleteComment(shouldDelete: boolean) {
         if (shouldDelete) {
-            store.dispatch.listen.deleteComment(store.state.listen.commentToDelete!);
+            store.dispatch.play.deleteComment(store.state.play.commentToDelete!);
         }
-        store.commit.listen.setCommentToDelete(undefined);
+        store.commit.play.setCommentToDelete(undefined);
     }
 
     private postContent: string = "";
@@ -160,7 +160,7 @@ export default class CommentSection extends Vue {
     public mounted(): void {
         // Update the number of timeslots CSS var every time we are mounted to make sure it never goes out of sync
         const root: HTMLElement = document.documentElement;
-        root.style.setProperty("--number-of-timeslots", store.state.listen.audioWindow.timeslotCount.toString());
+        root.style.setProperty("--number-of-timeslots", store.state.play.audioWindow.timeslotCount.toString());
     }
 
     public focusThread(threadId: number): void {
@@ -194,7 +194,7 @@ export default class CommentSection extends Vue {
         if (this.checkAndShowLoginDialog()) {
             if (this.postContent) {
                 const payload = { commentToReplyTo: undefined, content: this.postContent };
-                store.dispatch.listen.postComment(payload);
+                store.dispatch.play.postComment(payload);
                 this.postContent = "";
             }
         }

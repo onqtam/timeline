@@ -116,7 +116,7 @@ export default class CommentComponent extends Vue {
     private submitReply(): void {
         if (this.replyContent) {
             const payload = { commentToReplyTo: this.comment, content: this.replyContent };
-            store.dispatch.listen.postComment(payload);
+            store.dispatch.play.postComment(payload);
             this.replyContent = "";
             this.toggleIsReplyingTo();
         }
@@ -125,7 +125,7 @@ export default class CommentComponent extends Vue {
     private submitEdit(): void {
         if (this.editContent) {
             const payload = { comment: this.comment, content: this.editContent };
-            store.dispatch.listen.editComment(payload);
+            store.dispatch.play.editComment(payload);
             this.editContent = "";
             this.toggleIsEditing();
         }
@@ -141,7 +141,7 @@ export default class CommentComponent extends Vue {
     }
 
     private deleteComment(): void {
-        store.commit.listen.setCommentToDelete(this.comment);
+        store.commit.play.setCommentToDelete(this.comment);
     }
 
     private formatCommentDate(): string {

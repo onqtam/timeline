@@ -75,9 +75,9 @@ export default class Server {
             console.log(err);
         });
 
-        // Initialization is done, start listening
+        // Initialization is done, start playing
         this.app.listen(CommonParams.APIServerPort, CommonParams.APIServerIP, () => {
-            console.log(`API server is listening on http://localhost:${CommonParams.APIServerPort}`);
+            console.log(`API server is playing on http://localhost:${CommonParams.APIServerPort}`);
         });
         await dbConnection;
         // Hide implementation details about the promise type

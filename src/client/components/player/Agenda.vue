@@ -29,7 +29,7 @@ export default class AgendaComponent extends Vue {
     public agenda!: Agenda;
 
     public isAgendaItemActive(itemIndex: number): boolean {
-        return MathHelpers.isBetweenOpenEnded(store.state.listen.audioPos.seconds,
+        return MathHelpers.isBetweenOpenEnded(store.state.play.audioPos.seconds,
             this.agenda.items[itemIndex].timestamp.seconds,
             this.agenda.items[itemIndex + 1]?.timestamp.seconds || Number.POSITIVE_INFINITY);
     }

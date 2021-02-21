@@ -2,7 +2,7 @@ import Vue from "vue";
 import Vuex from "vuex";
 import { createDirectStore } from "direct-vuex";
 
-import { default as storeListenModule } from "./StoreListenModule";
+import { default as storePlayModule } from "./StorePlayModule";
 import { default as storeUserModule } from "./StoreUserModule";
 import { default as storeChannelModule } from "./StoreChannelModule";
 import { default as storeDeviceModule } from "./StoreDeviceInfoModule";
@@ -18,7 +18,7 @@ const {
     moduleGetterContext
 } = createDirectStore({
     modules: {
-        listen: storeListenModule,
+        play: storePlayModule,
         user: storeUserModule,
         channel: storeChannelModule,
         device: storeDeviceModule
@@ -49,5 +49,5 @@ declare module "vuex" {
 
 // App-specific init of global store
 store.state.device.setup();
-store.commit.device.addOnAppModeChangedListener(() => store.commit.listen.updateTimeslotCount(store.state.device.device.appMode));
-store.commit.listen.setup();
+store.commit.device.addOnAppModeChangedPlayer(() => store.commit.play.updateTimeslotCount(store.state.device.device.appMode));
+store.commit.play.setup();

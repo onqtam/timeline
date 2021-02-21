@@ -13,7 +13,7 @@ import { HTTPVerb } from "@/logic/HTTPVerb";
 import { SettingPair } from "./StoreUserModule";
 import User from "@/logic/entities/User";
 
-export interface IStoreListenModule {
+export interface IStorePlayModule {
     audioFile: AudioFile;
     allThreads: Comment[];
     audioPos: Timepoint;
@@ -33,15 +33,15 @@ type FullCommentData = {
     votesByUser: VoteCommentRecord[];
 }
 
-class StoreListenViewModel implements IStoreListenModule {
+class StorePlayViewModel implements IStorePlayModule {
     public audioFile!: AudioFile;
     public audioPos!: Timepoint;
     public audioWindow!: AudioWindow;
     public volume!: number;
     public allThreads!: Comment[];
     public commentDensityHistogram: Histogram;
-    public upvotes: Set<number>; // this being in user instead of listen is arbitrary
-    public downvotes: Set<number>; // this being in user instead of listen is arbitrary
+    public upvotes: Set<number>; // this being in user instead of play is arbitrary
+    public downvotes: Set<number>; // this being in user instead of play is arbitrary
     public activeEpisode!: Episode;
     public commentToDelete?: Comment = undefined;
 
@@ -290,62 +290,62 @@ class StoreListenViewModel implements IStoreListenModule {
     }
 }
 
-const listenModule = new StoreListenViewModel();
+const playModule = new StorePlayViewModel();
 // Getting Vuex to work with TypeScript is a whole thing...
 // Define the module as a global var and export the Vuex module object with all of its public functions
 // Refer to the docs of direct-vuex for more info
 export default {
     namespaced: true as true,
-    state: listenModule,
+    state: playModule,
     mutations: {
-        setup: (state: StoreListenViewModel): void => {
+        setup: (state: StorePlayViewModel): void => {
             state.setup();
         },
         // Should only be called by the loadEpisode action
-        internalSetActiveEpisode: (state: StoreListenViewModel, episode: Episode): void => {
+        internalSetActiveEpisode: (state: StorePlayViewModel, episode: Episode): void => {
             state.setActiveEpisode(episode);
         },
-        internalSetActiveEpisodeComments: (state: StoreListenViewModel, commentData: FullCommentData): void => {
+        internalSetActiveEpisodeComments: (state: StorePlayViewModel, commentData: FullCommentData): void => {
             state.setActiveEpisodeComments(commentData);
         },
-        internalLocalPostNewComment: (state: StoreListenViewModel, payload: { newLocalComment: Comment; commentToReplyTo: Comment|undefined }): void => {
+        internalLocalPostNewComment: (state: StorePlayViewModel, payload: { newLocalComment: Comment; commentToReplyTo: Comment|undefined }): void => {
             state.localPostNewComment(payload.newLocalComment, payload.commentToReplyTo);
         },
-        internalLocalEditComment: (state: StoreListenViewModel, payload: { comment: Comment; content: string }): void => {
+        internalLocalEditComment: (state: StorePlayViewModel, payload: { comment: Comment; content: string }): void => {
             state.localEditComment(payload.comment, payload.content);
         },
-        internalLocalUpdateCommentIdFromServer: (state: StoreListenViewModel, payload: { comment: Comment; serverId: number }): void => {
+        internalLocalUpdateCommentIdFromServer: (state: StorePlayViewModel, payload: { comment: Comment; serverId: number }): void => {
             state.localUpdateCommentIdFromServer(payload.comment, payload.serverId);
         },
-        internalLocalDeleteComment: (state: StoreListenViewModel, comment: Comment): void => {
+        internalLocalDeleteComment: (state: StorePlayViewModel, comment: Comment): void => {
             state.localDeleteComment(comment);
         },
-        internalLocalVote: (state: StoreListenViewModel, payload: { comment: Comment; isVotePositive: boolean}): void => {
+        internalLocalVote: (state: StorePlayViewModel, payload: { comment: Comment; isVotePositive: boolean}): void => {
             state.vote(payload.comment, payload.isVotePositive);
         },
-        setVolume: (state: StoreListenViewModel, newVolume: number): void => {
+        setVolume: (state: StorePlayViewModel, newVolume: number): void => {
             state.setVolume(newVolume);
         },
-        moveAudioWindow: (state: StoreListenViewModel, newStart: number): void => {
-            // console.log("🚀 ~ file: StoreListenModule.ts ~ line 309 ~ newStart", newStart);
+        moveAudioWindow: (state: StorePlayViewModel, newStart: number): void => {
+            // console.log("🚀 ~ file: StorePlayModule.ts ~ line 309 ~ newStart", newStart);
             state.moveAudioWindow(newStart);
         },
-        moveAudioPos: (state: StoreListenViewModel, newStart: number): void => {
-            // console.log("🚀 ~ file: StoreListenModule.ts ~ line 313 ~ newStart", newStart);
+        moveAudioPos: (state: StorePlayViewModel, newStart: number): void => {
+            // console.log("🚀 ~ file: StorePlayModule.ts ~ line 313 ~ newStart", newStart);
             state.moveAudioPos(newStart);
         },
-        setAudioWindowSlots: (state: StoreListenViewModel, newSlots: number): void => {
+        setAudioWindowSlots: (state: StorePlayViewModel, newSlots: number): void => {
             state.setAudioWindowSlots(newSlots);
         },
-        updateTimeslotCount: (state: StoreListenViewModel, appMode: ActiveAppMode): void => {
+        updateTimeslotCount: (state: StorePlayViewModel, appMode: ActiveAppMode): void => {
             state.updateTimeslotCount(appMode);
         },
-        setCommentToDelete: (state: StoreListenViewModel, payload?: Comment): void => {
+        setCommentToDelete: (state: StorePlayViewModel, payload?: Comment): void => {
             state.commentToDelete = payload;
         }
     },
     actions: {
-        loadEpisode: (context: ActionContext<StoreListenViewModel, StoreListenViewModel>, episode: Episode): Promise<void> => {
+        loadEpisode: (context: ActionContext<StorePlayViewModel, StorePlayViewModel>, episode: Episode): Promise<void> => {
             context.commit("internalSetActiveEpisode", episode);
 
             return context.state.loadCommentData(episode)
@@ -353,7 +353,7 @@ export default {
                     context.commit("internalSetActiveEpisodeComments", commentData);
                 });
         },
-        postComment: (context: ActionContext<StoreListenViewModel, StoreListenViewModel>, payload: { commentToReplyTo: Comment|undefined; content: string }): Promise<void> => {
+        postComment: (context: ActionContext<StorePlayViewModel, StorePlayViewModel>, payload: { commentToReplyTo: Comment|undefined; content: string }): Promise<void> => {
             const newLocalComment: Comment = context.state.generateNewLocalComment(payload.content);
             context.commit("internalLocalPostNewComment", {
                 newLocalComment: newLocalComment,
@@ -368,17 +368,17 @@ export default {
             });
             return serverQuery as unknown as Promise<void>;
         },
-        editComment: (context: ActionContext<StoreListenViewModel, StoreListenViewModel>, payload: { comment: Comment; content: string }): Promise<void> => {
+        editComment: (context: ActionContext<StorePlayViewModel, StorePlayViewModel>, payload: { comment: Comment; content: string }): Promise<void> => {
             context.commit("internalLocalEditComment", payload);
             const serverQuery = context.state.storeServerEditComment(payload.comment.id, payload.content);
             return serverQuery as unknown as Promise<void>;
         },
-        deleteComment: (context: ActionContext<StoreListenViewModel, StoreListenViewModel>, comment: Comment): Promise<void> => {
+        deleteComment: (context: ActionContext<StorePlayViewModel, StorePlayViewModel>, comment: Comment): Promise<void> => {
             context.commit("internalLocalDeleteComment", comment);
             const serverQuery = context.state.deleteServerComment(comment);
             return serverQuery as unknown as Promise<void>;
         },
-        vote: (context: ActionContext<StoreListenViewModel, StoreListenViewModel>, payload: { comment: Comment; isVotePositive: boolean}): Promise<void> => {
+        vote: (context: ActionContext<StorePlayViewModel, StorePlayViewModel>, payload: { comment: Comment; isVotePositive: boolean}): Promise<void> => {
             // Commit locally to update the UI immediately
             context.commit("internalLocalVote", payload);
             return context.state.storeServerVote(payload.comment, payload.isVotePositive);

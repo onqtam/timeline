@@ -1,7 +1,7 @@
 import Vue from "vue";
 import VueRouter, { RouteConfig } from "vue-router";
 import Home from "../views/Home.vue";
-import ListenView from "../views/Listen.vue";
+import PlayView from "../views/Play.vue";
 import EpisodesView from "../views/Episodes.vue";
 import ChannelsView from "../views/Channels.vue";
 import ProfileView from "../views/Profile.vue";
@@ -24,9 +24,9 @@ const routes: Array<RouteConfig> = [
         component: () => import(/* webpackChunkName: "about" */ "../views/About.vue")
     },
     {
-        path: "/listen/:channelTitle/:episodeTitle",
-        name: "Listen",
-        component: ListenView,
+        path: "/play/:channelTitle/:episodeTitle",
+        name: "Play",
+        component: PlayView,
         props: (route) => ({
             initialTimepoint: Timepoint.tryParseFromURL(route.query.t as string),
             threadIdToFocus: ~~(route.query.thread as string),

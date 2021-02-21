@@ -91,7 +91,7 @@ export default class Timeline extends Vue {
     // }
 
     public get chartData(): IChartistData {
-        const histogram = store.state.listen.commentDensityHistogram;
+        const histogram = store.state.play.commentDensityHistogram;
         if (this.$refs.chart) {
             // Force update the chart element as Vue doesn't pick the changes for some reason
             (this.$refs.chart as Vue).$forceUpdate();
@@ -103,7 +103,7 @@ export default class Timeline extends Vue {
     }
 
     public get chartOptions(): ILineChartOptions {
-        const histogram = store.state.listen.commentDensityHistogram;
+        const histogram = store.state.play.commentDensityHistogram;
         return {
             chartPadding: {
                 right: 0, left: 0, top: 0, bottom: 0

@@ -24,7 +24,7 @@ import CommentSection from "@/client/components/comments/CommentSection.vue";
         TimelinePlayer,
         CommentSection
     },
-    beforeRouteUpdate(to: Route, from: Route, next: NavigationGuardNext<ListenView>) {
+    beforeRouteUpdate(to: Route, from: Route, next: NavigationGuardNext<PlayView>) {
         // TODO: the code here duplicates part of the router and part of the onMounted code
         // as there's no other way
         // (or at least I couldn't find) to refresh the same component
@@ -46,7 +46,7 @@ import CommentSection from "@/client/components/comments/CommentSection.vue";
         next();
     }
 })
-export default class ListenView extends Vue {
+export default class PlayView extends Vue {
     @Prop({ type: Timepoint })
     public initialTimepoint?: Timepoint;
     @Prop({ type: Number })
@@ -57,13 +57,13 @@ export default class ListenView extends Vue {
     public episodeTitleURL!: string;
 
     public get audioFile(): AudioFile {
-        return store.state.listen.audioFile;
+        return store.state.play.audioFile;
     }
     public get allThreads(): Comment[] {
-        return store.state.listen.allThreads;
+        return store.state.play.allThreads;
     }
     public get audioWindow(): AudioWindow {
-        return store.state.listen.audioWindow;
+        return store.state.play.audioWindow;
     }
 
     public isDataLoaded: boolean = false;
@@ -78,13 +78,13 @@ export default class ListenView extends Vue {
             .loadEpisodeData(dispatchPayload)
             .then(episode => {
                 console.assert(episode, "No such episode exists!");
-                store.dispatch.listen.loadEpisode(episode!);
+                store.dispatch.play.loadEpisode(episode!);
                 this.isDataLoaded = true;
 
                 if (this.initialTimepoint) {
-                    store.commit.listen.moveAudioPos(this.initialTimepoint.seconds);
+                    store.commit.play.moveAudioPos(this.initialTimepoint.seconds);
                     const timeslotStart: number = this.audioWindow.findTimeslotStartForTime(this.initialTimepoint);
-                    store.commit.listen.moveAudioWindow(timeslotStart);
+                    store.commit.play.moveAudioWindow(timeslotStart);
                 }
                 if (this.threadIdToFocus) {
                     this.$nextTick(() => {
@@ -99,15 +99,15 @@ export default class ListenView extends Vue {
         // const serverTimer: number = 60000;
         // this._localPlaybackStorageTimerId = window.setInterval(() => {
         //     const payload = {
-        //         episodeId: store.state.listen.activeEpisode.id,
-        //         progress: store.state.listen.audioPos
+        //         episodeId: store.state.play.activeEpisode.id,
+        //         progress: store.state.play.audioPos
         //     };
         //     store.commit.user.localSavePlaybackProgress(payload);
         // }, localTimer);
         // this._serverPlaybackStorageTimerId = window.setInterval(() => {
         //     const payload = {
-        //         episodeId: store.state.listen.activeEpisode.id,
-        //         progress: store.state.listen.audioPos
+        //         episodeId: store.state.play.activeEpisode.id,
+        //         progress: store.state.play.audioPos
         //     };
         //     store.dispatch.user.savePlaybackProgress(payload);
         // }, serverTimer);

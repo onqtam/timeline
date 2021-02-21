@@ -3,7 +3,7 @@
         <v-img class="episode-thumbnail" :src=episode.imageURL>
         </v-img>
         <div class="episode-content">
-            <router-link :to="`/listen/${channel.titleAsURL}/${episode.titleAsURL}`">
+            <router-link :to="`/play/${channel.titleAsURL}/${episode.titleAsURL}`">
                 <h3 class="episode-title">{{ episode.title }}</h3>
             </router-link>
             <span> {{ episode.publicationDate.toLocaleDateString() }}</span>

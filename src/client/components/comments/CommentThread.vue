@@ -83,7 +83,7 @@ export default class CommentThreadComponent extends Vue {
 
     // Returns the offset of the timepoint in the current timeslot
     private get timepointOffset(): number {
-        const audioWindow: AudioWindow = store.state.listen.audioWindow;
+        const audioWindow: AudioWindow = store.state.play.audioWindow;
         const timeslotStart: number = audioWindow.start.seconds + this.timeslotIndex * audioWindow.timeslotDuration;
         const percentage = (this.thread.timepoint.seconds - timeslotStart) / audioWindow.timeslotDuration;
         // TODO: This is to prevent the position to go beyond the border of the thread

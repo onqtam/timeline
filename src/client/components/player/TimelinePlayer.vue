@@ -109,16 +109,16 @@ import { ActiveAppMode } from "../../store/StoreDeviceInfoModule";
 })
 export default class TimelinePlayer extends Vue {
     public get audio(): AudioFile {
-        return store.state.listen.audioFile;
+        return store.state.play.audioFile;
     }
     public get audioWindow(): AudioWindow {
-        return store.state.listen.audioWindow;
+        return store.state.play.audioWindow;
     }
     public get volume(): number {
-        return store.state.listen.volume;
+        return store.state.play.volume;
     }
     public set volume(value: number) {
-        store.commit.listen.setVolume(value);
+        store.commit.play.setVolume(value);
         this.audioElement.volume = value;
     }
     public get audioWindowDuration(): number {
@@ -132,13 +132,13 @@ export default class TimelinePlayer extends Vue {
         return !this.audioElement || this.audioElement.muted;
     }
     public get audioPos(): Timepoint {
-        return store.state.listen.audioPos;
+        return store.state.play.audioPos;
     }
     public get isPaused(): boolean {
         return !this.audioElement || this.audioElement.paused;
     }
     public get activeEpisode(): Episode {
-        return store.state.listen.activeEpisode;
+        return store.state.play.activeEpisode;
     }
     private get zoomlineRangeStart(): number {
         return this.audioWindow.start.seconds;
@@ -148,7 +148,7 @@ export default class TimelinePlayer extends Vue {
         return Math.min(seconds, this.audio.duration);
     }
     private get zoomlineMarkCount(): number {
-        return store.state.listen.audioWindow.timeslotCount + 1;
+        return store.state.play.audioWindow.timeslotCount + 1;
     }
 
     // Internal Data members
@@ -164,23 +164,23 @@ export default class TimelinePlayer extends Vue {
     }
     public mounted(): void {
         this.onWindowResized();
-        store.commit.device.addOnAppModeChangedListener(this.onWindowResized.bind(this));
+        store.commit.device.addOnAppModeChangedPlayer(this.onWindowResized.bind(this));
         const playbackProgress: number = store.state.user.getPlaybackProgressForEpisode(this.activeEpisode.id).seconds;
-        store.commit.listen.moveAudioPos(playbackProgress);
+        store.commit.play.moveAudioPos(playbackProgress);
         this.$recompute("audioElement");
     }
     public beforeDestroy(): void {
         this.$destroyRecomputables();
     }
     public destroyed(): void {
-        store.commit.device.removeOnAppModeChangedListener(this.onWindowResized.bind(this));
+        store.commit.device.removeOnAppModeChangedPlayer(this.onWindowResized.bind(this));
     }
     public seekTo(secondToSeekTo: number): void {
-        store.commit.listen.moveAudioPos(secondToSeekTo);
+        store.commit.play.moveAudioPos(secondToSeekTo);
         if (!this.audioWindow.containsTimepoint(secondToSeekTo)) {
             const timeslotStart: number = this.audioWindow.findTimeslotStartForTime(secondToSeekTo);
             console.log("🚀 ~ file: TimelinePlayer.vue ~ line 180 ~ TimelinePlayer ~ seekTo ~ timeslotStart", timeslotStart);
-            store.commit.listen.moveAudioWindow(timeslotStart);
+            store.commit.play.moveAudioWindow(timeslotStart);
         }
         this.audioElement.currentTime = this.audioPos.seconds;
     }
@@ -217,11 +217,11 @@ export default class TimelinePlayer extends Vue {
     }
     private updateAudioPos(): void {
         const wasInSync: boolean = this.isTimelineWindowSynced();
-        store.commit.listen.moveAudioPos(this.audioElement.currentTime);
+        store.commit.play.moveAudioPos(this.audioElement.currentTime);
         const isInSync: boolean = this.isTimelineWindowSynced();
         if (wasInSync && !isInSync) {
             const newWindowPos = this.audioWindow.start.seconds + this.audioWindow.duration;
-            store.commit.listen.moveAudioWindow(newWindowPos);
+            store.commit.play.moveAudioWindow(newWindowPos);
         }
 
         if (this.audioPos.seconds >= this.audio.duration) {
@@ -232,7 +232,7 @@ export default class TimelinePlayer extends Vue {
         this.seekTo(newValue);
     }
     private onTimelineWindowMoved(newValue: number): void {
-        store.commit.listen.moveAudioWindow(newValue);
+        store.commit.play.moveAudioWindow(newValue);
     }
 
     private onWindowResized(): void {

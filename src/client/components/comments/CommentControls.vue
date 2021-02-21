@@ -47,10 +47,10 @@ export default class CommentControlsComponent extends Vue {
     public readonly isCollapsible!: boolean;
 
     get hasVotedUp(): boolean {
-        return store.state.listen.upvotes.has(this.comment.id);
+        return store.state.play.upvotes.has(this.comment.id);
     }
     get hasVotedDown(): boolean {
-        return store.state.listen.downvotes.has(this.comment.id);
+        return store.state.play.downvotes.has(this.comment.id);
     }
 
     public mounted(): void {
@@ -75,13 +75,13 @@ export default class CommentControlsComponent extends Vue {
 
     private voteUp(): void {
         if (this.checkAndShowLoginDialog()) {
-            store.dispatch.listen.vote({ comment: this.comment, isVotePositive: true });
+            store.dispatch.play.vote({ comment: this.comment, isVotePositive: true });
         }
     }
 
     private voteDown(): void {
         if (this.checkAndShowLoginDialog()) {
-            store.dispatch.listen.vote({ comment: this.comment, isVotePositive: false });
+            store.dispatch.play.vote({ comment: this.comment, isVotePositive: false });
         }
     }
 }
