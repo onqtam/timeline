@@ -1,5 +1,7 @@
 <template>
-    <div class="comment-section-root">
+    <!-- relative position because of the v-overlay - see this:
+    https://stackoverflow.com/questions/62089501/how-to-have-an-absolute-v-overlay-boxed-inside-a-v-col -->
+    <div class="comment-section-root" style="position: relative;">
         <div class="flex-container">
             <div class="new-thread-container">
                 <template>
@@ -62,14 +64,21 @@
             </v-card>
             </v-dialog>
         </template>
+
+        <!-- this is the "loading comments for range" overlay for when the window moves on the timeline -->
+        <v-overlay opacity="0.7" :absolute="true" :value="showLoadingCommentsOverlay" class="text-center">
+            <h1>Loading comments for this range</h1>
+            <v-progress-circular :size="70" :width="7" color="grey" indeterminate/>
+        </v-overlay>
     </div>
 </template>
 
 <script lang="ts">
 
-import { Component, Vue } from "vue-property-decorator";
+import { Component, Watch, Vue } from "vue-property-decorator";
 import store from "@/client/store";
 import { default as Comment } from "@/logic/entities/Comments";
+import { debounce } from "lodash";
 
 import { AudioWindow } from "@/logic/AudioFile";
 import Timepoint from "@/logic/entities/Timepoint";
@@ -119,6 +128,28 @@ export default class CommentSection extends Vue {
     }
 
     private postContent: string = "";
+
+
+
+
+
+    showLoading() {
+        this.showLoadingCommentsOverlay = false;
+    }
+
+    debouncedGetComments = debounce(this.showLoading, 1000)
+
+    showLoadingCommentsOverlay = false;
+    // TODO: deep watching is slow!!! can we use mapState to avoid the x.y.z nesting when accessing the state?
+    @Watch("audioWindow", { deep: true })
+    private watchSomething() {
+        this.showLoadingCommentsOverlay = true;
+        this.debouncedGetComments();
+    }
+
+
+
+
 
     checkAndShowLoginDialog(): boolean {
         if (store.state.user.info.isGuest) {

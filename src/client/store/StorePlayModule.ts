@@ -235,10 +235,8 @@ class StorePlayViewModel implements IStorePlayModule {
             votesByUser = await query_votes;
         }
 
-        const comms = await query_comments;
-
         return {
-            allComments: comms,
+            allComments: await query_comments,
             commentDensityHistogram: await query_histogram,
             votesByUser: votesByUser
         };
