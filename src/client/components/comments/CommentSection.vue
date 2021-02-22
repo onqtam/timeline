@@ -114,6 +114,10 @@ export default class CommentSection extends Vue {
         return store.state.play.audioPos;
     }
 
+    // ================================================================
+    // == deleting comments
+    // ================================================================
+
     get showDeleteCommentDialog() {
         return store.state.play.commentToDelete !== undefined;
     }
@@ -127,29 +131,51 @@ export default class CommentSection extends Vue {
         store.commit.play.setCommentToDelete(undefined);
     }
 
-    private postContent: string = "";
+    // ================================================================
+    // == debounced loading of comments
+    // ================================================================
 
+    static deepCopyAudioWindow(aw: AudioWindow): AudioWindow {
+        // TODO: fix this code-smell - there should be a better way!
+        // this needs to be a deep full copy because otherwise the reactivity of Vue would kick in and updates to the start
+        // of the window will trigger updaring of the comment section and that would defeat the purpose of the debouncing
+        return new AudioWindow(aw.audioFile, new Timepoint(aw.start.seconds), aw.duration, aw.timeslotCount);
+    }
 
+    debouncedAudioWindow = CommentSection.deepCopyAudioWindow(this.audioWindow);
+    showLoadingCommentsOverlay = false;
 
-
-
-    showLoading() {
+    stopLoadingComments() {
+        if (this.showLoadingCommentsOverlay) {
+            this.debouncedAudioWindow = CommentSection.deepCopyAudioWindow(this.audioWindow);
+        }
         this.showLoadingCommentsOverlay = false;
     }
 
-    debouncedGetComments = debounce(this.showLoading, 1000)
+    debouncedStopLoadingComments = debounce(this.stopLoadingComments, 700) // we don't want to call this very often
 
-    showLoadingCommentsOverlay = false;
     // TODO: deep watching is slow!!! can we use mapState to avoid the x.y.z nesting when accessing the state?
     @Watch("audioWindow", { deep: true })
     private watchSomething() {
         this.showLoadingCommentsOverlay = true;
-        this.debouncedGetComments();
+        this.debouncedStopLoadingComments();
     }
 
+    // ================================================================
+    // == post new comment
+    // ================================================================
 
+    private postContent: string = "";
 
-
+    private startNewCommentThread(): void {
+        if (this.checkAndShowLoginDialog()) {
+            if (this.postContent) {
+                const payload = { commentToReplyTo: undefined, content: this.postContent };
+                store.dispatch.play.postComment(payload);
+                this.postContent = "";
+            }
+        }
+    }
 
     checkAndShowLoginDialog(): boolean {
         if (store.state.user.info.isGuest) {
@@ -164,16 +190,20 @@ export default class CommentSection extends Vue {
         return true;
     }
 
+    // ================================================================
+    // == comment display
+    // ================================================================
+
     public get activeTimeslots(): Timeslot[] {
-        const visibleThreads = this.commentThreads.filter(thread => this.audioWindow.containsTimepoint(thread.timepoint));
-        const timeslotDuration = this.audioWindow.timeslotDuration;
-        const firstTimeslotStart = this.audioWindow.start.seconds;
+        const visibleThreads = this.commentThreads.filter(thread => this.debouncedAudioWindow.containsTimepoint(thread.timepoint));
+        const timeslotDuration = this.debouncedAudioWindow.timeslotDuration;
+        const firstTimeslotStart = this.debouncedAudioWindow.start.seconds;
 
         const mapSlotTimeToThreads = (time: number) => {
             return visibleThreads.filter(thread => MathHelpers.isBetweenOpenEnded(thread.timepoint.seconds, time, time + timeslotDuration));
         };
         const timeslots: Timeslot[] = [];
-        for (let i = 0; i < this.audioWindow.timeslotCount; i++) {
+        for (let i = 0; i < this.debouncedAudioWindow.timeslotCount; i++) {
             const newTimeslot: Timeslot = new Timeslot();
             newTimeslot.timepoint = new Timepoint(firstTimeslotStart + i * timeslotDuration);
             newTimeslot.threads = mapSlotTimeToThreads(newTimeslot.timepoint.seconds);
@@ -211,7 +241,7 @@ export default class CommentSection extends Vue {
     private getTimeslotAnimationClass(timeslot: Timeslot): Record<string, boolean> {
         const now: number = this.audioPos.seconds;
         const slotStart: number = timeslot.timepoint.seconds;
-        const slotEnd: number = slotStart + this.audioWindow.timeslotDuration;
+        const slotEnd: number = slotStart + this.debouncedAudioWindow.timeslotDuration;
         const percentage: number = MathHelpers.percentageOfRange(now, slotStart, slotEnd);
         const rampTime: number = 0.1;
         return {
@@ -219,16 +249,6 @@ export default class CommentSection extends Vue {
             "timeslot-active-steady": MathHelpers.isBetween(percentage, rampTime, 1-rampTime),
             "timeslot-active-ramp-down": MathHelpers.isBetween(percentage, 1-rampTime, 1+rampTime/2)
         };
-    }
-
-    private startNewCommentThread(): void {
-        if (this.checkAndShowLoginDialog()) {
-            if (this.postContent) {
-                const payload = { commentToReplyTo: undefined, content: this.postContent };
-                store.dispatch.play.postComment(payload);
-                this.postContent = "";
-            }
-        }
     }
 
     private setSortingPredicate(predicate: SortingPredicate): void {
