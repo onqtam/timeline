@@ -6,11 +6,16 @@
     >
         <v-tooltip top v-for="(item, index) in agenda.items" :key=item.timestamp.seconds transition="fade-transition">
             <template v-slot:activator="{ on }">
+                <!-- <router-link
+                    v-on="on" class="annotation" :style="computeStyle(item, index)"
+                    :to="'?t=' + item.timestamp.formatAsUrlParam()"
+                > -->
                 <div v-on="on" class="annotation" :style="computeStyle(item, index)">
                     <!-- TODO: because of this v-if there is flickering when transitioning from one agenda item to the next.
                     The problem is that this item first disappears and only then does isAgendaItemCompleted in computeStyle return true. -->
                     <div v-if="isAgendaItemActive(index)" :style="computeActiveItemProgressStyle(item, index)"/>
                 </div>
+                <!-- </router-link> -->
             </template>
             <!-- TODO: CLAMP LENGTH OF TEXT -->
             <span>{{item.text}}</span>
@@ -66,7 +71,7 @@ export default class Annotations extends Vue {
     }
 
     isAgendaItemCompleted(itemIndex: number): boolean {
-        return this.currentAudioPosition.seconds > this.getEndOfItem(itemIndex);
+        return this.currentAudioPosition.seconds >= this.getEndOfItem(itemIndex);
     }
 };
 </script>

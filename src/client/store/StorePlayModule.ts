@@ -61,55 +61,8 @@ class StorePlayViewModel implements IStorePlayModule {
         this.downvotes = new Set<number>();
     }
 
-    public setup(): void {
-        store.state.user.settingsModifiedEvent.subscribe((modifiedSetting: SettingPair) => {
-            // TODO: Once ts-nameof is correctly installed use nameof for the keys
-            switch (modifiedSetting.key) {
-            case "audioWindowTimeslotCount":
-                this.setAudioWindowSlots(modifiedSetting.value as number);
-                break;
-            case "audioWindowDuration":
-                this.resizeAudioWindow(modifiedSetting.value as number);
-                break;
-            }
-        });
-    }
-
-    public setActiveEpisode(episode: Episode): void {
-        this.activeEpisode = episode;
-        this.audioFile.filepath = episode.audioURL;
-        this.audioFile.duration = episode.durationInSeconds;
-        // Force resize the audio window because it depends on the length of the audio
-        this.resizeAudioWindow(this.audioWindow.duration);
-    }
-
-    public setActiveEpisodeComments(commentData: FullCommentData): void {
-        this.allThreads = commentData.allComments;
-        this.commentDensityHistogram = commentData.commentDensityHistogram;
-
-        for (const curr of commentData.votesByUser) {
-            if (curr.wasVotePositive) {
-                this.upvotes.add(curr.commentId);
-            } else {
-                this.downvotes.add(curr.commentId);
-            }
-        }
-
-        // The received histograms doesn't contain values beyond the last comment
-        // so fill in trailing zeros
-        // TODO: Figure out how to do this faster
-        const valueCount: number = ~~(this.audioFile.duration / this.commentDensityHistogram.xAxisDistance);
-        this.commentDensityHistogram.xAxis.length = valueCount;
-        this.commentDensityHistogram.xAxis.fill(0);
-        console.log("Comments for active episode updated");
-    }
-
     public setAudioWindowSlots(newSlotCount: number): void {
         this.audioWindow.timeslotCount = newSlotCount;
-    }
-
-    public setVolume(value: number): void {
-        this.volume = value;
     }
 
     // Resizing the window will also move the start of the window
@@ -125,6 +78,7 @@ class StorePlayViewModel implements IStorePlayModule {
     public moveAudioWindow(newStart: number): void {
         // TODO: Assert we are jumping to a timeslot
         this.audioWindow.start.seconds = newStart;
+        console.log("moving inner! ", newStart);
     }
     public moveAudioPos(newStart: number): void {
         this.audioPos.seconds = newStart;
@@ -162,63 +116,6 @@ class StorePlayViewModel implements IStorePlayModule {
         return comment;
     }
 
-    public localPostNewComment(newLocalComment: Comment, commentToReplyTo: Comment|undefined): void {
-        if (commentToReplyTo) {
-            commentToReplyTo.replies.push(newLocalComment);
-        } else {
-            this.allThreads.push(newLocalComment);
-        }
-    }
-
-    public localEditComment(comment: Comment, content: string): void {
-        comment.content = content;
-    }
-
-    public localDeleteComment(comment: Comment): void {
-        // TODO: In several places in code we repeat the same actions on the server and client
-        // Consider how to combine them if possible
-        comment.authorId = User.deletedUserId;
-        comment.authorName = User.deletedUserName;
-        comment.content = Comment.deletedCommentContents;
-    }
-
-    // This trivial method only exists to cope with the rule of not modifying store data outside of z
-    public localUpdateCommentIdFromServer(comment: Comment, serverId: number): void {
-        comment.id = serverId;
-    }
-
-    public vote(comment: Comment, isVotePositive: boolean): void {
-        if (this.upvotes.has(comment.id)) {
-            console.assert(!this.downvotes.has(comment.id));
-            // negate the upvote regardless of the direction of the new vote
-            this.upvotes.delete(comment.id);
-            comment.upVotes -= 1;
-
-            if (!isVotePositive) {
-                this.downvotes.add(comment.id);
-                comment.downVotes += 1;
-            }
-        } else if (this.downvotes.has(comment.id)) {
-            console.assert(!this.upvotes.has(comment.id));
-            // negate the downvote regardless of the direction of the new vote
-            this.downvotes.delete(comment.id);
-            comment.downVotes -= 1;
-
-            if (isVotePositive) {
-                this.upvotes.add(comment.id);
-                comment.upVotes += 1;
-            }
-        } else {
-            if (isVotePositive) {
-                this.upvotes.add(comment.id);
-                comment.upVotes += 1;
-            } else {
-                this.downvotes.add(comment.id);
-                comment.downVotes += 1;
-            }
-        }
-    }
-
     public async loadCommentData(episode: Episode): Promise<FullCommentData> {
         console.log(`Fetching ALL comments for episode ${episode.id}`);
         const loadCommentsURL: string = `${CommonParams.APIServerRootURL}/comments/${episode.id}/${0}-${episode.durationInSeconds}`;
@@ -241,51 +138,6 @@ class StorePlayViewModel implements IStorePlayModule {
             votesByUser: votesByUser
         };
     }
-
-    public async storeServerVote(comment: Comment, wasVotePositive: boolean): Promise<void> {
-        const URL: string = `${CommonParams.APIServerRootURL}/comments/vote/`;
-        const requestBody = {
-            commentId: comment.id,
-            episodeId: this.activeEpisode.id, // TODO: change with comment.episodeId
-            wasVotePositive: wasVotePositive
-        };
-
-        const query_storeVote = AsyncLoader.makeRestRequest(URL, HTTPVerb.Post, requestBody) as Promise<void>;
-        return query_storeVote;
-    }
-
-    public async storeServerNewComment(commentToReply: Comment|undefined, content: string): Promise<{ commentId: number }> {
-        const URL: string = `${CommonParams.APIServerRootURL}/comments/`;
-        const requestBody = {
-            commentToReplyToId: commentToReply?.id || null,
-            episodeId: this.activeEpisode.id,
-            timepointSeconds: this.audioPos.seconds,
-            content: content
-        };
-        const query_postNewComment = AsyncLoader.makeRestRequest(URL, HTTPVerb.Post, requestBody) as Promise<{ commentId: number }>;
-        return query_postNewComment;
-    }
-
-    public async storeServerEditComment(commentId: number, content: string): Promise<{ commentId: number }> {
-        const URL: string = `${CommonParams.APIServerRootURL}/comments/`;
-        const requestBody = {
-            commentId: commentId,
-            episodeId: this.activeEpisode.id,
-            content: content
-        };
-        const query_postNewComment = AsyncLoader.makeRestRequest(URL, HTTPVerb.Put, requestBody) as Promise<{ commentId: number }>;
-        return query_postNewComment;
-    }
-
-
-    public async deleteServerComment(comment: Comment): Promise<void> {
-        const URL: string = `${CommonParams.APIServerRootURL}/comments/`;
-        const requestBody = {
-            commentId: comment.id
-        };
-        const query_postNewComment = AsyncLoader.makeRestRequest(URL, HTTPVerb.Delete, requestBody) as Promise<void>;
-        return query_postNewComment;
-    }
 }
 
 const playModule = new StorePlayViewModel();
@@ -297,40 +149,117 @@ export default {
     state: playModule,
     mutations: {
         setup: (state: StorePlayViewModel): void => {
-            state.setup();
+            store.state.user.settingsModifiedEvent.subscribe((modifiedSetting: SettingPair) => {
+                // TODO: Once ts-nameof is correctly installed use nameof for the keys
+                switch (modifiedSetting.key) {
+                case "audioWindowTimeslotCount":
+                    state.setAudioWindowSlots(modifiedSetting.value as number);
+                    break;
+                case "audioWindowDuration":
+                    state.resizeAudioWindow(modifiedSetting.value as number);
+                    break;
+                }
+            });
         },
         // Should only be called by the loadEpisode action
         internalSetActiveEpisode: (state: StorePlayViewModel, episode: Episode): void => {
-            state.setActiveEpisode(episode);
+            state.activeEpisode = episode;
+            state.audioFile.filepath = episode.audioURL;
+            state.audioFile.duration = episode.durationInSeconds;
+            // Force resize the audio window because it depends on the length of the audio
+            state.resizeAudioWindow(state.audioWindow.duration);
         },
         internalSetActiveEpisodeComments: (state: StorePlayViewModel, commentData: FullCommentData): void => {
-            state.setActiveEpisodeComments(commentData);
+            state.allThreads = commentData.allComments;
+            state.commentDensityHistogram = commentData.commentDensityHistogram;
+
+            for (const curr of commentData.votesByUser) {
+                if (curr.wasVotePositive) {
+                    state.upvotes.add(curr.commentId);
+                } else {
+                    state.downvotes.add(curr.commentId);
+                }
+            }
+
+            // The received histograms doesn't contain values beyond the last comment
+            // so fill in trailing zeros
+            // TODO: Figure out how to do this faster
+            const valueCount: number = ~~(state.audioFile.duration / state.commentDensityHistogram.xAxisDistance);
+            state.commentDensityHistogram.xAxis.length = valueCount;
+            state.commentDensityHistogram.xAxis.fill(0);
+            console.log("Comments for active episode updated");
         },
         internalLocalPostNewComment: (state: StorePlayViewModel, payload: { newLocalComment: Comment; commentToReplyTo: Comment|undefined }): void => {
-            state.localPostNewComment(payload.newLocalComment, payload.commentToReplyTo);
+            if (payload.commentToReplyTo) {
+                payload.commentToReplyTo.replies.push(payload.newLocalComment);
+            } else {
+                state.allThreads.push(payload.newLocalComment);
+            }
         },
         internalLocalEditComment: (state: StorePlayViewModel, payload: { comment: Comment; content: string }): void => {
-            state.localEditComment(payload.comment, payload.content);
+            payload.comment.content = payload.content;
         },
         internalLocalUpdateCommentIdFromServer: (state: StorePlayViewModel, payload: { comment: Comment; serverId: number }): void => {
-            state.localUpdateCommentIdFromServer(payload.comment, payload.serverId);
+            payload.comment.id = payload.serverId;
         },
         internalLocalDeleteComment: (state: StorePlayViewModel, comment: Comment): void => {
-            state.localDeleteComment(comment);
+            comment.authorId = User.deletedUserId;
+            comment.authorName = User.deletedUserName;
+            comment.content = Comment.deletedCommentContents;
         },
         internalLocalVote: (state: StorePlayViewModel, payload: { comment: Comment; isVotePositive: boolean}): void => {
-            state.vote(payload.comment, payload.isVotePositive);
+            const comment = payload.comment;
+
+            if (state.upvotes.has(comment.id)) {
+                console.assert(!state.downvotes.has(comment.id));
+                // negate the upvote regardless of the direction of the new vote
+                state.upvotes.delete(comment.id);
+                comment.upVotes -= 1;
+
+                if (!payload.isVotePositive) {
+                    state.downvotes.add(comment.id);
+                    comment.downVotes += 1;
+                }
+            } else if (state.downvotes.has(comment.id)) {
+                console.assert(!state.upvotes.has(comment.id));
+                // negate the downvote regardless of the direction of the new vote
+                state.downvotes.delete(comment.id);
+                comment.downVotes -= 1;
+
+                if (payload.isVotePositive) {
+                    state.upvotes.add(comment.id);
+                    comment.upVotes += 1;
+                }
+            } else {
+                if (payload.isVotePositive) {
+                    state.upvotes.add(comment.id);
+                    comment.upVotes += 1;
+                } else {
+                    state.downvotes.add(comment.id);
+                    comment.downVotes += 1;
+                }
+            }
         },
         setVolume: (state: StorePlayViewModel, newVolume: number): void => {
-            state.setVolume(newVolume);
+            state.volume = newVolume;
         },
         moveAudioWindow: (state: StorePlayViewModel, newStart: number): void => {
             // console.log("🚀 ~ file: StorePlayModule.ts ~ line 309 ~ newStart", newStart);
             state.moveAudioWindow(newStart);
+            console.log("moving! ", newStart);
         },
         moveAudioPos: (state: StorePlayViewModel, newStart: number): void => {
             // console.log("🚀 ~ file: StorePlayModule.ts ~ line 313 ~ newStart", newStart);
             state.moveAudioPos(newStart);
+        },
+        seekTo: (state: StorePlayViewModel, secondToSeekTo: number): void => {
+            console.log("🚀 ~ file: StorePlayModule.ts ~ line 336 ~ secondToSeekTo", secondToSeekTo);
+            state.moveAudioPos(secondToSeekTo);
+            if (!state.audioWindow.containsTimepoint(secondToSeekTo)) {
+                const timeslotStart: number = state.audioWindow.findTimeslotStartForTime(secondToSeekTo);
+                console.log("timeslotStart! ", timeslotStart);
+                state.moveAudioWindow(timeslotStart);
+            }
         },
         setAudioWindowSlots: (state: StorePlayViewModel, newSlots: number): void => {
             state.setAudioWindowSlots(newSlots);
@@ -351,35 +280,58 @@ export default {
                     context.commit("internalSetActiveEpisodeComments", commentData);
                 });
         },
+
         postComment: (context: ActionContext<StorePlayViewModel, StorePlayViewModel>, payload: { commentToReplyTo: Comment|undefined; content: string }): Promise<void> => {
             const newLocalComment: Comment = context.state.generateNewLocalComment(payload.content);
             context.commit("internalLocalPostNewComment", {
                 newLocalComment: newLocalComment,
                 commentToReplyTo: payload.commentToReplyTo
             });
-            const serverQuery = context.state.storeServerNewComment(payload.commentToReplyTo, payload.content);
-            serverQuery.then(commentResult => {
+            // server query after the local changes have been committed
+            const URL: string = `${CommonParams.APIServerRootURL}/comments/`;
+            const requestBody = {
+                commentToReplyToId: payload.commentToReplyTo?.id || null,
+                episodeId: context.state.activeEpisode.id,
+                timepointSeconds: context.state.audioPos.seconds,
+                content: payload.content
+            };
+            return (AsyncLoader.makeRestRequest(URL, HTTPVerb.Post, requestBody) as Promise<{ commentId: number }>).then(commentResult => {
                 context.commit("internalLocalUpdateCommentIdFromServer", {
                     comment: newLocalComment,
                     serverId: commentResult.commentId
                 });
-            });
-            return serverQuery as unknown as Promise<void>;
+            }) as unknown as Promise<void>;
         },
+
         editComment: (context: ActionContext<StorePlayViewModel, StorePlayViewModel>, payload: { comment: Comment; content: string }): Promise<void> => {
             context.commit("internalLocalEditComment", payload);
-            const serverQuery = context.state.storeServerEditComment(payload.comment.id, payload.content);
-            return serverQuery as unknown as Promise<void>;
+            // server query after the local changes have been committed
+            const URL: string = `${CommonParams.APIServerRootURL}/comments/`;
+            const requestBody = {
+                commentId: payload.comment.id,
+                episodeId: context.state.activeEpisode.id,
+                content: payload.content
+            };
+            return AsyncLoader.makeRestRequest(URL, HTTPVerb.Put, requestBody) as Promise<void>;
         },
+
         deleteComment: (context: ActionContext<StorePlayViewModel, StorePlayViewModel>, comment: Comment): Promise<void> => {
             context.commit("internalLocalDeleteComment", comment);
-            const serverQuery = context.state.deleteServerComment(comment);
-            return serverQuery as unknown as Promise<void>;
+            // server query after the local changes have been committed
+            const URL: string = `${CommonParams.APIServerRootURL}/comments/`;
+            return AsyncLoader.makeRestRequest(URL, HTTPVerb.Delete, { commentId: comment.id }) as Promise<void>;
         },
+
         vote: (context: ActionContext<StorePlayViewModel, StorePlayViewModel>, payload: { comment: Comment; isVotePositive: boolean}): Promise<void> => {
-            // Commit locally to update the UI immediately
             context.commit("internalLocalVote", payload);
-            return context.state.storeServerVote(payload.comment, payload.isVotePositive);
+            // server query after the local changes have been committed
+            const URL: string = `${CommonParams.APIServerRootURL}/comments/vote/`;
+            const requestBody = {
+                commentId: payload.comment.id,
+                episodeId: context.state.activeEpisode.id, // TODO: change with comment.episodeId
+                wasVotePositive: payload.isVotePositive
+            };
+            return AsyncLoader.makeRestRequest(URL, HTTPVerb.Post, requestBody) as Promise<void>;
         }
     }
 };

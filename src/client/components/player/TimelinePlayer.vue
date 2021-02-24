@@ -85,7 +85,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import { Component, Watch, Vue } from "vue-property-decorator";
 import store from "@/client/store";
 import { default as AudioFile, AudioWindow } from "@/logic/AudioFile";
 import Timepoint from "@/logic/entities/Timepoint";
@@ -165,8 +165,8 @@ export default class TimelinePlayer extends Vue {
     public mounted(): void {
         this.onWindowResized();
         store.commit.device.addOnAppModeChangedListener(this.onWindowResized.bind(this));
-        const playbackProgress: number = store.state.user.getPlaybackProgressForEpisode(this.activeEpisode.id).seconds;
-        store.commit.play.moveAudioPos(playbackProgress);
+        // const playbackProgress: number = store.state.user.getPlaybackProgressForEpisode(this.activeEpisode.id).seconds;
+        // store.commit.play.moveAudioPos(playbackProgress);
         this.$recompute("audioElement");
     }
     public beforeDestroy(): void {
@@ -175,14 +175,10 @@ export default class TimelinePlayer extends Vue {
     public destroyed(): void {
         store.commit.device.removeOnAppModeChangedListener(this.onWindowResized.bind(this));
     }
-    public seekTo(secondToSeekTo: number): void {
-        store.commit.play.moveAudioPos(secondToSeekTo);
-        if (!this.audioWindow.containsTimepoint(secondToSeekTo)) {
-            const timeslotStart: number = this.audioWindow.findTimeslotStartForTime(secondToSeekTo);
-            console.log("🚀 ~ file: TimelinePlayer.vue ~ line 180 ~ TimelinePlayer ~ seekTo ~ timeslotStart", timeslotStart);
-            store.commit.play.moveAudioWindow(timeslotStart);
-        }
-        this.audioElement.currentTime = this.audioPos.seconds;
+    // TODO: deep watching is slow!!! can we use mapState to avoid the x.y.z nesting when accessing the state?
+    @Watch("audioPos", { deep: true })
+    audioPosChanged() {
+        // this.audioElement.currentTime = this.audioPos.seconds;
     }
     public togglePlay(): void {
         if (this.audioElement.paused) {
@@ -229,7 +225,7 @@ export default class TimelinePlayer extends Vue {
         }
     }
     private onZoomlinePositionMoved(newValue: number): void {
-        this.seekTo(newValue);
+        store.commit.play.seekTo(newValue);
     }
     private onTimelineWindowMoved(newValue: number): void {
         store.commit.play.moveAudioWindow(newValue);

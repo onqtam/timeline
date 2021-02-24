@@ -33,7 +33,7 @@ import CommentSection from "@/client/components/comments/CommentSection.vue";
         // Fetch the timepoint from the query
         const timepointToSyncTo: Timepoint|null = Timepoint.tryParseFromURL(to.query.t as string);
         if (timepointToSyncTo) {
-            (this.$refs["timeline-player"] as TimelinePlayer).seekTo(timepointToSyncTo.seconds);
+            store.commit.play.seekTo(timepointToSyncTo.seconds);
         }
         if (to.query.thread) {
             const threadIdToFocus: number = ~~to.query.thread;
@@ -80,20 +80,23 @@ export default class PlayView extends Vue {
                 console.assert(episode, "No such episode exists!");
                 store.dispatch.play.loadEpisode(episode!);
                 this.isDataLoaded = true;
-
-                if (this.initialTimepoint) {
-                    store.commit.play.moveAudioPos(this.initialTimepoint.seconds);
-                    const timeslotStart: number = this.audioWindow.findTimeslotStartForTime(this.initialTimepoint);
-                    store.commit.play.moveAudioWindow(timeslotStart);
-                }
-                if (this.threadIdToFocus) {
-                    this.$nextTick(() => {
-                        (this.$refs["comment-section"] as CommentSection).focusThread(this.threadIdToFocus!);
-                    });
-                }
             });
     }
     public mounted(): void {
+        console.log("🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 ~ PLAY MOUNTED");
+        this.$nextTick(() => {
+            if (this.initialTimepoint) {
+                console.log("🚀 ~ file: Play.vue ~ line 93 ~ ~ initialTimepoint", this.initialTimepoint);
+                store.commit.play.seekTo(this.initialTimepoint.seconds);
+            }
+            if (this.threadIdToFocus) {
+                this.$nextTick(() => {
+                    (this.$refs["comment-section"] as CommentSection).focusThread(this.threadIdToFocus!);
+                });
+            }
+        });
+
+
         // Trigger timers for saving the progress
         // const localTimer: number = 5000;
         // const serverTimer: number = 60000;

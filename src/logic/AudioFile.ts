@@ -21,6 +21,7 @@ export class AudioWindow {
     }
 
     constructor(audioFile: AudioFile, start?: Timepoint, duration?: number, timeslotCount?: number) {
+        console.log("🚀🚀🚀🚀🚀🚀🚀🚀🚀 ~ file: AudioFile.ts ~ line 24 ~ AudioWindow ~ constructor ~ constructor");
         this.audioFile = audioFile;
         this.start = start!;
         this.duration = duration!;
@@ -36,6 +37,9 @@ export class AudioWindow {
 
     public findTimeslotStartForTime(time: Timepoint|number): number {
         const seconds: number = time instanceof Timepoint ? time.seconds : time;
+        console.log(seconds);
+        console.log(this.audioFile.duration);
+        console.log(this.duration);
         // we want to position the window so that the cursor is always at 10%, except in the corner cases
         return MathHelpers.clamp(seconds - this.duration * 0.1, 0, this.audioFile.duration - this.duration);
     }
