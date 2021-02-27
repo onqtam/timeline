@@ -14,7 +14,8 @@
                 <!-- commented out for now - takes too much space and isn't useful for now -->
                 <!-- <v-slider class="volume-slider" :min=0 :max=1 :step=0.01 :value.sync=volume></v-slider> -->
                 <v-slider class="volume-slider"
-                    min=30 max=1200 step=1 label="Window Size" thumb-label="always"
+                    :max=audioDuration
+                    label="Window Size" thumb-label="always"
                     v-model=audioWindowDuration>
                 </v-slider>
                 <v-text-field label="omg" style="display: inline-block;"></v-text-field>
@@ -85,7 +86,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Watch, Vue } from "vue-property-decorator";
+import { Component, Vue } from "vue-property-decorator";
 import store from "@/client/store";
 import { default as AudioFile, AudioWindow } from "@/logic/AudioFile";
 import Timepoint from "@/logic/entities/Timepoint";
@@ -113,6 +114,9 @@ export default class TimelinePlayer extends Vue {
     }
     public get audioWindow(): AudioWindow {
         return store.state.play.audioWindow;
+    }
+    public get audioDuration(): number {
+        return this.audio.duration;
     }
     public get volume(): number {
         return store.state.play.volume;
@@ -175,11 +179,6 @@ export default class TimelinePlayer extends Vue {
     public destroyed(): void {
         store.commit.device.removeOnAppModeChangedListener(this.onWindowResized.bind(this));
     }
-    // TODO: deep watching is slow!!! can we use mapState to avoid the x.y.z nesting when accessing the state?
-    @Watch("audioPos", { deep: true })
-    audioPosChanged() {
-        // this.audioElement.currentTime = this.audioPos.seconds;
-    }
     public togglePlay(): void {
         if (this.audioElement.paused) {
             this.play();
@@ -226,6 +225,7 @@ export default class TimelinePlayer extends Vue {
     }
     private onZoomlinePositionMoved(newValue: number): void {
         store.commit.play.seekTo(newValue);
+        this.audioElement.currentTime = newValue;
     }
     private onTimelineWindowMoved(newValue: number): void {
         store.commit.play.moveAudioWindow(newValue);

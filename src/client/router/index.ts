@@ -28,7 +28,6 @@ const routes: Array<RouteConfig> = [
         name: "Play",
         component: PlayView,
         props: (route) => ({
-            initialTimepoint: Timepoint.tryParseFromURL(route.query.t as string),
             threadIdToFocus: ~~(route.query.thread as string),
             channelTitleURL: route.params.channelTitle,
             episodeTitleURL: route.params.episodeTitle

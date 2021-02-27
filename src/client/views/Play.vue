@@ -13,7 +13,6 @@ import { Route, NavigationGuardNext } from "vue-router";
 import store from "@/client/store";
 
 import Timepoint from "@/logic/entities/Timepoint";
-import { default as AudioFile, AudioWindow } from "@/logic/AudioFile";
 import { default as Comment } from "@/logic/entities/Comments";
 
 import TimelinePlayer from "@/client/components/player/TimelinePlayer.vue";
@@ -25,16 +24,8 @@ import CommentSection from "@/client/components/comments/CommentSection.vue";
         CommentSection
     },
     beforeRouteUpdate(to: Route, from: Route, next: NavigationGuardNext<PlayView>) {
-        // TODO: the code here duplicates part of the router and part of the onMounted code
-        // as there's no other way
-        // (or at least I couldn't find) to refresh the same component
+        PlayView.updateBasedOnRoute(to);
 
-        // There's no "afterRouteUpdate"... so we can't directly use the prop initialTimepoint
-        // Fetch the timepoint from the query
-        const timepointToSyncTo: Timepoint|null = Timepoint.tryParseFromURL(to.query.t as string);
-        if (timepointToSyncTo) {
-            store.commit.play.seekTo(timepointToSyncTo.seconds);
-        }
         if (to.query.thread) {
             const threadIdToFocus: number = ~~to.query.thread;
             this.$nextTick(() => {
@@ -47,8 +38,6 @@ import CommentSection from "@/client/components/comments/CommentSection.vue";
     }
 })
 export default class PlayView extends Vue {
-    @Prop({ type: Timepoint })
-    public initialTimepoint?: Timepoint;
     @Prop({ type: Number })
     public threadIdToFocus?: number;
     @Prop({ type: String })
@@ -56,20 +45,33 @@ export default class PlayView extends Vue {
     @Prop({ type: String })
     public episodeTitleURL!: string;
 
-    public get audioFile(): AudioFile {
-        return store.state.play.audioFile;
-    }
     public get allThreads(): Comment[] {
         return store.state.play.allThreads;
-    }
-    public get audioWindow(): AudioWindow {
-        return store.state.play.audioWindow;
     }
 
     public isDataLoaded: boolean = false;
 
     private _localPlaybackStorageTimerId: number = -1;
     private _serverPlaybackStorageTimerId: number = -1;
+
+    static updateBasedOnRoute(to: Route) {
+        console.log("🚀 ~ file: Play.vue ~ line 58 ~ PlayView ~ updateBasedOnRoute ~ to", to)
+        let initialTimepoint = Timepoint.tryParseFromURL(to.query.t as string);
+        let start = Timepoint.tryParseFromURL(to.query.start as string);
+        let end = Timepoint.tryParseFromURL(to.query.end as string);
+
+        // check if there's a range specified for the window
+        if (start && end) {
+            
+            console.log(store.state.play.audioWindow.start.seconds);
+
+            store.commit.play.setAudioWindow({start: start.seconds, end: end.seconds});
+            store.commit.play.moveAudioPos(start.seconds);
+            console.log(store.state.play.audioWindow.start.seconds);
+        } else if (initialTimepoint) {
+            store.commit.play.seekTo(initialTimepoint.seconds);
+        }
+    }
 
     public beforeMount(): void {
         console.assert(this.channelTitleURL !== undefined && this.episodeTitleURL !== undefined);
@@ -78,17 +80,16 @@ export default class PlayView extends Vue {
             .loadEpisodeData(dispatchPayload)
             .then(episode => {
                 console.assert(episode, "No such episode exists!");
-                store.dispatch.play.loadEpisode(episode!);
+                store.dispatch.play.loadEpisode(episode!)
+                // .then(() => {
                 this.isDataLoaded = true;
+                PlayView.updateBasedOnRoute(this.$route);
+                // });
             });
     }
     public mounted(): void {
         console.log("🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 ~ PLAY MOUNTED");
         this.$nextTick(() => {
-            if (this.initialTimepoint) {
-                console.log("🚀 ~ file: Play.vue ~ line 93 ~ ~ initialTimepoint", this.initialTimepoint);
-                store.commit.play.seekTo(this.initialTimepoint.seconds);
-            }
             if (this.threadIdToFocus) {
                 this.$nextTick(() => {
                     (this.$refs["comment-section"] as CommentSection).focusThread(this.threadIdToFocus!);
@@ -125,11 +126,6 @@ export default class PlayView extends Vue {
 
 <style scoped lang="less">
 @import "../cssresources/theme.less";
-
-// .timeline-player {
-//     // height: 40vh;
-//     background-color:rgb(0, 24, 75);
-// }
 
 .timeline-player, .comment-section-root {
     margin: 0 1em;

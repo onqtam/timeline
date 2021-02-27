@@ -78,10 +78,13 @@ class StorePlayViewModel implements IStorePlayModule {
     public moveAudioWindow(newStart: number): void {
         // TODO: Assert we are jumping to a timeslot
         this.audioWindow.start.seconds = newStart;
-        console.log("moving inner! ", newStart);
     }
     public moveAudioPos(newStart: number): void {
         this.audioPos.seconds = newStart;
+    }
+    public setAudioWindow(start: number, end: number): void {
+        this.audioWindow.start.seconds = start;
+        this.audioWindow.duration = end - start;
     }
     public updateTimeslotCount(appMode: ActiveAppMode): void {
         switch (appMode) {
@@ -149,6 +152,7 @@ export default {
     state: playModule,
     mutations: {
         setup: (state: StorePlayViewModel): void => {
+            console.log("🚀 ~ file: StorePlayModule.ts ~ line 156 ~ setup")
             store.state.user.settingsModifiedEvent.subscribe((modifiedSetting: SettingPair) => {
                 // TODO: Once ts-nameof is correctly installed use nameof for the keys
                 switch (modifiedSetting.key) {
@@ -252,12 +256,14 @@ export default {
             // console.log("🚀 ~ file: StorePlayModule.ts ~ line 313 ~ newStart", newStart);
             state.moveAudioPos(newStart);
         },
+        setAudioWindow: (state: StorePlayViewModel, payload: {start: number, end: number}): void => {
+            // console.log("🚀 ~ file: StorePlayModule.ts ~ line 313 ~ newStart", newStart);
+            state.setAudioWindow(payload.start, payload.end);
+        },
         seekTo: (state: StorePlayViewModel, secondToSeekTo: number): void => {
-            console.log("🚀 ~ file: StorePlayModule.ts ~ line 336 ~ secondToSeekTo", secondToSeekTo);
             state.moveAudioPos(secondToSeekTo);
             if (!state.audioWindow.containsTimepoint(secondToSeekTo)) {
                 const timeslotStart: number = state.audioWindow.findTimeslotStartForTime(secondToSeekTo);
-                console.log("timeslotStart! ", timeslotStart);
                 state.moveAudioWindow(timeslotStart);
             }
         },

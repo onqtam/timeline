@@ -26,10 +26,10 @@ export default class Timepoint {
         return new Timepoint(totalSeconds);
     }
 
-    public static tryParseFromURL(text: string): Timepoint|null {
+    public static tryParseFromURL(text: string): Timepoint | undefined {
         const elements = text?.split("-");
         if (!elements || elements.length !== 3) {
-            return null;
+            return undefined;
         }
         const [hours, minutes, seconds]: number[] = elements.map(e => ~~e);
 
