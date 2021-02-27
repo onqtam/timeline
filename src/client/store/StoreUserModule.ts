@@ -87,7 +87,7 @@ export default {
     state: userModule,
     mutations: {
         internalLoadLocalData: (state: StoreUserViewModel): void => {
-                    // Also load playback progress
+            // Also load playback progress
             const storedPlaybackString: string|null = localStorage.getItem(StoreUserViewModel.LOCAL_STORAGE_PLAYBACK_KEY);
             if (storedPlaybackString) {
                 state._episodeIdToPlaybackProgress = JSON.parse(storedPlaybackString);
@@ -158,7 +158,7 @@ export default {
                 });
             return Promise.allSettled([query_loadUser, query_loadUserPlayback]) as unknown as Promise<void>;
         },
-        login: (context: ActionContext<StoreUserViewModel, StoreUserViewModel>): Promise<void> => {
+        login: (_context: ActionContext<StoreUserViewModel, StoreUserViewModel>): Promise<void> => {
             console.log("Sending login request");
             const routeToReturnTo: string = router.currentRoute.fullPath;
             const fullReturnURL: string = encodeURIComponent(`${CommonParams.ClientServerRootURL}/#${routeToReturnTo}`);

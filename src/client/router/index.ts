@@ -5,7 +5,6 @@ import PlayView from "../views/Play.vue";
 import EpisodesView from "../views/Episodes.vue";
 import ChannelsView from "../views/Channels.vue";
 import ProfileView from "../views/Profile.vue";
-import Timepoint from "@/logic/entities/Timepoint";
 
 Vue.use(VueRouter);
 

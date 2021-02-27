@@ -24,6 +24,7 @@ import CommentSection from "@/client/components/comments/CommentSection.vue";
         CommentSection
     },
     beforeRouteUpdate(to: Route, from: Route, next: NavigationGuardNext<PlayView>) {
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define
         PlayView.updateBasedOnRoute(to);
 
         if (to.query.thread) {
@@ -55,19 +56,14 @@ export default class PlayView extends Vue {
     private _serverPlaybackStorageTimerId: number = -1;
 
     static updateBasedOnRoute(to: Route) {
-        console.log("🚀 ~ file: Play.vue ~ line 58 ~ PlayView ~ updateBasedOnRoute ~ to", to)
-        let initialTimepoint = Timepoint.tryParseFromURL(to.query.t as string);
-        let start = Timepoint.tryParseFromURL(to.query.start as string);
-        let end = Timepoint.tryParseFromURL(to.query.end as string);
+        const initialTimepoint = Timepoint.tryParseFromURL(to.query.t as string);
+        const start = Timepoint.tryParseFromURL(to.query.start as string);
+        const end = Timepoint.tryParseFromURL(to.query.end as string);
 
         // check if there's a range specified for the window
         if (start && end) {
-            
-            console.log(store.state.play.audioWindow.start.seconds);
-
-            store.commit.play.setAudioWindow({start: start.seconds, end: end.seconds});
+            store.commit.play.setAudioWindow({ start: start.seconds, end: end.seconds });
             store.commit.play.moveAudioPos(start.seconds);
-            console.log(store.state.play.audioWindow.start.seconds);
         } else if (initialTimepoint) {
             store.commit.play.seekTo(initialTimepoint.seconds);
         }
@@ -80,7 +76,7 @@ export default class PlayView extends Vue {
             .loadEpisodeData(dispatchPayload)
             .then(episode => {
                 console.assert(episode, "No such episode exists!");
-                store.dispatch.play.loadEpisode(episode!)
+                store.dispatch.play.loadEpisode(episode!);
                 // .then(() => {
                 this.isDataLoaded = true;
                 PlayView.updateBasedOnRoute(this.$route);

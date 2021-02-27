@@ -152,7 +152,6 @@ export default {
     state: playModule,
     mutations: {
         setup: (state: StorePlayViewModel): void => {
-            console.log("🚀 ~ file: StorePlayModule.ts ~ line 156 ~ setup")
             store.state.user.settingsModifiedEvent.subscribe((modifiedSetting: SettingPair) => {
                 // TODO: Once ts-nameof is correctly installed use nameof for the keys
                 switch (modifiedSetting.key) {
@@ -256,7 +255,7 @@ export default {
             // console.log("🚀 ~ file: StorePlayModule.ts ~ line 313 ~ newStart", newStart);
             state.moveAudioPos(newStart);
         },
-        setAudioWindow: (state: StorePlayViewModel, payload: {start: number, end: number}): void => {
+        setAudioWindow: (state: StorePlayViewModel, payload: {start: number; end: number}): void => {
             // console.log("🚀 ~ file: StorePlayModule.ts ~ line 313 ~ newStart", newStart);
             state.setAudioWindow(payload.start, payload.end);
         },
