@@ -15,11 +15,39 @@
                 <!-- <v-slider class="volume-slider" :min=0 :max=1 :step=0.01 :value.sync=volume></v-slider> -->
                 <v-slider class="volume-slider"
                     :max=audioDuration
+                    min=30
                     label="Window Size" thumb-label="always"
-                    v-model=audioWindowDuration>
+                    v-model=windowDuration>
                 </v-slider>
-                <v-text-field label="omg" style="display: inline-block;"></v-text-field>
-                Window Start: {{audioWindow.start.format()}}
+                
+                <!-- TODO: maybe debounce the inputs?
+                https://stackoverflow.com/questions/42199956/how-to-implement-debounce-in-vue2 
+                
+                -->
+
+                <!-- TODO: show the field not as a number but as a timepoint - like here:
+                https://www.coingecko.com/en/coins/ethereum
+                https://learnvue.co/2021/01/everything-you-need-to-know-about-vue-v-model/
+                -->
+                <v-text-field type="number" label="Window Start" style="display: inline-block;" v-model=windowStart></v-text-field>
+                <v-text-field type="number" label="Window End" style="display: inline-block;" v-model=windowEnd></v-text-field>
+                <!-- Window Start: {{audioWindow.start.format()}} -->
+
+                <!-- <v-text-field
+                    label="Window Start"
+                    value="12:30:10"
+                    type="time"
+                    suffix="PST"
+                ></v-text-field> -->
+
+
+                <the-mask type="tel" :mask="['##:##:##']" class="white" v-model.number=windowStart >omg</the-mask>
+
+                <!-- <the-mask></the-mask>
+                <input type="tel" placeholder="hh:mm:ss"> -->
+                <!-- <input type="tel" v-mask="'##/##/####'" />
+                <the-mask :mask="['##:##']" /> -->
+
                 <!-- <span style="display: inline-block; width: 70px;">{{audioWindow.start.format()}}</span> -->
                 <!-- <span style="display: inline-block; width: 100px;">Window End: {{audioWindow.end.format()}}</span> -->
 
@@ -63,7 +91,7 @@
             >
             </AgendaComponent>
         </div>
-        <Funnel
+        <!-- <Funnel
             class="funnel"
             ref="funnel"
             :duration_full=audio.duration
@@ -72,7 +100,7 @@
             :timelineWidthRatio=0.7
             @update:currentAudioPosition=onZoomlinePositionMoved
         >
-        </Funnel>
+        </Funnel> -->
 
         <Zoomline
             class="zoomline"
@@ -125,13 +153,29 @@ export default class TimelinePlayer extends Vue {
         store.commit.play.setVolume(value);
         this.audioElement.volume = value;
     }
-    public get audioWindowDuration(): number {
-        return store.state.user.info.settings.audioWindowDuration;
+
+
+    get windowDuration(): number {
+        return this.audioWindow.duration;
     }
-    public set audioWindowDuration(value: number) {
-        const payload = { key: "audioWindowDuration", value };
-        store.commit.user.localSetSettingValue(payload);
+    set windowDuration(value: number) {
+        store.commit.play.setAudioWindow({ start: this.windowStart, end: this.windowStart + value });
     }
+    get windowStart(): number {
+        return this.audioWindow.start.seconds;
+    }
+    set windowStart(value: number) {
+        store.commit.play.moveAudioWindow(value);
+    }
+    get windowEnd(): number {
+        return this.audioWindow.end.seconds;
+    }
+    set windowEnd(value: number) {
+        store.commit.play.setAudioWindow({ start: this.windowStart, end: value });
+    }
+
+    
+
     public get isMuted(): boolean {
         return !this.audioElement || this.audioElement.muted;
     }
@@ -241,11 +285,6 @@ export default class TimelinePlayer extends Vue {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="less">
 @import "../../cssresources/theme.less";
-
-button {
-    color: @theme-background;
-    background: @theme-text-color;
-}
 
 .controls {
     background: rgb(37, 37, 37);

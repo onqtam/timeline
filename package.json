@@ -29,6 +29,7 @@
     "reflect-metadata": "^0.1.13",
     "ste-simple-events": "^1.6.19",
     "typeorm": "^0.2.25",
+    "v-mask": "^2.2.4",
     "vue": "^2.6.11",
     "vue-class-component": "^7.2.3",
     "vue-property-decorator": "^8.4.2",

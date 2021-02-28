@@ -158,9 +158,6 @@ export default {
                 case "audioWindowTimeslotCount":
                     state.setAudioWindowSlots(modifiedSetting.value as number);
                     break;
-                case "audioWindowDuration":
-                    state.resizeAudioWindow(modifiedSetting.value as number);
-                    break;
                 }
             });
         },
@@ -249,7 +246,6 @@ export default {
         moveAudioWindow: (state: StorePlayViewModel, newStart: number): void => {
             // console.log("🚀 ~ file: StorePlayModule.ts ~ line 309 ~ newStart", newStart);
             state.moveAudioWindow(newStart);
-            console.log("moving! ", newStart);
         },
         moveAudioPos: (state: StorePlayViewModel, newStart: number): void => {
             // console.log("🚀 ~ file: StorePlayModule.ts ~ line 313 ~ newStart", newStart);

@@ -13,6 +13,10 @@ export class AudioWindow {
     public duration!: number;
     public timeslotCount!: number;
 
+    get end(): Timepoint {
+        return new Timepoint(this.start.seconds + this.duration);
+    }
+
     public get timeslotDuration(): number {
         return ~~(this.duration / this.timeslotCount);
     }
