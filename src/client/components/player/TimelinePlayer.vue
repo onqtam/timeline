@@ -19,7 +19,7 @@
                     label="Window Size" thumb-label="always"
                     v-model=windowDuration>
                 </v-slider>
-                
+
                 <v-text-field label="Window Start" class="d-inline-block" style="width: 80px;"
                     v-mask="'##:##:##'"
                     autocomplete="off"
@@ -148,14 +148,13 @@ export default class TimelinePlayer extends Vue {
         return this.audioWindow.duration;
     }
     set windowDuration(value: number) {
-        let offset = 0;
-        // handle the cases where 
+        let backward_offset = 0;
+        // offset backward both the start and end of the window so that the duration fits
         if (this.windowStart + value > this.audio.duration) {
-            offset = this.windowStart + value - this.audio.duration;
+            backward_offset = this.windowStart + value - this.audio.duration;
         }
-        store.commit.play.setAudioWindow({ start: this.windowStart - offset, end: this.windowStart + value - offset});
+        store.commit.play.setAudioWindow({ start: this.windowStart - backward_offset, end: this.windowStart + value - backward_offset });
     }
-
 
     windowStartAsString = Timepoint.FullFormat(this.windowStart);
     windowStartChange() {
@@ -186,10 +185,8 @@ export default class TimelinePlayer extends Vue {
     @Watch("audioWindow", { deep: true })
     private watchSomething() {
         this.windowStartAsString = Timepoint.FullFormat(this.windowStart);
-        this.windowEndAsString = Timepoint.FullFormat(this.windowEnd)
+        this.windowEndAsString = Timepoint.FullFormat(this.windowEnd);
     }
-
-
 
     public get volume(): number {
         return store.state.play.volume;

@@ -1,7 +1,7 @@
 import Vue from "vue";
 import store from "./store";
 import vuetifyInstance from "./plugins/vuetify";
-import VueTheMask from 'vue-the-mask'
+import VueTheMask from "vue-the-mask";
 import App from "./App.vue";
 import router from "./router";
 import { installVueRecompute } from "./utils/VueRecompute";
@@ -9,7 +9,7 @@ import { installVueRecompute } from "./utils/VueRecompute";
 Vue.config.productionTip = false;
 Vue.config.devtools = true;
 
-Vue.use(VueTheMask)
+Vue.use(VueTheMask);
 
 installVueRecompute();
 
