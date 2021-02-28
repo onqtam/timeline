@@ -98,26 +98,26 @@ export default class Timeline extends Vue {
     pos_y = 0;
 
     showContextMenu(e: MouseEvent) {
-        e.preventDefault()
-        this.shouldShowContextMenu = false
+        e.preventDefault();
+        this.shouldShowContextMenu = false;
         this.pos_x = e.clientX;
         this.pos_y = e.clientY;
         this.$nextTick(() => {
-            this.shouldShowContextMenu = true
+            this.shouldShowContextMenu = true;
         });
     }
 
     registerEscapeKeyHook() {
         const escapeHandler = (e: KeyboardEvent) => {
-            if (e.key === 'Escape' && this.shouldShowContextMenu) {
+            if (e.key === "Escape" && this.shouldShowContextMenu) {
                 this.shouldShowContextMenu = false;
             }
-        }
+        };
 
-        document.addEventListener('keydown', escapeHandler);
+        document.addEventListener("keydown", escapeHandler);
 
-        this.$once('hook:destroyed', () => {
-            document.removeEventListener('keydown', escapeHandler);
+        this.$once("hook:destroyed", () => {
+            document.removeEventListener("keydown", escapeHandler);
         });
     }
 
