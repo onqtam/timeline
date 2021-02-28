@@ -12,9 +12,9 @@ export default class Timepoint {
         this.normalize();
     }
 
-    public static tryParseFromFormattedText(text: string): Timepoint|null {
+    public static tryParseFromFormattedText(text: string, minSections = 2): Timepoint|null {
         const elements = text?.split(":");
-        if (!elements || elements.length < 2 || elements.length > 3) {
+        if (!elements || elements.length < minSections || elements.length > 3) {
             return null;
         }
         const timeComponents: number[] = elements.map(e => ~~e);
@@ -45,6 +45,10 @@ export default class Timepoint {
 
     public formatAsUrlParam(): string {
         return this.formatExtended("-", false);
+    }
+
+    public static FullFormat(value: number): string {
+        return (new Timepoint(value)).formatExtended(":", false);
     }
 
     public format(): string {

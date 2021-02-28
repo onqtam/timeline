@@ -76,13 +76,17 @@ class StorePlayViewModel implements IStorePlayModule {
         this.audioWindow.duration = newWindowDuration;
     }
     public moveAudioWindow(newStart: number): void {
-        // TODO: Assert we are jumping to a timeslot
         this.audioWindow.start.seconds = newStart;
     }
-    public moveAudioPos(newStart: number): void {
-        this.audioPos.seconds = newStart;
+    public moveAudioPos(newPos: number): void {
+        // TODO: perhaps not assert but handle it gracefully?
+        console.assert(newPos <= this.audioFile.duration);
+        this.audioPos.seconds = newPos;
     }
     public setAudioWindow(start: number, end: number): void {
+        console.assert(start <= this.audioFile.duration);
+        console.assert(end <= this.audioFile.duration);
+        console.assert(start < end);
         this.audioWindow.start.seconds = start;
         this.audioWindow.duration = end - start;
     }

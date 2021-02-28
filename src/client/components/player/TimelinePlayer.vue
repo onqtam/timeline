@@ -13,48 +13,33 @@
                 </v-btn>
                 <!-- commented out for now - takes too much space and isn't useful for now -->
                 <!-- <v-slider class="volume-slider" :min=0 :max=1 :step=0.01 :value.sync=volume></v-slider> -->
-                <v-slider class="volume-slider"
-                    :max=audioDuration
-                    min=30
+                <v-slider class="d-inline-block" style="width: 250px; margin-top: 20px;"
+                    :max=audio.duration
+                    min=1
                     label="Window Size" thumb-label="always"
                     v-model=windowDuration>
                 </v-slider>
                 
-                <!-- TODO: maybe debounce the inputs?
-                https://stackoverflow.com/questions/42199956/how-to-implement-debounce-in-vue2 
-                
-                -->
+                <v-text-field label="Window Start" class="d-inline-block" style="width: 80px;"
+                    v-mask="'##:##:##'"
+                    autocomplete="off"
+                    v-model=windowStartAsString
+                    @change="windowStartChange"
+                ></v-text-field>
+                <v-text-field label="Window End" class="d-inline-block" style="width: 80px;"
+                    v-mask="'##:##:##'"
+                    autocomplete="off"
+                    v-model=windowEndAsString
+                    @change="windowEndChange"
+                ></v-text-field>
 
-                <!-- TODO: show the field not as a number but as a timepoint - like here:
-                https://www.coingecko.com/en/coins/ethereum
-                https://learnvue.co/2021/01/everything-you-need-to-know-about-vue-v-model/
-                -->
-                <v-text-field type="number" label="Window Start" style="display: inline-block;" v-model=windowStart></v-text-field>
-                <v-text-field type="number" label="Window End" style="display: inline-block;" v-model=windowEnd></v-text-field>
-                <!-- Window Start: {{audioWindow.start.format()}} -->
-
-                <!-- <v-text-field
-                    label="Window Start"
-                    value="12:30:10"
-                    type="time"
-                    suffix="PST"
-                ></v-text-field> -->
-
-
-                <the-mask type="tel" :mask="['##:##:##']" class="white" v-model.number=windowStart >omg</the-mask>
-
-                <!-- <the-mask></the-mask>
-                <input type="tel" placeholder="hh:mm:ss"> -->
-                <!-- <input type="tel" v-mask="'##/##/####'" />
-                <the-mask :mask="['##:##']" /> -->
-
-                <!-- <span style="display: inline-block; width: 70px;">{{audioWindow.start.format()}}</span> -->
-                <!-- <span style="display: inline-block; width: 100px;">Window End: {{audioWindow.end.format()}}</span> -->
-
+                <v-btn>◄Unpinch►</v-btn>
+                <v-btn>►Pinch◄</v-btn>
 
                 <!-- TODO: use button-groups - mutually-exclusive toggles -->
-                <!-- <v-btn>Comments</v-btn>
-                <v-btn>Bookmarks</v-btn> -->
+                <v-btn>Comments</v-btn>
+                <!-- <v-btn>Bookmarks</v-btn> -->
+
                 <audio nocontrols
                     class="audio-element"
                     ref="audio-element"
@@ -91,7 +76,7 @@
             >
             </AgendaComponent>
         </div>
-        <!-- <Funnel
+        <Funnel
             class="funnel"
             ref="funnel"
             :duration_full=audio.duration
@@ -100,7 +85,7 @@
             :timelineWidthRatio=0.7
             @update:currentAudioPosition=onZoomlinePositionMoved
         >
-        </Funnel> -->
+        </Funnel>
 
         <Zoomline
             class="zoomline"
@@ -114,7 +99,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import { Component, Watch, Vue } from "vue-property-decorator";
 import store from "@/client/store";
 import { default as AudioFile, AudioWindow } from "@/logic/AudioFile";
 import Timepoint from "@/logic/entities/Timepoint";
@@ -143,29 +128,15 @@ export default class TimelinePlayer extends Vue {
     public get audioWindow(): AudioWindow {
         return store.state.play.audioWindow;
     }
-    public get audioDuration(): number {
-        return this.audio.duration;
-    }
-    public get volume(): number {
-        return store.state.play.volume;
-    }
-    public set volume(value: number) {
-        store.commit.play.setVolume(value);
-        this.audioElement.volume = value;
+    public get audioPos(): Timepoint {
+        return store.state.play.audioPos;
     }
 
-
-    get windowDuration(): number {
-        return this.audioWindow.duration;
-    }
-    set windowDuration(value: number) {
-        store.commit.play.setAudioWindow({ start: this.windowStart, end: this.windowStart + value });
-    }
     get windowStart(): number {
         return this.audioWindow.start.seconds;
     }
     set windowStart(value: number) {
-        store.commit.play.moveAudioWindow(value);
+        store.commit.play.setAudioWindow({ start: value, end: this.windowEnd });
     }
     get windowEnd(): number {
         return this.audioWindow.end.seconds;
@@ -173,14 +144,62 @@ export default class TimelinePlayer extends Vue {
     set windowEnd(value: number) {
         store.commit.play.setAudioWindow({ start: this.windowStart, end: value });
     }
+    get windowDuration(): number {
+        return this.audioWindow.duration;
+    }
+    set windowDuration(value: number) {
+        let offset = 0;
+        // handle the cases where 
+        if (this.windowStart + value > this.audio.duration) {
+            offset = this.windowStart + value - this.audio.duration;
+        }
+        store.commit.play.setAudioWindow({ start: this.windowStart - offset, end: this.windowStart + value - offset});
+    }
 
-    
 
+    windowStartAsString = Timepoint.FullFormat(this.windowStart);
+    windowStartChange() {
+        const fromStr = Timepoint.tryParseFromFormattedText(this.windowStartAsString, 3);
+        if (!fromStr || fromStr.seconds > this.windowEnd) {
+            // if it cannot be parsed or is after the end - reset it
+            this.windowStartAsString = Timepoint.FullFormat(this.windowStart);
+            // TODO: perhaps we should not reset if it's after the window end but simply move the end by the duration?
+        } else {
+            this.windowStart = fromStr.seconds;
+            // TODO: update the router path as well?
+        }
+    }
+
+    windowEndAsString = Timepoint.FullFormat(this.windowEnd)
+    windowEndChange() {
+        const fromStr = Timepoint.tryParseFromFormattedText(this.windowEndAsString, 3);
+        if (!fromStr) {
+            // if it cannot be parsed - reset it
+            this.windowEndAsString = Timepoint.FullFormat(this.windowEnd);
+        } else {
+            this.windowEnd = fromStr.seconds;
+            // TODO: update the router path as well?
+        }
+    }
+
+    // TODO: deep watching is slow!!! can we use mapState to avoid the x.y.z nesting when accessing the state?
+    @Watch("audioWindow", { deep: true })
+    private watchSomething() {
+        this.windowStartAsString = Timepoint.FullFormat(this.windowStart);
+        this.windowEndAsString = Timepoint.FullFormat(this.windowEnd)
+    }
+
+
+
+    public get volume(): number {
+        return store.state.play.volume;
+    }
+    public set volume(value: number) {
+        store.commit.play.setVolume(value);
+        this.audioElement.volume = value;
+    }
     public get isMuted(): boolean {
         return !this.audioElement || this.audioElement.muted;
-    }
-    public get audioPos(): Timepoint {
-        return store.state.play.audioPos;
     }
     public get isPaused(): boolean {
         return !this.audioElement || this.audioElement.paused;
@@ -329,12 +348,6 @@ export default class TimelinePlayer extends Vue {
 
 .slider-controls {
     width: 100%;
-}
-.volume-slider {
-    // TODO: This needs to go as it overrides the v-slider's display: flex
-    // may be wrap the v-slider with another div so that it's not possible to be overriden?
-    display: inline-block;
-    width: 200px;
 }
 </style>
 
