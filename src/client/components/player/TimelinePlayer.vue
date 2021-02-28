@@ -132,6 +132,10 @@ export default class TimelinePlayer extends Vue {
         return store.state.play.audioPos;
     }
 
+    // ================================================================
+    // == window size & position
+    // ================================================================
+
     get windowStart(): number {
         return this.audioWindow.start.seconds;
     }
@@ -187,6 +191,10 @@ export default class TimelinePlayer extends Vue {
         this.windowStartAsString = Timepoint.FullFormat(this.windowStart);
         this.windowEndAsString = Timepoint.FullFormat(this.windowEnd);
     }
+
+    // ================================================================
+    // == other stuff
+    // ================================================================
 
     public get volume(): number {
         return store.state.play.volume;

@@ -8,6 +8,7 @@
         @mousedown.left=onStartDragging
         @mouseup.left=onStopDragging
         v-ripple
+        @contextmenu="showContextMenu"
     >
         <!-- Highlights the part of the audio that should be zoomed, only in Standard -->
         <div class="zoom-window"
@@ -41,6 +42,19 @@
                 {{ currentAudioPosition.format() }}
             </div>
         </div>
+
+        <!-- this is the right-click menu -->
+        <!-- TODO: improve this - make it feel like YouTube! -->
+        <v-menu v-model="shouldShowContextMenu" :position-x="pos_x" :position-y="pos_y" absolute offset-y>
+            <v-list style="cursor: pointer;">
+                <v-list-item>
+                    <v-list-item-title @click="copy_position">copy link to current position</v-list-item-title>
+                </v-list-item>
+                <v-list-item>
+                    <v-list-item-title @click="copy_range">copy link to range</v-list-item-title>
+                </v-list-item>
+            </v-list>
+        </v-menu>
   </div>
 </template>
 
@@ -49,6 +63,7 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 import Timepoint from "@/logic/entities/Timepoint";
 import { AudioWindow } from "@/logic/AudioFile";
 import MathHelpers from "@/logic/MathHelpers";
+import { Clipboard } from "@/logic/MiscHelpers";
 
 import VChart, { ChartType } from "../primitives/VChart.vue";
 import Chartist, { IChartistData, ILineChartOptions } from "chartist";
@@ -73,6 +88,61 @@ export default class Timeline extends Vue {
     public currentAudioPosition!: Timepoint;
     @Prop()
     public audioWindow?: AudioWindow;
+
+    // ================================================================
+    // == right-click menu for the timeline
+    // ================================================================
+
+    shouldShowContextMenu = false;
+    pos_x = 0;
+    pos_y = 0;
+
+    showContextMenu(e: MouseEvent) {
+        e.preventDefault()
+        this.shouldShowContextMenu = false
+        this.pos_x = e.clientX;
+        this.pos_y = e.clientY;
+        this.$nextTick(() => {
+            this.shouldShowContextMenu = true
+        });
+    }
+
+    registerEscapeKeyHook() {
+        const escapeHandler = (e: KeyboardEvent) => {
+            if (e.key === 'Escape' && this.shouldShowContextMenu) {
+                this.shouldShowContextMenu = false;
+            }
+        }
+
+        document.addEventListener('keydown', escapeHandler);
+
+        this.$once('hook:destroyed', () => {
+            document.removeEventListener('keydown', escapeHandler);
+        });
+    }
+
+    created() {
+        this.registerEscapeKeyHook();
+    }
+
+    copy_position() {
+        let url = window.location.origin;
+        url += ""; // TODO: add the channel/episode in the URL once they are turned into IDs
+        url += "?t=" + this.currentAudioPosition.formatAsUrlParam();
+        Clipboard.copyToClipboard(url);
+    }
+
+    copy_range() {
+        let url = window.location.origin;
+        url += ""; // TODO: add the channel/episode in the URL once they are turned into IDs
+        url += "?start=" + (new Timepoint(this.rangeStart)).formatAsUrlParam();
+        url += "?end=" + (new Timepoint(this.rangeEnd)).formatAsUrlParam();
+        Clipboard.copyToClipboard(url);
+    }
+
+    // ================================================================
+    // == other stuff
+    // ================================================================
 
     public get computedMarks(): Timepoint[] { return [new Timepoint(0), new Timepoint(this.audioWindow?.audioFile.duration)]; }
 
