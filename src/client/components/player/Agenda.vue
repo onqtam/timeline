@@ -65,12 +65,12 @@ export default class AgendaComponent extends Vue {
 
     set activeIndex(index: number) {
         this.showDialog = false;
-        if (!index || index == this.activeIndex) {
+        if (!index || index === this.activeIndex) {
             // can be undefined if we click the same element as the current one
             // or if we have undefined it once and then select the same as the previous current active index
-            return
+            return;
         }
-        this.$router.push('?t=' + this.agenda.items[index].timestamp.formatAsUrlParam());
+        this.$router.push("?t=" + this.agenda.items[index].timestamp.formatAsUrlParam());
     }
 
     // TODO: reuse code with Annotations
