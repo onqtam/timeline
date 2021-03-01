@@ -1,5 +1,5 @@
 <template>
-    <div class="d-inline-block">
+    <div class="d-inline-block" style="height: 50px;"> <!-- TODO: this height restriction is because it otherwise stretches vertically - don't know why -->
         <v-dialog v-model="showDialog" scrollable max-width="700px">
             <template v-slot:activator="{ on, attrs }">
                 <v-btn v-bind="attrs" v-on="on">See all topics</v-btn>
@@ -15,6 +15,7 @@
                                     <v-list-item-action>
                                         <v-list-item-action-text v-text="item.timestamp.format()"></v-list-item-action-text>
                                     </v-list-item-action>
+                                    <!-- TODO: CLAMP LENGTH OF TEXT -->
                                     <v-list-item-title>{{ item.text }}</v-list-item-title>
                                 </v-list-item>
                                 <v-progress-linear v-if="activeIndex == index" :value="computeProgressPercentage(index)" :key="'progress_' + index"></v-progress-linear>
@@ -95,33 +96,3 @@ export default class AgendaComponent extends Vue {
     }
 }
 </script>
-
-<style scoped lang="less">
-@import "../../cssresources/theme.less";
-
-ul {
-    list-style-type: none;
-    text-align: left;
-    margin: 0;
-    padding: 0;
-    overflow: auto;
-    height: 100%;
-}
-
-li {
-    line-height: 1.4em;
-    // text cutoff: https://stackoverflow.com/a/26973672/3162383
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-// .agenda-container {
-//     border-style: dashed none;
-//     padding: 0.1em 0 0 0.8em;
-// }
-
-.agenda-item-active {
-    color: @theme-focus-color;
-}
-</style>
