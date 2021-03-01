@@ -11,7 +11,7 @@
                     :to="'?start=' + item.timestamp.formatAsUrlParam() + '&end=' + getEndOfItemAsTimepoint(index).formatAsUrlParam()"
                 >
                     <!-- this outer 100% sized div is necessary for the tooltips - sticking the `v-on="on"` on the `router-link` doesn't work -->
-                    <div v-on="on" style="width: 100%; height: 100%;">
+                    <div v-on="on" style="width: 100%; height: 100%;" @click="moveAudioWindow(index)">
                         <div :style="computeProgressStyle(item, index)"/>
                     </div>
                 </router-link>
@@ -28,6 +28,7 @@ import Timepoint from "@/logic/entities/Timepoint";
 import { AudioWindow } from "@/logic/AudioFile";
 import { Agenda, AgendaItem } from "@/logic/entities/Episode";
 import MathHelpers from "@/logic/MathHelpers";
+import store from "@/client/store";
 
 @Component
 export default class Annotations extends Vue {
@@ -79,6 +80,11 @@ export default class Annotations extends Vue {
 
     isAgendaItemCompleted(itemIndex: number): boolean {
         return this.currentAudioPosition.seconds >= this.getEndOfItem(itemIndex);
+    }
+
+    moveAudioWindow(index: number) {
+        store.commit.play.setAudioWindow({ start: this.agenda.items[index].timestamp.seconds, end: this.getEndOfItemAsTimepoint(index).seconds });
+        store.commit.play.moveAudioPos(this.agenda.items[index].timestamp.seconds);
     }
 };
 </script>
