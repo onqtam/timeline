@@ -3,8 +3,9 @@
         ref="timeline-container"
         class="timeline-container"
         @click=onJumpToPosition
-        @mousemove=onDrag
-        @mouseleave=onStopDragging
+        @mouseenter="showTooltip = true"
+        @mousemove=onMove
+        @mouseleave=onMouseLeave
         @mousedown.left=onStartDragging
         @mouseup.left=onStopDragging
         v-ripple
@@ -43,8 +44,11 @@
             </div>
         </div>
 
+        <!-- this is the tooltip that follows the cursor and showing the position in the audio beneath -->
+        <v-tooltip top :position-x="tooltip_x" :position-y="tooltip_y" v-model="showTooltip">{{ tooltipValue }}</v-tooltip>
+
         <!-- this is the right-click menu -->
-        <v-menu v-model="shouldShowContextMenu" :position-x="pos_x" :position-y="pos_y" absolute offset-y>
+        <v-menu v-model="shouldShowContextMenu" :position-x="right_click_menu_x" :position-y="right_click_menu_y" absolute offset-y>
             <v-list>
                 <v-list-item-group> <!-- necessary for the hovering effects of the separate elements to be present -->
                     <v-list-item>
@@ -92,18 +96,37 @@ export default class Timeline extends Vue {
     public audioWindow?: AudioWindow;
 
     // ================================================================
+    // == tooltip when hovering over the timeline
+    // ================================================================
+
+    showTooltip = false;
+    tooltip_x = 0;
+    tooltip_y = 0;
+    tooltipValue = "dfasdfasdfas";
+
+    moveTooltip(e: MouseEvent) {
+        if (!this.showTooltip) { return; }
+
+        const newPosition = this.calculateCursorPositionFromMouse(e.clientX);
+        this.tooltipValue = (new Timepoint(newPosition)).format();
+
+        this.tooltip_x = e.x;
+        this.tooltip_y = e.y;
+    }
+
+    // ================================================================
     // == right-click menu for the timeline
     // ================================================================
 
     shouldShowContextMenu = false;
-    pos_x = 0;
-    pos_y = 0;
+    right_click_menu_x = 0;
+    right_click_menu_y = 0;
 
     showContextMenu(e: MouseEvent) {
         e.preventDefault();
         this.shouldShowContextMenu = false;
-        this.pos_x = e.clientX;
-        this.pos_y = e.clientY;
+        this.right_click_menu_x = e.clientX;
+        this.right_click_menu_y = e.clientY;
         this.$nextTick(() => {
             this.shouldShowContextMenu = true;
         });
@@ -204,44 +227,59 @@ export default class Timeline extends Vue {
 
     private normalize(value: number): number { return MathHelpers.normalize(value, this.rangeStart, this.rangeEnd); }
 
+    private calculateOffsetXAsPercentage(mouseX: number): number {
+        const rect = (this.$refs["timeline-container"] as HTMLElement).getBoundingClientRect();
+        return (mouseX - rect.left) / rect.width;
+    }
+
+    // calculates the cursor play position in the audio given mouse pos
+    private calculateCursorPositionFromMouse(mouseX: number): number {
+        const newPosition = this.rangeStart + this.calculateOffsetXAsPercentage(mouseX) * (this.rangeEnd - this.rangeStart);
+        return MathHelpers.clamp(newPosition, this.rangeStart, this.rangeEnd);
+    }
+
+    // calculates the window start position in the audio given mouse pos
+    private calculateWindowStartFromMouse(mouseX: number): number {
+        const newPosition = this.rangeStart + this.calculateOffsetXAsPercentage(mouseX) * (this.rangeEnd - this.rangeStart) - this.audioWindow!.duration / 2;
+        return MathHelpers.clamp(newPosition, this.rangeStart, this.rangeEnd - this.audioWindow!.duration);
+    }
+
     // Moves the corresponding play element (cursor or window) to the given mouse pos
     private setPlayElementPositionFromMouse(mouseX: number): void {
-        const rect = (this.$refs["timeline-container"] as HTMLElement).getBoundingClientRect();
-        const offsetXAsPercentage = (mouseX - rect.left) / rect.width;
-        let newPosition = this.rangeStart + offsetXAsPercentage * (this.rangeEnd - this.rangeStart) - this.audioWindow!.duration / 2;
-
-        // Clamp the new position within boundaries
-        newPosition = MathHelpers.clamp(newPosition, this.rangeStart, this.rangeEnd - this.audioWindow!.duration);
-        this.$emit("update:audioWindowStart", newPosition);
-        this.$emit("update:currentAudioPosition", newPosition + this.audioWindow!.duration / 2);
+        const newCursorPos = this.calculateCursorPositionFromMouse(mouseX);
+        const newWindowStart = this.calculateWindowStartFromMouse(mouseX);
+        this.$emit("update:audioWindowStart", newWindowStart);
+        this.$emit("update:currentAudioPosition", newCursorPos);
     }
 
     private onJumpToPosition(event: MouseEvent): void {
-        // console.log("🚀 onJumpToPosition")
         this.setPlayElementPositionFromMouse(event.clientX);
     }
 
     private onStartDragging(event: MouseEvent): void {
         this.onJumpToPosition(event);
-        // console.log("🚀 onStartDragging")
         const leftMouseButton: number = 0;
         if (event.button === leftMouseButton) {
             this.isDraggingPlayElement = true;
         }
     }
 
-    private onDrag(event: DragEvent): void {
-        // console.log("🚀 onDrag")
+    private onMove(event: MouseEvent): void {
+        this.moveTooltip(event);
+        // check if dragging
         if (!this.isDraggingPlayElement) {
             return;
         }
-        // console.log("🚀 onDrag ACTUAL")
         this.setPlayElementPositionFromMouse(event.clientX);
     }
 
     private onStopDragging(): void {
-        // console.log("🚀 onStopDragging")
         this.isDraggingPlayElement = false;
+    }
+
+    private onMouseLeave(): void {
+        this.showTooltip = false;
+        this.onStopDragging();
     }
 };
 </script>
