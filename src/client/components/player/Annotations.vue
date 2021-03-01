@@ -6,16 +6,15 @@
     >
         <v-tooltip top v-for="(item, index) in agenda.items" :key=item.timestamp.seconds transition="fade-transition">
             <template v-slot:activator="{ on }">
-                <!-- <router-link
-                    v-on="on" class="annotation" :style="computeStyle(item, index)"
+                <router-link
+                    class="annotation" :style="computeBarStyle(item, index)"
                     :to="'?start=' + item.timestamp.formatAsUrlParam() + '&end=' + getEndOfItemAsTimepoint(index).formatAsUrlParam()"
-                > -->
-                <div v-on="on" class="annotation" :style="computeStyle(item, index)">
-                    <!-- TODO: because of this v-if there is flickering when transitioning from one agenda item to the next.
-                    The problem is that this item first disappears and only then does isAgendaItemCompleted in computeStyle return true. -->
-                    <div v-if="isAgendaItemActive(index)" :style="computeActiveItemProgressStyle(item, index)"/>
-                </div>
-                <!-- </router-link> -->
+                >
+                    <!-- this outer 100% sized div is necessary for the tooltips - sticking the `v-on="on"` on the `router-link` doesn't work -->
+                    <div v-on="on" style="width: 100%; height: 100%;">
+                        <div :style="computeProgressStyle(item, index)"/>
+                    </div>
+                </router-link>
             </template>
             <!-- TODO: CLAMP LENGTH OF TEXT -->
             <span>{{item.text}}</span>
@@ -40,7 +39,7 @@ export default class Annotations extends Vue {
     @Prop()
     public audioWindow?: AudioWindow;
 
-    computeStyle(item: AgendaItem, itemIndex: number) {
+    computeBarStyle(item: AgendaItem, itemIndex: number) {
         // the computation here assumes that there is always an entry in the agenda at timepoint 0
         const percentOfTotalEpiside = 100 * ((itemIndex + 1 < this.agenda.items.length
             ? this.agenda.items[itemIndex + 1].timestamp.seconds
@@ -50,11 +49,14 @@ export default class Annotations extends Vue {
         return "width: calc(" + percentOfTotalEpiside + "% - 0.2em); background: " + color;
     }
 
-    computeActiveItemProgressStyle(item: AgendaItem, itemIndex: number) {
+    computeProgressStyle(item: AgendaItem, itemIndex: number) {
         // TODO: sadly this computation doesn't account for the gaps so when near the
         // end the coloring doesn't 100% align with the progress bar on the timeline
-        const percent = 100 * (this.currentAudioPosition.seconds - item.timestamp.seconds) /
-            (this.getEndOfItem(itemIndex) - item.timestamp.seconds);
+        let percent = 0;
+        if (this.isAgendaItemActive(itemIndex) || this.isAgendaItemCompleted(itemIndex)) {
+            percent = 100 * (this.currentAudioPosition.seconds - item.timestamp.seconds) /
+                (this.getEndOfItem(itemIndex) - item.timestamp.seconds);
+        }
         return "background: red; height: 100%; width: " + percent + "%;";
     }
 
