@@ -44,15 +44,17 @@
         </div>
 
         <!-- this is the right-click menu -->
-        <!-- TODO: improve this - make it feel like YouTube! -->
         <v-menu v-model="shouldShowContextMenu" :position-x="pos_x" :position-y="pos_y" absolute offset-y>
-            <v-list style="cursor: pointer;">
-                <v-list-item>
-                    <v-list-item-title @click="copy_position">copy link to current position</v-list-item-title>
-                </v-list-item>
-                <v-list-item>
-                    <v-list-item-title @click="copy_range">copy link to range</v-list-item-title>
-                </v-list-item>
+            <v-list>
+                <v-list-item-group> <!-- necessary for the hovering effects of the separate elements to be present -->
+                    <v-list-item>
+                        <v-list-item-title @click="copy_position">copy link to current position</v-list-item-title>
+                    </v-list-item>
+                    <v-divider ></v-divider>
+                    <v-list-item>
+                        <v-list-item-title @click="copy_range">copy link to range</v-list-item-title>
+                    </v-list-item>
+                </v-list-item-group>
             </v-list>
         </v-menu>
   </div>
