@@ -186,7 +186,7 @@ export default class TimelinePlayer extends Vue {
 
     // TODO: deep watching is slow!!! can we use mapState to avoid the x.y.z nesting when accessing the state?
     @Watch("audioWindow", { deep: true })
-    private watchSomething() {
+    private watchAudioWindow() {
         this.windowStartAsString = Timepoint.FullFormat(this.windowStart);
         this.windowEndAsString = Timepoint.FullFormat(this.windowEnd);
     }
@@ -261,14 +261,26 @@ export default class TimelinePlayer extends Vue {
         this.$recompute("audioElement");
     }
     public pause(): void {
-        this.audioElement.pause();
         clearInterval(this.audioPlayTimeIntervalId);
+        this.audioElement.pause();
         this.$recompute("audioElement");
     }
 
     public toggleMute(): void {
         this.audioElement.muted = !this.audioElement.muted;
         this.$recompute("audioElement");
+    }
+
+    // TODO: deep watching is slow!!! can we use mapState to avoid the x.y.z nesting when accessing the state?
+    @Watch("audioPos", { deep: true })
+    private watchAudioPos() {
+        // if we have moved the cursor from somewhere else by cmomitting a new audioPos to the play vuex
+        // store (we recognize that if it's offset by more than 1 second from the current <audio> element)
+        // then we should update the audio element - otherwise audioPlayTimeIntervalId would kick in and
+        // reset the position based on what the <audio> element believes is the right position
+        if (Math.abs(this.audioElement.currentTime - this.audioPos.seconds) > 1) {
+            this.audioElement.currentTime = this.audioPos.seconds;
+        }
     }
 
     // Private API
