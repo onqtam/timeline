@@ -66,7 +66,7 @@ export default class AgendaComponent extends Vue {
 
     set activeIndex(index: number) {
         this.showDialog = false;
-        if (!index || index === this.activeIndex) {
+        if (index === undefined || index === this.activeIndex) {
             // can be undefined if we click the same element as the current one
             // or if we have undefined it once and then select the same as the previous current active index
             return;
