@@ -40,6 +40,15 @@
                 <v-btn>Comments</v-btn>
                 <!-- <v-btn>Bookmarks</v-btn> -->
 
+                <AgendaComponent
+                    class="agenda"
+                    v-if=activeEpisode
+                    :currentAudioPosition=audioPos
+                    :agenda=activeEpisode.agenda
+                    :audioWindow=audioWindow
+                >
+                </AgendaComponent>
+
                 <audio nocontrols
                     class="audio-element"
                     ref="audio-element"
@@ -48,41 +57,31 @@
                 </audio>
             </div>
         </div>
-        <div style="display: flex; flex-wrap: wrap;">
-            <div class="timeline-and-annotations">
-                <Annotations
-                    class="annotations"
-                    ref="annotations"
-                    :currentAudioPosition=audioPos
-                    :agenda=activeEpisode.agenda
-                    :audioWindow=audioWindow
-                >
-                </Annotations>
-                <Timeline
-                    class="timeline"
-                    ref="timeline"
-                    :audioWindow=audioWindow
-                    :rangeStart=0 :rangeEnd=audio.duration
-                    :currentAudioPosition=audioPos
-                    @update:audioWindowStart=onTimelineWindowMoved
-                    @update:currentAudioPosition=onZoomlinePositionMoved
-                >
-                </Timeline>
-            </div>
-            <AgendaComponent
-                class="agenda"
-                v-if=activeEpisode
-                :agenda=activeEpisode.agenda
-            >
-            </AgendaComponent>
-        </div>
+        <Annotations
+            class="annotations"
+            ref="annotations"
+            :currentAudioPosition=audioPos
+            :agenda=activeEpisode.agenda
+            :audioWindow=audioWindow
+        >
+        </Annotations>
+        <Timeline
+            class="timeline"
+            ref="timeline"
+            :audioWindow=audioWindow
+            :rangeStart=0 :rangeEnd=audio.duration
+            :currentAudioPosition=audioPos
+            @update:audioWindowStart=onTimelineWindowMoved
+            @update:currentAudioPosition=onZoomlinePositionMoved
+        >
+        </Timeline>
         <Funnel
             class="funnel"
             ref="funnel"
             :duration_full=audio.duration
             :rangeStart_full=zoomlineRangeStart :rangeEnd_full=zoomlineRangeEnd
             :currentAudioPosition_full=audioPos
-            :timelineWidthRatio=0.7
+            :timelineWidthRatio=1.0
             @update:currentAudioPosition=onZoomlinePositionMoved
         >
         </Funnel>
@@ -317,12 +316,9 @@ export default class TimelinePlayer extends Vue {
 // .annotations {
 // }
 
-.timeline-and-annotations {
-    height: 100px;
-    flex: 0 70%;
-}
 .timeline {
     height: 80px;
+    width: 100%;
 }
 .agenda {
     height: 100px;

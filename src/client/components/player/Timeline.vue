@@ -50,7 +50,7 @@
                     <v-list-item>
                         <v-list-item-title @click="copy_position">copy link to current position</v-list-item-title>
                     </v-list-item>
-                    <v-divider ></v-divider>
+                    <v-divider/>
                     <v-list-item>
                         <v-list-item-title @click="copy_range">copy link to range</v-list-item-title>
                     </v-list-item>

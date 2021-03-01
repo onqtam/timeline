@@ -60,6 +60,7 @@ export default class Annotations extends Vue {
         return "background: red; height: 100%; width: " + percent + "%;";
     }
 
+    // TODO: reuse code with Agenda
     getEndOfItem(itemIndex: number): number {
         return itemIndex + 1 < this.agenda.items.length
             ? this.agenda.items[itemIndex + 1].timestamp.seconds
