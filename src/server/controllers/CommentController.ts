@@ -225,6 +225,7 @@ export default class CommentController {
 
         const query_updateCommentCounters = QB()
             .update(Comment)
+            .where(`"commentId" = :cid`, { cid: params.commentId })
             .set({
                 upVotes: () => `"upVotes" + ` + upVotes,
                 downVotes: () => `"downVotes" + ` + downVotes
@@ -275,6 +276,7 @@ export default class CommentController {
         if (params.commentToReplyToId) {
             const query_parentComment: Promise<Comment | undefined> = commentRepo.findOne(params.commentToReplyToId);
             const parentComment = await commentRepo.findDescendantsTree((await query_parentComment)!);
+            console.assert(parentComment.timepoint.seconds === newComment.timepoint.seconds);
             if (parentComment.replies === undefined) {
                 parentComment.replies = [];
             }

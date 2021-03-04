@@ -63,7 +63,7 @@ export default class UserView extends Vue {
 
     comments: Comment[] = [];
 
-    mounted() {
+    created() {
         store.dispatch.user.loadUserComments({ userId: this.userId }).then((comments: Comment[]) => {
             this.comments = comments;
         });

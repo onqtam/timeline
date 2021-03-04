@@ -107,7 +107,7 @@ class StorePlayViewModel implements IStorePlayModule {
         }
     }
 
-    public generateNewLocalComment(content: string): Comment {
+    public generateNewLocalComment(timepointSeconds: number, content: string): Comment {
         const comment = new Comment();
         comment.id = ~~(Math.random() * 99999); // Generate a random id to avoid conflicting keys in vue
         comment.authorId = store.state.user.info.id;
@@ -116,7 +116,7 @@ class StorePlayViewModel implements IStorePlayModule {
         comment.content = content;
         comment.date_added = new Date();
         comment.date_modified = new Date();
-        comment.timepoint = new Timepoint(this.audioPos.seconds);
+        comment.timepoint = new Timepoint(timepointSeconds);
         comment.upVotes = 0;
         comment.downVotes = 0;
 
@@ -287,7 +287,9 @@ export default {
         },
 
         postComment: (context: ActionContext<StorePlayViewModel, StorePlayViewModel>, payload: { commentToReplyTo: Comment|undefined; content: string }): Promise<void> => {
-            const newLocalComment: Comment = context.state.generateNewLocalComment(payload.content);
+            const timepointSeconds = Math.round(payload.commentToReplyTo ? payload.commentToReplyTo.timepoint.seconds : context.state.audioPos.seconds);
+            console.log(timepointSeconds);
+            const newLocalComment: Comment = context.state.generateNewLocalComment(timepointSeconds, payload.content);
             context.commit("internalLocalPostNewComment", {
                 newLocalComment: newLocalComment,
                 commentToReplyTo: payload.commentToReplyTo
@@ -297,9 +299,10 @@ export default {
             const requestBody = {
                 commentToReplyToId: payload.commentToReplyTo?.id || null,
                 episodeId: context.state.activeEpisode.id,
-                timepointSeconds: context.state.audioPos.seconds,
+                timepointSeconds: timepointSeconds,
                 content: payload.content
             };
+
             return (AsyncLoader.makeRestRequest(URL, HTTPVerb.Post, requestBody) as Promise<{ commentId: number }>).then(commentResult => {
                 context.commit("internalLocalUpdateCommentIdFromServer", {
                     comment: newLocalComment,
