@@ -6,7 +6,9 @@
         />
         <!-- Set the comment id as element id to be able to find comment's DOM element from other systems  -->
         <div class="comment-content" :id=comment.id>
-            <span class="author">{{ comment.authorName }}</span>
+            <router-link :to="`/user/${comment.authorId}`" class="author">
+                {{ comment.authorName }}
+            </router-link>
             <span class="separator"> · </span>
             <span class="votes">
                 {{ comment.totalVotes }} points

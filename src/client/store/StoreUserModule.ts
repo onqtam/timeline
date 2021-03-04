@@ -1,6 +1,7 @@
 import { ActionContext } from "vuex";
 import { SimpleEventDispatcher, ISimpleEvent } from "ste-simple-events";
 
+import Comment from "@/logic/entities/Comments";
 import User from "@/logic/entities/User";
 import CommonParams from "@/logic/CommonParams";
 import AsyncLoader from "../utils/AsyncLoader";
@@ -157,6 +158,11 @@ export default {
                     console.error("Failed to load user playback progress: ", reason);
                 });
             return Promise.allSettled([query_loadUser, query_loadUserPlayback]) as unknown as Promise<void>;
+        },
+        loadUserComments: (context: ActionContext<StoreUserViewModel, StoreUserViewModel>, payload: { userId: number}): Promise<Comment[]> => {
+            console.log("Loading user comments from the server");
+            const restURL: string = `${CommonParams.APIServerRootURL}/comments/user/${payload.userId}`;
+            return AsyncLoader.makeRestRequest(restURL, HTTPVerb.Get, null, Comment) as Promise<Comment[]>;
         },
         login: (_context: ActionContext<StoreUserViewModel, StoreUserViewModel>): Promise<void> => {
             console.log("Sending login request");

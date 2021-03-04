@@ -3,7 +3,7 @@
         <v-tabs centered class="ml-n9">
             <v-tab to="/">Home</v-tab>
             <v-tab to="/about">About</v-tab>
-            <v-tab v-if="!isUserGuest" to="/profile">Profile</v-tab>
+            <v-tab v-if="!isUserGuest" :to="'/user/' + currentUserId">Profile</v-tab>
             <v-dialog v-else v-model="showLoginDialog" width="500">
                 <template v-slot:activator="{ on }">
                     <v-tab v-on="on">Login</v-tab>
@@ -43,8 +43,12 @@ export default class Navbar extends Vue {
         store.commit.user.setShowLoginDialog(newVal);
     }
 
-    public get isUserGuest() {
+    get isUserGuest() {
         return store.state.user.info.isGuest;
+    }
+
+    get currentUserId() {
+        return store.state.user.info.id;
     }
 
     public login(service: string): void {

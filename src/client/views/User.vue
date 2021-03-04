@@ -1,36 +1,52 @@
 <template>
     <div>
+        <!-- TODO: add v-if -->
         <h2>Your profile</h2>
-        <div class="info">
-            <label class="key">Displayed name</label>
-            <label class="value">{{ user.shortName}}</label>
-            <label class="key">Email</label>
-            <label class="value">{{ user.email}}</label>
+        <div>
+            <label>Displayed name: </label>
+            <label>{{ user.shortName}}</label>
+            <br />
+            <label>Email: </label>
+            <label>{{ user.email}}</label>
         </div>
         <div class="slider-controls">
             <label>Number Of Timeslots</label>
             <v-slider class="timeslot-count-slider" min=1 max=5 step=1 thumb-label="always" v-model=audioWindowTimeslotCount></v-slider>
         </div>
+        <router-link v-for="(comment, index) in comments" :key=index
+            :to="`/play/${comment.episodeId}?t=${comment.timepoint.seconds}&focusThread=${comment.id}`">
+                <CommentComponent
+                    :comment=comment
+                    :parentThread=null
+                    :shouldShowOnlyPreview=false
+                />
+        </router-link>
     </div>
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import { Component, Prop, Vue } from "vue-property-decorator";
 
 import store from "../store";
 import User from "../../logic/entities/User";
+import Comment from "@/logic/entities/Comments";
 import UserSettings, { ValueLimits } from "../../logic/entities/UserSettings";
 import { NavigationGuardNext, Route } from "vue-router";
+import CommentComponent from "../components/comments/Comment.vue";
 
 @Component({
     components: {
+        CommentComponent
     },
-    beforeRouteLeave: function (to: Route, from: Route, next: NavigationGuardNext<ProfileView>) {
+    beforeRouteLeave: function (to: Route, from: Route, next: NavigationGuardNext<UserView>) {
         store.dispatch.user.saveSettings();
         next();
     }
 })
-export default class ProfileView extends Vue {
+export default class UserView extends Vue {
+    @Prop({ type: Number })
+    public userId!: number;
+
     public get user(): User {
         return store.state.user.info;
     }
@@ -44,6 +60,14 @@ export default class ProfileView extends Vue {
     public get timeslotCountLimits(): ValueLimits {
         return UserSettings.TIMESLOT_LIMITS;
     }
+
+    comments: Comment[] = [];
+
+    mounted() {
+        store.dispatch.user.loadUserComments({ userId: this.userId }).then((comments: Comment[]) => {
+            this.comments = comments;
+        });
+    }
 }
 </script>
 
@@ -55,22 +79,6 @@ export default class ProfileView extends Vue {
     display: block;
     margin: 0 40%;
     margin-top: 3em;
-}
-
-.info {
-    text-align: left;
-    margin: 0 45%;
-}
-
-.key {
-    display: block;
-    font-weight: bold;
-    margin-bottom: 0.35em;
-}
-
-.value {
-    margin-left: 3em;
-    color: @theme-neutral-color;
 }
 
 </style>

@@ -33,8 +33,9 @@
                     @change="windowEndChange"
                 ></v-text-field>
 
-                <v-btn>◄Unpinch►</v-btn>
-                <v-btn>►Pinch◄</v-btn>
+                <v-btn @click="isZoomline = !isZoomline" width="120px">
+                    {{ isZoomline ? '►Pinch◄' : '◄Unpinch►' }}
+                </v-btn>
 
                 <!-- TODO: use button-groups - mutually-exclusive toggles -->
                 <v-btn>Comments</v-btn>
@@ -130,6 +131,8 @@ export default class TimelinePlayer extends Vue {
     public get audioPos(): Timepoint {
         return store.state.play.audioPos;
     }
+
+    isZoomline = false;
 
     // ================================================================
     // == window size & position

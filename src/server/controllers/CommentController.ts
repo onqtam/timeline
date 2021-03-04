@@ -25,6 +25,11 @@ export default class CommentController {
             requiresAuthentication: false,
             callback: CommentController.getCommentDensityChartData
         }, {
+            path: "/comments/user/:userId",
+            verb: HTTPVerb.Get,
+            requiresAuthentication: false,
+            callback: CommentController.getUserComments
+        }, {
             path: "/comments/",
             verb: HTTPVerb.Post,
             requiresAuthentication: true,
@@ -76,6 +81,21 @@ export default class CommentController {
         };
         const query_completeTrees: Promise<Comment[]> = Promise.all(rootsWithinInterval.map(getTreeOfRoot));
         response.end(EncodingUtils.jsonify(await query_completeTrees));
+    }
+
+    private static async getUserComments(request: Request, response: Response): Promise<void> {
+        const params = {
+            userId: ~~request.params.userId
+        };
+        console.log("\n== getUserComments - Received params: ", JSON.stringify(params));
+
+        const query_allCommentsByUser: Promise<Comment[]> = QBE(Comment, "comment")
+            .select()
+            .where(`comment."authorId" = :userId`, params)
+            .orderBy(`"date_modified"`, "DESC")
+            .getMany();
+
+        response.end(EncodingUtils.jsonify(await query_allCommentsByUser));
     }
 
     private static async getCommentDensityChartData(request: Request, response: Response): Promise<void> {

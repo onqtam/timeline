@@ -31,7 +31,6 @@ const beforeRouteChange = (to: Route, from: Route, next: NavigationGuardNext<Epi
             Object.assign(existingView.channel, channel);
         } else {
             next(view => {
-                console.log(view);
                 Object.assign(view.channel, channel);
             });
         }

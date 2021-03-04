@@ -38,6 +38,7 @@ export default class Comment {
     public replies!: Comment[];
     // SERVER SIDE ONLY
     // TypeORM bug 123: We don't need to know the parentComment...but TypeORM does (even though it has all the information already)
+    // EDIT: actually knowing the parentComment is not that bad at all - in theory we should be able to live with only the parent and no children
     @TreeParent()
     public parentComment!: Comment;
 
@@ -77,8 +78,12 @@ export default class Comment {
         this.date_added = new Date(this.date_added);
         this.date_modified = new Date(this.date_modified);
         this.timepoint = new Timepoint(this.timepoint.seconds);
-        for (const reply of this.replies) {
-            EncodingUtils.reviveObjectAs(reply, Comment);
+        if (this.replies) {
+            for (const reply of this.replies) {
+                EncodingUtils.reviveObjectAs(reply, Comment);
+            }
+        } else {
+            this.replies = [];
         }
     }
 }

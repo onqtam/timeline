@@ -4,7 +4,7 @@ import Home from "../views/Home.vue";
 import PlayView from "../views/Play.vue";
 import EpisodesView from "../views/Episodes.vue";
 import ChannelsView from "../views/Channels.vue";
-import ProfileView from "../views/Profile.vue";
+import UserView from "../views/User.vue";
 
 Vue.use(VueRouter);
 
@@ -27,7 +27,7 @@ const routes: Array<RouteConfig> = [
         name: "Play",
         component: PlayView,
         props: (route) => ({
-            threadIdToFocus: ~~(route.query.thread as string),
+            threadIdToFocus: ~~route.query.thread,
             channelTitleURL: route.params.channelTitle,
             episodeTitleURL: route.params.episodeTitle
         })
@@ -45,10 +45,12 @@ const routes: Array<RouteConfig> = [
         props: true
     },
     {
-        path: "/profile",
-        name: "Profile",
-        component: ProfileView,
-        props: true
+        path: "/user/:userId",
+        name: "user",
+        component: UserView,
+        props: (route) => ({
+            userId: ~~route.params.userId
+        })
     },
     {
         path: "/",

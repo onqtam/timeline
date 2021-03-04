@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-import { getConnection } from "typeorm";
 import RouteInfo from "../RouteInfo";
 import EncodingUtils from "../../logic/EncodingUtils";
 import { HTTPVerb } from "../../logic/HTTPVerb";
@@ -8,6 +7,7 @@ import User from "../../logic/entities/User";
 import PlaybackProgressRecord from "../../logic/entities/PlaybackProgressRecord";
 import { UserPlaybackActivity } from "../../logic/UserActivities";
 import Timepoint from "../../logic/entities/Timepoint";
+import { QBE } from "../utils/dbutils";
 
 export default class UserController {
     public static getRoutes(): RouteInfo[] {
@@ -46,8 +46,7 @@ export default class UserController {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         delete (params.settings as any).id;
         const currentUser: User = (request.user! as User);
-        await getConnection()
-            .createQueryBuilder(UserSettings, "settings")
+        await QBE(UserSettings, "settings")
             .update()
             .set(params.settings)
             .whereEntity(currentUser.settings)
@@ -66,8 +65,7 @@ export default class UserController {
         newProgressRecord.episodeId = params.episodeId;
         newProgressRecord.progress = new Timepoint(params.progress);
 
-        await getConnection()
-            .createQueryBuilder(PlaybackProgressRecord, "progress")
+        await QBE(PlaybackProgressRecord, "progress")
             .insert()
             .into(PlaybackProgressRecord)
             .values(newProgressRecord)
@@ -81,8 +79,7 @@ export default class UserController {
     private static async getPlaybackProgress(request: Request, response: Response): Promise<void> {
         const currentUser: User = (request.user! as User);
 
-        const progressRecords: PlaybackProgressRecord[] = await getConnection()
-            .createQueryBuilder(PlaybackProgressRecord, "progress")
+        const progressRecords: PlaybackProgressRecord[] = await QBE(PlaybackProgressRecord, "progress")
             .select()
             .where(`progress."userId" = :id`, currentUser)
             .getMany();
