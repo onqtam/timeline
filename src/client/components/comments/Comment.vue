@@ -6,8 +6,8 @@
         />
         <!-- Set the comment id as element id to be able to find comment's DOM element from other systems  -->
         <div class="comment-content" :id=comment.id>
-            <router-link :to="`/user/${comment.authorId}`" class="author">
-                {{ comment.authorName }}
+            <router-link :to="`/user/${comment.userId}`" class="author">
+                {{ comment.userName }}
             </router-link>
             <span class="separator"> · </span>
             <span class="votes">
@@ -75,7 +75,7 @@ export default class CommentComponent extends Vue {
     public shouldShowOnlyPreview!: boolean;
 
     public get isCommentFromCurrentUser(): boolean {
-        return this.comment.authorId === store.state.user.info.id;
+        return this.comment.userId === store.state.user.info.id;
     }
 
     public get contentToDisplay(): string {

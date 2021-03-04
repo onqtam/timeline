@@ -110,8 +110,8 @@ class StorePlayViewModel implements IStorePlayModule {
     public generateNewLocalComment(timepointSeconds: number, content: string): Comment {
         const comment = new Comment();
         comment.id = ~~(Math.random() * 99999); // Generate a random id to avoid conflicting keys in vue
-        comment.authorId = store.state.user.info.id;
-        comment.authorName = store.state.user.info.shortName;
+        comment.userId = store.state.user.info.id;
+        comment.userName = store.state.user.info.shortName;
         comment.episodeId = this.activeEpisode.id;
         comment.content = content;
         comment.date_added = new Date();
@@ -207,8 +207,8 @@ export default {
             payload.comment.id = payload.serverId;
         },
         internalLocalDeleteComment: (state: StorePlayViewModel, comment: Comment): void => {
-            comment.authorId = User.deletedUserId;
-            comment.authorName = User.deletedUserName;
+            comment.userId = User.deletedUserId;
+            comment.userName = User.deletedUserName;
             comment.content = Comment.deletedCommentContents;
         },
         internalLocalVote: (state: StorePlayViewModel, payload: { comment: Comment; isVotePositive: boolean}): void => {

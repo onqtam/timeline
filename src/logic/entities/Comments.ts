@@ -12,12 +12,10 @@ export default class Comment {
     @Column()
     public episodeId!: number;
     @Column()
-    public authorId!: number;
-    // This is a duplicate of this.author.name
-    // It exists for the sole purpose of removing the necessity of making a join
-    // when fetching comments
+    public userId!: number;
+    // this is duplicating the user name for the user id so that a join can be avoided
     @Column()
-    public authorName!: string;
+    public userName!: string;
     @Column()
     public content!: string;
     @Column()

@@ -91,7 +91,7 @@ export default class CommentController {
 
         const query_allCommentsByUser: Promise<Comment[]> = QBE(Comment, "comment")
             .select()
-            .where(`comment."authorId" = :userId`, params)
+            .where(`comment."userId" = :userId`, params)
             .orderBy(`"date_modified"`, "DESC")
             .getMany();
 
@@ -264,8 +264,8 @@ export default class CommentController {
         newComment.downVotes = 0;
         newComment.upVotes = 0;
         newComment.timepoint = new Timepoint(params.timepointSeconds);
-        newComment.authorId = user.id;
-        newComment.authorName = user.shortName;
+        newComment.userId = user.id;
+        newComment.userName = user.shortName;
         newComment.episodeId = (await query_episode)!.id;
         newComment.replies = [];
 
@@ -311,7 +311,7 @@ export default class CommentController {
             .update(Comment)
             .where(`"id" = :commentId`, params)
             .andWhere(`"episodeId" = :episodeId`, params)
-            .andWhere(`"authorId" = :id`, user)
+            .andWhere(`"userId" = :id`, user)
             .set({
                 content: params.content,
                 date_modified: new Date()
@@ -332,8 +332,8 @@ export default class CommentController {
 
         // Replace the comment's content and user
         const deletedCommentValues: QueryDeepPartialEntity<Comment> = {
-            authorId: User.deletedUserId,
-            authorName: User.deletedUserName,
+            userId: User.deletedUserId,
+            userName: User.deletedUserName,
             content: Comment.deletedCommentContents,
             date_modified: new Date()
         };
@@ -342,7 +342,7 @@ export default class CommentController {
         await QB()
             .update(Comment)
             .where(`"id" = :commentId`, params)
-            .andWhere(`"authorId" = :id`, user)
+            .andWhere(`"userId" = :id`, user)
             .set(deletedCommentValues)
             .execute();
 
