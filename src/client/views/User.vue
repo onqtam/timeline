@@ -14,7 +14,7 @@
             <v-slider class="timeslot-count-slider" min=1 max=5 step=1 thumb-label="always" v-model=audioWindowTimeslotCount></v-slider>
         </div>
         <router-link v-for="(comment, index) in comments" :key=index
-            :to="`/play/${comment.episodeId}?t=${comment.timepoint.seconds}&focusThread=${comment.id}`">
+            :to="`/play/${comment.episodeId}?t=${comment.timepoint.formatAsUrlParam()}&thread=${comment.id}`">
                 <CommentComponent
                     :comment=comment
                     :parentThread=null

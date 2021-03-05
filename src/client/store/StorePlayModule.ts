@@ -13,14 +13,6 @@ import { HTTPVerb } from "@/logic/HTTPVerb";
 import { SettingPair } from "./StoreUserModule";
 import User from "@/logic/entities/User";
 
-export interface IStorePlayModule {
-    audioFile: AudioFile;
-    allThreads: Comment[];
-    audioPos: Timepoint;
-    audioWindow: AudioWindow;
-    volume: number;
-}
-
 type Histogram = {
     xAxis: number[];
     yAxis: number[];
@@ -33,7 +25,7 @@ type FullCommentData = {
     votesByUser: VoteCommentRecord[];
 }
 
-class StorePlayViewModel implements IStorePlayModule {
+class StorePlayViewModel {
     public audioFile!: AudioFile;
     public audioPos!: Timepoint;
     public audioWindow!: AudioWindow;
@@ -288,7 +280,6 @@ export default {
 
         postComment: (context: ActionContext<StorePlayViewModel, StorePlayViewModel>, payload: { commentToReplyTo: Comment|undefined; content: string }): Promise<void> => {
             const timepointSeconds = Math.round(payload.commentToReplyTo ? payload.commentToReplyTo.timepoint.seconds : context.state.audioPos.seconds);
-            console.log(timepointSeconds);
             const newLocalComment: Comment = context.state.generateNewLocalComment(timepointSeconds, payload.content);
             context.commit("internalLocalPostNewComment", {
                 newLocalComment: newLocalComment,

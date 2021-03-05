@@ -4,6 +4,7 @@ import { Channel, Episode } from "../../logic/entities/Channel";
 import RouteInfo from "../RouteInfo";
 import EncodingUtils from "../../logic/EncodingUtils";
 import { HTTPVerb } from "../../logic/HTTPVerb";
+import { QBE, QB } from "../utils/dbutils";
 
 export default class ChannelController {
     public static getRoutes(): RouteInfo[] {
@@ -13,21 +14,25 @@ export default class ChannelController {
             requiresAuthentication: false,
             callback: ChannelController.getAllChannels
         }, {
-            path: "/episodes/:channelId",
+        //     path: "/channels/:channelId",
+        //     verb: HTTPVerb.Get,
+        //     requiresAuthentication: false,
+        //     callback: ChannelController.getChannelInfo
+        // }, {
+            path: "/channels/:channelId/episodes",
             verb: HTTPVerb.Get,
             requiresAuthentication: false,
             callback: ChannelController.getEpisodesFor
         }, {
-            path: "/episodes/:channelURL/:episodeURL",
+            path: "/episodes/:episodeId",
             verb: HTTPVerb.Get,
             requiresAuthentication: false,
-            callback: ChannelController.getEpisodeFromURL
+            callback: ChannelController.getEpisode
         }];
     }
 
     private static async getAllChannels(request: Request, response: Response): Promise<void> {
-        const channels: Channel[] = await getConnection()
-            .createQueryBuilder(Channel, "channel")
+        const channels: Channel[] = await QBE(Channel, "channel")
             .leftJoinAndSelect("channel.episodes", "episode")
             .getMany();
         response.end(EncodingUtils.jsonify(channels));
@@ -44,27 +49,16 @@ export default class ChannelController {
         response.end(EncodingUtils.jsonify(episodes));
     }
 
-    private static async getEpisodeFromURL(request: Request, response: Response): Promise<void> {
+    private static async getEpisode(request: Request, response: Response): Promise<void> {
         const params = {
-            channelTitle: EncodingUtils.urlAsTitle(request.params.channelURL),
-            episodeTitle: EncodingUtils.urlAsTitle(request.params.episodeURL)
+            episodeId: ~~request.params.episodeId
         };
-        const channel: Channel|undefined = (await getConnection()
-            .createQueryBuilder()
-            .select()
-            .from(Channel, "channel")
-            .where(`channel."title" = :channelTitle`, params)
-            .execute())[0];
-        if (!channel) {
-            response.status(404).end();
-        }
+        console.log("\n== getEpisode - Received params: ", JSON.stringify(params));
 
-        const episode: Episode|undefined = (await getConnection()
-            .createQueryBuilder()
+        const episode: Episode|undefined = (await QB()
             .select()
             .from(Episode, "episode")
-            .where(`episode."title" = :episodeTitle`, params)
-            .andWhere(`episode."owningChannelId" = :channelId`, { channelId: channel?.id })
+            .where(`episode."id" = :episodeId`, params)
             .execute())[0];
 
         if (!episode) {

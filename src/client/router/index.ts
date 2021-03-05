@@ -20,23 +20,25 @@ const routes: Array<RouteConfig> = [
         // route level code-splitting
         // this generates a separate chunk (about.[hash].js) for this route
         // which is lazy-loaded when the route is visited.
+        // TODO: look at and think about this ^^
         component: () => import(/* webpackChunkName: "about" */ "../views/About.vue")
     },
     {
-        path: "/play/:channelTitle/:episodeTitle",
+        path: "/play/:episodeId",
         name: "Play",
         component: PlayView,
         props: (route) => ({
             threadIdToFocus: ~~route.query.thread,
-            channelTitleURL: route.params.channelTitle,
-            episodeTitleURL: route.params.episodeTitle
+            episodeIdURL: ~~route.params.episodeId
         })
     },
     {
-        path: "/episodes/:channelTitle",
+        path: "/channels/:channelId",
         name: "Episodes",
         component: EpisodesView,
-        props: true
+        props: (route) => ({
+            channelId: ~~route.params.channelId
+        })
     },
     {
         path: "/channels",
@@ -55,7 +57,7 @@ const routes: Array<RouteConfig> = [
     {
         path: "/",
         // TODO: Obviously hard-coding a channel isn't perfect but it's a necessity during development
-        redirect: "/episodes/The%20Portal"
+        redirect: "/channels/1"
         // redirect: "/episodes/Making%20Sense%20with%20Sam%20Harris"
     }
 ];

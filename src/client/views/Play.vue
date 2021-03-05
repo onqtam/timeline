@@ -41,10 +41,8 @@ import CommentSection from "@/client/components/comments/CommentSection.vue";
 export default class PlayView extends Vue {
     @Prop({ type: Number })
     public threadIdToFocus?: number;
-    @Prop({ type: String })
-    public channelTitleURL!: string;
-    @Prop({ type: String })
-    public episodeTitleURL!: string;
+    @Prop({ type: Number })
+    public episodeIdURL!: number;
 
     public get allThreads(): Comment[] {
         return store.state.play.allThreads;
@@ -70,10 +68,9 @@ export default class PlayView extends Vue {
     }
 
     public beforeMount(): void {
-        console.assert(this.channelTitleURL !== undefined && this.episodeTitleURL !== undefined);
-        const dispatchPayload = { channelURL: this.channelTitleURL, episodeURL: this.episodeTitleURL };
+        console.assert(this.episodeIdURL !== undefined);
         store.dispatch.channel
-            .loadEpisodeData(dispatchPayload)
+            .loadEpisodeData({ episodeId: this.episodeIdURL })
             .then(episode => {
                 console.assert(episode, "No such episode exists!");
                 store.dispatch.play.loadEpisode(episode!);

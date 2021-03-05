@@ -14,14 +14,9 @@ import { UserPlaybackActivity } from "@/logic/UserActivities";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-export interface IStoreUserModule {
-    info: User;
-    getPlaybackProgressForEpisode(episodeId: number): Timepoint;
-}
-
 export type SettingPair = {key: string; value: any};
 
-export class StoreUserViewModel implements IStoreUserModule {
+export class StoreUserViewModel {
     public info: User;
     public showLoginDialog = false;
     public get settingsModifiedEvent(): ISimpleEvent<SettingPair> {

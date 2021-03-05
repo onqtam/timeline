@@ -93,7 +93,14 @@ export default class Timeline extends Vue {
     @Prop({ type: Timepoint })
     public currentAudioPosition!: Timepoint;
     @Prop()
-    public audioWindow?: AudioWindow;
+    public audioWindow!: AudioWindow;
+
+    get windowStart(): number {
+        return this.audioWindow.start.seconds;
+    }
+    get windowEnd(): number {
+        return this.audioWindow.end.seconds;
+    }
 
     // ================================================================
     // == tooltip when hovering over the timeline
@@ -151,17 +158,19 @@ export default class Timeline extends Vue {
     }
 
     copy_position() {
+        // TODO: probably rework this with something from the Vue router so that we don't hardcode the `#` symbol
         let url = window.location.origin;
-        url += ""; // TODO: add the channel/episode in the URL once they are turned into IDs
+        url += "/#/play/" + store.state.play.activeEpisode.id;
         url += "?t=" + this.currentAudioPosition.formatAsUrlParam();
         Clipboard.copyToClipboard(url);
     }
 
     copy_range() {
+        // TODO: probably rework this with something from the Vue router so that we don't hardcode the `#` symbol
         let url = window.location.origin;
-        url += ""; // TODO: add the channel/episode in the URL once they are turned into IDs
-        url += "?start=" + (new Timepoint(this.rangeStart)).formatAsUrlParam();
-        url += "?end=" + (new Timepoint(this.rangeEnd)).formatAsUrlParam();
+        url += "/#/play/" + store.state.play.activeEpisode.id;
+        url += "?start=" + (new Timepoint(this.windowStart)).formatAsUrlParam();
+        url += "&end=" + (new Timepoint(this.windowEnd)).formatAsUrlParam();
         Clipboard.copyToClipboard(url);
     }
 

@@ -3,7 +3,7 @@
         <v-img class="episode-thumbnail" :src=episode.imageURL>
         </v-img>
         <div class="episode-content">
-            <router-link :to="`/play/${channel.titleAsURL}/${episode.titleAsURL}`">
+            <router-link :to="`/play/${episode.id}`">
                 <h3 class="episode-title">{{ episode.title }}</h3>
             </router-link>
             <span> {{ episode.publicationDate.toLocaleDateString() }}</span>
@@ -21,7 +21,7 @@
 import { Component, Vue, Prop } from "vue-property-decorator";
 
 import Timepoint from "@/logic/entities/Timepoint";
-import { Episode, Channel } from "@/logic/entities/Channel";
+import { Episode } from "@/logic/entities/Channel";
 
 @Component({
     components: {
@@ -30,8 +30,6 @@ import { Episode, Channel } from "@/logic/entities/Channel";
 export default class EpisodeComponent extends Vue {
     @Prop({ type: Episode })
     public episode!: Episode;
-    @Prop({ type: Channel })
-    public channel!: Channel;
 
     public get episodeFilteredDescription(): string {
         // TODO: Redesign, this is a "on-top-of-the-head" implementation

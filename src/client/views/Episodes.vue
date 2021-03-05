@@ -19,12 +19,12 @@ import { Channel } from "@/logic/entities/Channel";
 import EpisodeComponent from "@/client/components/Episode.vue";
 
 const beforeRouteChange = (to: Route, from: Route, next: NavigationGuardNext<EpisodesView>, existingView: EpisodesView|undefined) => {
-    const channelTitle = to.params.channelTitle as string;
-    console.assert(channelTitle !== undefined);
+    const channelId = ~~to.params.channelId;
+    console.assert(channelId !== undefined);
 
     const displayPage = () => {
         // Important p.title === channelTitle only works because Vue router automatically decodes the URL
-        const channel: Channel|undefined = store.state.channel.allChannels.find(p => p.title === channelTitle);
+        const channel: Channel|undefined = store.state.channel.allChannels.find(p => p.id === channelId);
         // TODO: handle not found case
         // TODO: handle data not yet loaded case
         if (existingView) {

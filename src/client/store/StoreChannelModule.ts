@@ -4,21 +4,21 @@ import CommonParams from "@/logic/CommonParams";
 import { HTTPVerb } from "@/logic/HTTPVerb";
 import { ActionContext } from "vuex";
 
-export interface IStoreChannelModule {
-    allChannels: Channel[];
-    findEpisode(channelTitleURL: string, episodeTitleURL: string): Episode|undefined;
-}
-
-export class StoreChannelViewModel implements IStoreChannelModule {
+export class StoreChannelViewModel {
     public allChannels!: Channel[];
 
     constructor() {
         this.allChannels = [];
     }
 
-    public findEpisode(channelTitleURL: string, episodeTitleURL: string): Episode|undefined {
-        const channel: Channel|undefined = this.allChannels.find(p => p.titleAsURL === channelTitleURL);
-        return channel?.episodes.find(e => e.titleAsURL === episodeTitleURL);
+    public findEpisode(episodeId: number): Episode|undefined {
+        for (const channel of this.allChannels) {
+            const res = channel?.episodes.find(e => e.id === episodeId);
+            if (res) {
+                return res;
+            }
+        }
+        return undefined;
     }
 
     public updateChannelData(newChannelData: Channel[]): void {
@@ -31,8 +31,8 @@ export class StoreChannelViewModel implements IStoreChannelModule {
         return fetchPromise;
     }
 
-    public async loadEpisodeData(channelTitleURL: string, episodeTitleURL: string): Promise<Episode|undefined> {
-        const restURL: string = `${CommonParams.APIServerRootURL}/episodes/${channelTitleURL}/${episodeTitleURL}`;
+    public async loadEpisodeData(episodeId: number): Promise<Episode|undefined> {
+        const restURL: string = `${CommonParams.APIServerRootURL}/episodes/${episodeId}`;
         const fetchPromise = AsyncLoader.makeRestRequest(restURL, HTTPVerb.Get, null, Episode) as Promise<Episode|undefined>;
         return fetchPromise;
     }
@@ -67,12 +67,12 @@ export default {
             }
             return context.dispatch("refreshChannelData");
         },
-        loadEpisodeData: async (context: ActionContext<StoreChannelViewModel, StoreChannelViewModel>, payload: { channelURL: string; episodeURL: string }): Promise<Episode|undefined> => {
-            const episodeData: Episode|undefined = context.state.findEpisode(payload.channelURL, payload.episodeURL);
+        loadEpisodeData: async (context: ActionContext<StoreChannelViewModel, StoreChannelViewModel>, payload: { episodeId: number }): Promise<Episode|undefined> => {
+            const episodeData: Episode|undefined = context.state.findEpisode(payload.episodeId);
             if (episodeData) {
                 return episodeData;
             }
-            return context.state.loadEpisodeData(payload.channelURL, payload.episodeURL);
+            return context.state.loadEpisodeData(payload.episodeId);
         }
     }
 };

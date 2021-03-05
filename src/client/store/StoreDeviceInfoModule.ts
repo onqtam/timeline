@@ -17,10 +17,6 @@ export class DeviceInfo {
     public appMode!: ActiveAppMode;
 }
 
-export interface IStoreDeviceInfoModule {
-    device: DeviceInfo;
-}
-
 export enum BrowserType {
     Edge = "Edge",
     Opera = "Opera",
@@ -33,7 +29,7 @@ export enum BrowserType {
 
 export type AppModeChangedCallback = () => void;
 
-export class StoreDeviceInfoViewModel implements IStoreDeviceInfoModule {
+export class StoreDeviceInfoViewModel {
     public device: DeviceInfo;
     private appModeChangedListeners: AppModeChangedCallback[];
 
