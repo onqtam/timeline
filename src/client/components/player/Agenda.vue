@@ -2,7 +2,7 @@
     <div class="d-inline-block" style="height: 50px;"> <!-- TODO: this height restriction is because it otherwise stretches vertically - don't know why -->
         <v-dialog v-model="showDialog" scrollable max-width="700px">
             <template v-slot:activator="{ on, attrs }">
-                <v-btn v-bind="attrs" v-on="on">See all topics</v-btn>
+                <v-btn v-bind="attrs" v-on="on"><v-icon>mdi-playlist-play</v-icon>topics</v-btn>
             </template>
             <v-card>
                 <v-card-title class="justify-center">All topics in episode</v-card-title>

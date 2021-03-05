@@ -33,13 +33,14 @@
                     @change="windowEndChange"
                 ></v-text-field>
 
-                <v-btn @click="isZoomline = !isZoomline" width="120px">
-                    {{ isZoomline ? '►Pinch◄' : '◄Unpinch►' }}
+                <!-- TODO: use tooltips instead of title attribute - https://vuetifyjs.com/en/components/tooltips/ -->
+                <v-btn :title="isZoomline ? 'Pinch' : 'Unpinch'" @click="isZoomline = !isZoomline" width="50px">
+                    {{ isZoomline ? '►◄' : '◄►' }}
                 </v-btn>
 
                 <!-- TODO: use button-groups - mutually-exclusive toggles -->
-                <v-btn>Comments</v-btn>
-                <!-- <v-btn>Bookmarks</v-btn> -->
+                <v-btn title="comment histogram - where have others commented"><v-icon>mdi-comment-text-multiple-outline</v-icon></v-btn>
+                <v-btn title="bookmark histogram - your bookmarks"><v-icon>mdi-bookmark-multiple-outline</v-icon></v-btn>
 
                 <AgendaComponent
                     class="agenda"
