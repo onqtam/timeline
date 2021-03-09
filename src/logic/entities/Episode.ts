@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
 import { IsDate, Min } from "class-validator";
 
 import Timepoint from "./Timepoint";
@@ -20,31 +20,57 @@ export class AgendaItem implements IReviveFromJSON {
 }
 
 export class Agenda implements IReviveFromJSON {
-    // TODO: make sure there is always an entry at timepoint 0
-    // TODO: make sure the items are sorted correctly based on the timepoints
-    public items: AgendaItem[] = [
-        new AgendaItem("agenda 0    beginning", new Timepoint(0)),
-        new AgendaItem("agenda 1    abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(400)),
-        new AgendaItem("agenda 4    abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(1600)),
-        new AgendaItem("agenda 5    abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(2000)),
-        new AgendaItem("agenda 7    abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(2800)),
-        new AgendaItem("agenda 11   abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(4400)),
-        new AgendaItem("agenda 12   abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(4800)),
-        new AgendaItem("agenda 13   abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(5200)),
-        new AgendaItem("agenda 15   abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(6000)),
-        new AgendaItem("agenda 19   abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(7600)),
-        //     new AgendaItem("agenda 20   abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(8000)),
-        //     new AgendaItem("agenda 21   abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(8400)),
-        //     new AgendaItem("agenda 22   abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(8800)),
-        new AgendaItem("agenda 23   abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(9200)),
-        new AgendaItem("agenda 25   abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(10000)),
-        new AgendaItem("agenda 26   abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", new Timepoint(10250))
-    ];
+    public items: AgendaItem[] = [];
 
     public reviveSubObjects(): void {
         for (const item of this.items) {
             EncodingUtils.reviveObjectAs(item, AgendaItem);
         }
+    }
+
+    // taken from here: https://github.com/Ermag/yt-highlights-chrome/blob/master/content.js#L167
+    static parseYouTubeTimestamps(text: string): AgendaItem[] {
+        let desc = text.split('\n');
+
+        let timeRegex = /([0-9]?[0-9]:)?[0-5]?[0-9]:[0-5][0-9]/g;
+        let items: AgendaItem[] = [];
+
+        // Loop trough all lines
+        for (let i = 0; i < desc.length; i++) {
+            let timestamp = desc[i].match(timeRegex);
+
+            // If there is timestamp in the line extract it
+            if (timestamp) {
+                let txt = desc[i].replace(timestamp[0], '');
+                txt = txt.trim().replace(/(?:https?|ftp):\/\/[\n\S]+/g, '');
+
+                if (txt.length < 2) {
+                    continue;
+                }
+
+                let removeChars = ['-', '[', ']']
+                for (let k = 0; k < removeChars.length; k++) {
+                    // Start of string
+                    if (txt.charAt(0) === removeChars[k]) {
+                        txt = txt.substr(1);
+                    }
+
+                    // End of string
+                    if (txt.charAt(txt.length - 1) === removeChars[k]) {
+                        txt = txt.substr(0, txt.length - 1);
+                    }
+                }
+                items.push(new AgendaItem(txt, Timepoint.tryParseFromFormattedText(timestamp[0]) as Timepoint));
+            }
+        }
+
+        // make sure there is always an entry at timepoint 0
+        if (items.length > 0 && items[0].timestamp.seconds != 0) {
+            items.unshift(new AgendaItem("", new Timepoint(0)));
+        }
+
+        // TODO: make sure the items are sorted correctly based on the timepoints
+        return items;
     }
 }
 
@@ -52,6 +78,10 @@ export class Agenda implements IReviveFromJSON {
 export class Episode implements IReviveFromJSON {
     @PrimaryGeneratedColumn()
     public id!: number;
+    @Column({nullable: true})
+    public external_source?: string;
+    @Column({nullable: true})
+    public external_id?: string;
     @Column()
     public title!: string;
     @Column()
@@ -63,13 +93,12 @@ export class Episode implements IReviveFromJSON {
     @Min(1)
     public durationInSeconds!: number;
     @Column()
-    public audioURL!: string ;
+    public audioURL!: string;
     @Column()
     public imageURL!: string;
     public agenda: Agenda = new Agenda();
-
-    @ManyToOne(() => Channel, channel => channel.episodes, { nullable: false })
-    public readonly owningChannel!: Channel;
+    @Column()
+    public owningChannelId!: number;
 
     public get titleAsURL(): string {
         return EncodingUtils.titleAsURL(this.title);

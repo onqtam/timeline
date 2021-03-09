@@ -52,11 +52,17 @@
             <v-list>
                 <v-list-item-group> <!-- necessary for the hovering effects of the separate elements to be present -->
                     <v-list-item>
-                        <v-list-item-title @click="copy_position">copy link to current position</v-list-item-title>
+                        <v-list-item-title @click="copy_position">
+                            <v-icon>mdi-link-variant</v-icon>
+                            copy link to current position
+                        </v-list-item-title>
                     </v-list-item>
                     <v-divider/>
                     <v-list-item>
-                        <v-list-item-title @click="copy_range">copy link to range</v-list-item-title>
+                        <v-list-item-title @click="copy_range">
+                            <v-icon>mdi-link-variant</v-icon>
+                            copy link to range
+                        </v-list-item-title>
                     </v-list-item>
                 </v-list-item-group>
             </v-list>
