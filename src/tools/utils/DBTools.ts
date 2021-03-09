@@ -46,7 +46,7 @@ class ElementParserHelper {
     };
 }
 
-function parseChannelFromRSS(rssContent: string): Channel | null {
+async function parseChannelFromRSS(rssContent: string): Promise<Channel | null> {
     const channel = new Channel();
     const xmlParser = new xmldom.DOMParser();
     const xmlDoc = xmlParser.parseFromString(rssContent, "text/xml");
@@ -74,14 +74,12 @@ function parseChannelFromRSS(rssContent: string): Channel | null {
     // TODO: the image tag differs in rss feeds - sometimes there's a href attribute, and sometimes there are nested <url> tags
     channel.imageURL = ""; // channelNode.firstChild("image").getAttr("href");
 
-    channel.episodes = [];
+    const allEpisodes: Episode[] = [];
     const episodeNodes = channelNode.allChildren("item");
     for (const episodeItem of episodeNodes) {
         const episode = new Episode();
 
-        // force set owningChannel; cast to any as the prop is normally readonly but in this case it's appropriate to set it
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (episode as unknown as any).owningChannel = channel;
+        episode.owningChannelId = channel.id;
         episode.title = episodeItem.firstChild("title").getText();
         episode.description = episodeItem.firstChild("description").getText();
         episode.publicationDate = new Date(episodeItem.firstChild("pubDate").getText());
@@ -108,17 +106,24 @@ function parseChannelFromRSS(rssContent: string): Channel | null {
             const item = new AgendaItem(RandomString.ofLength(30), new Timepoint(i));
             episode.agenda.items.push(item);
         }
-        channel.episodes.push(episode);
+        allEpisodes.push(episode);
     }
+
+    await getConnection().createQueryBuilder()
+        .insert()
+        .into(Episode)
+        .values(allEpisodes)
+        .execute();
+
     return channel;
-};
+}
 
 async function downloadAllRss(): Promise<Channel[]> {
     const onFetchFailed = async (): Promise<Channel> => {
         return Promise.reject(new Error("Download failed!"));
     };
     const parseWithPromise = async (rssContent: string): Promise<Channel> => {
-        const parsedChannel: Channel | null = parseChannelFromRSS(rssContent);
+        const parsedChannel: Channel | null = await parseChannelFromRSS(rssContent);
         if (parsedChannel) {
             return parsedChannel;
         } else {
@@ -198,12 +203,6 @@ export default class DBTools {
             .insert()
             .into(Channel)
             .values(parsedChannels)
-            .execute();
-        const allEpisodes = parsedChannels.flatMap(p => p.episodes);
-        await connection.createQueryBuilder()
-            .insert()
-            .into(Episode)
-            .values(allEpisodes)
             .execute();
         console.log("Update complete");
     }

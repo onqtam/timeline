@@ -3,7 +3,7 @@
         <div class="channel-thumbnail" :style="{ 'background-image': 'url(' + channel.imageURL +')' }" >
         </div>
         <div class="channel-content">
-            <router-link :to="`/episodes/${channel.titleAsURL}`">
+            <router-link :to="`/channels/${channel.id}`">
                 <h3 class="channel-title">{{ channel.title }}</h3>
             </router-link>
             <span> {{ channel.author }}</span>

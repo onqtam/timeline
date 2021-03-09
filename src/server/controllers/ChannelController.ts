@@ -1,10 +1,15 @@
 import { Request, Response } from "express";
-import { getConnection } from "typeorm";
+import { getConnection, InsertResult } from "typeorm";
 import { Channel, Episode } from "../../logic/entities/Channel";
+import { Agenda } from "../../logic/entities/Episode";
 import RouteInfo from "../RouteInfo";
 import EncodingUtils from "../../logic/EncodingUtils";
 import { HTTPVerb } from "../../logic/HTTPVerb";
 import { QBE, QB } from "../utils/dbutils";
+import axios, { AxiosResponse } from 'axios';
+import { YouTubeDurationToSeconds } from "../../logic/MiscHelpers";
+
+const YOUTUBE_DATA_API_KEY="AIzaSyDi1AK9ELda6EtNFYqFhDxzZFZH2mmzlRw"
 
 export default class ChannelController {
     public static getRoutes(): RouteInfo[] {
@@ -28,6 +33,11 @@ export default class ChannelController {
             verb: HTTPVerb.Get,
             requiresAuthentication: false,
             callback: ChannelController.getEpisode
+        }, {
+            path: "/episodes/youtube/:youtubeId",
+            verb: HTTPVerb.Get,
+            requiresAuthentication: false,
+            callback: ChannelController.getYouTubeEpisode
         }];
     }
 
@@ -65,6 +75,119 @@ export default class ChannelController {
             response.status(404).end();
             return;
         }
+
+        // TODO: don't always generate it - figure out how to store it in the DB!
+        episode.agenda = new Agenda();
+        episode.agenda.items = Agenda.parseYouTubeTimestamps(episode.description);
+
         response.end(EncodingUtils.jsonify(episode));
+    }
+
+    static async getYouTubeChannelId(YTChannelId: string): Promise<number> {
+        console.assert(YTChannelId.length == 24); // should be revisited
+
+        const channelIdResult: number|undefined = (await QB()
+            .select("id")
+            .from(Channel, "channel")
+            .where(`channel."external_id" = :youtubeId`, { youtubeId: YTChannelId })
+            .andWhere(`channel."external_source" = :source`, { source: "youtube" })
+            .execute())[0];
+
+        console.log(channelIdResult);
+        
+        if (channelIdResult) {
+            return (channelIdResult as any).id;
+        }
+
+        const restURL = "https://www.googleapis.com/youtube/v3/channels?part=snippet&id=" + YTChannelId + "&key=" + YOUTUBE_DATA_API_KEY;
+
+        return axios.get(restURL).then(async (result: AxiosResponse) => {
+            // there should be only 1 result
+            // TODO: handle errors from the youtube API
+
+            console.assert(result.data.items.length == 1);
+            const snippet = result.data.items[0].snippet;
+
+            const channel = new Channel();
+            channel.external_id = YTChannelId;
+            channel.external_source = "youtube";
+            channel.title = snippet.title;
+            channel.description = snippet.description;
+            channel.author = "";
+            channel.link = "";
+            channel.imageURL = snippet.thumbnails.high.url;
+            
+            return (await QB().insert()
+                .into(Channel)
+                .values(channel)
+                .returning("id")
+                .execute() as InsertResult).identifiers[0].id;
+        });
+    }
+
+    static async getYouTubeEpisode(request: Request, response: Response): Promise<void> {
+        const params = {
+            youtubeId: request.params.youtubeId
+        };
+        console.log("\n== getYouTubeEpisode - Received params: ", JSON.stringify(params));
+
+        // youtube IDs have a length of 11: https://stackoverflow.com/a/6250619/3162383
+        console.assert(params.youtubeId.length == 11);
+
+        // check if the youtube video ID is already present in our system
+        let episode: Episode|undefined = (await QB()
+            .select()
+            .from(Episode, "episode")
+            .where(`episode."external_id" = :youtubeId`, params)
+            .andWhere(`episode."external_source" = :source`, { source: "youtube" })
+            .execute())[0];
+        if (episode) {
+            response.end(EncodingUtils.jsonify(episode));
+            return;
+        }
+
+        // const handleError = (error: AxiosError) => {
+        //     if (error.response) {
+        //         console.log(error.response.data);
+        //         console.log(error.response.status);
+        //         console.log(error.response.headers);
+        //     } else {
+        //         console.log(error.message);
+        //     }
+        //     response.end();
+        // };
+
+        // we don't have that episode in our system - time to fetch info from YouTube
+        const restURL = "https://www.googleapis.com/youtube/v3/videos?part=snippet,status,contentDetails&id=" + params.youtubeId + "&key=" + YOUTUBE_DATA_API_KEY;
+
+        episode = await axios.get(restURL).then(async (result: AxiosResponse) => {
+            // there should be only 1 result
+            // TODO: handle errors from the youtube API
+            console.assert(result.data.items.length == 1);
+
+            const snippet = result.data.items[0].snippet;
+            const duration = result.data.items[0].contentDetails.duration;
+            const embeddable = result.data.items[0].status.embeddable;
+            console.assert(embeddable);
+
+            const episode = new Episode();
+            episode.external_id = result.data.items[0].id;
+            episode.external_source = "youtube";
+            episode.title = snippet.title;
+            episode.description = snippet.description;
+            episode.publicationDate = new Date(Date.parse(snippet.publishedAt));
+            episode.durationInSeconds = YouTubeDurationToSeconds(duration);
+            episode.audioURL = "";
+            episode.imageURL = snippet.thumbnails.high.url;
+            episode.owningChannelId = await ChannelController.getYouTubeChannelId(snippet.channelId);
+
+            return (await QB().insert()
+                .into(Episode)
+                .values(episode)
+                .returning("*")
+                .execute() as InsertResult).raw[0] as Episode;
+        });//.catch(handleError);
+
+        response.end(EncodingUtils.jsonify(episode as Episode));
     }
 }

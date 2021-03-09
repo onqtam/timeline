@@ -1,19 +1,14 @@
 import Vue from "vue";
 import VueRouter, { RouteConfig } from "vue-router";
-import Home from "../views/Home.vue";
 import PlayView from "../views/Play.vue";
 import EpisodesView from "../views/Episodes.vue";
 import ChannelsView from "../views/Channels.vue";
 import UserView from "../views/User.vue";
+import HomeView from "../views/Home.vue";
 
 Vue.use(VueRouter);
 
 const routes: Array<RouteConfig> = [
-    {
-        path: "/home",
-        name: "Home",
-        component: Home
-    },
     {
         path: "/about",
         name: "About",
@@ -56,8 +51,10 @@ const routes: Array<RouteConfig> = [
     },
     {
         path: "/",
+        name: "Home",
+        component: HomeView
         // TODO: Obviously hard-coding a channel isn't perfect but it's a necessity during development
-        redirect: "/channels/1"
+        // redirect: "/channels/1"
         // redirect: "/episodes/Making%20Sense%20with%20Sam%20Harris"
     }
 ];

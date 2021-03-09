@@ -11,15 +11,15 @@ export class StoreChannelViewModel {
         this.allChannels = [];
     }
 
-    public findEpisode(episodeId: number): Episode|undefined {
-        for (const channel of this.allChannels) {
-            const res = channel?.episodes.find(e => e.id === episodeId);
-            if (res) {
-                return res;
-            }
-        }
-        return undefined;
-    }
+    // public findEpisode(episodeId: number): Episode|undefined {
+    //     for (const channel of this.allChannels) {
+    //         const res = channel?.episodes.find(e => e.id === episodeId);
+    //         if (res) {
+    //             return res;
+    //         }
+    //     }
+    //     return undefined;
+    // }
 
     public updateChannelData(newChannelData: Channel[]): void {
         this.allChannels.splice(0, this.allChannels.length, ...newChannelData);
@@ -68,11 +68,15 @@ export default {
             return context.dispatch("refreshChannelData");
         },
         loadEpisodeData: async (context: ActionContext<StoreChannelViewModel, StoreChannelViewModel>, payload: { episodeId: number }): Promise<Episode|undefined> => {
-            const episodeData: Episode|undefined = context.state.findEpisode(payload.episodeId);
-            if (episodeData) {
-                return episodeData;
-            }
+            // const episodeData: Episode|undefined = context.state.findEpisode(payload.episodeId);
+            // if (episodeData) {
+            //     return episodeData;
+            // }
             return context.state.loadEpisodeData(payload.episodeId);
+        },
+        getYouTubeEpisode: async (context: ActionContext<StoreChannelViewModel, StoreChannelViewModel>, payload: { url: string }): Promise<Episode|undefined> => {
+            const restURL: string = `${CommonParams.APIServerRootURL}/episodes/youtube/${payload.url}`;
+            return AsyncLoader.makeRestRequest(restURL, HTTPVerb.Get, null, Episode) as Promise<Episode|undefined>;
         }
     }
 };
