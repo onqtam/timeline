@@ -41,7 +41,7 @@ export class Agenda implements IReviveFromJSON {
             // If there is timestamp in the line extract it
             if (timestamp) {
                 let txt = desc[i].replace(timestamp[0], "");
-                txt = txt.trim().replace(/(?:https?|ftp):\/\/[\n\S]+/g, "");
+                txt = txt.trim().replace(/(?:https?|ftp):\/\/[\n\S]+/g, "").replace("()", "");
 
                 if (txt.length < 2) {
                     continue;
