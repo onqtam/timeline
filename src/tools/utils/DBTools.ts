@@ -14,6 +14,8 @@ import VoteCommentRecord from "../../logic/entities/VoteCommentRecord";
 import UserSettings from "../../logic/entities/UserSettings";
 import PlaybackProgressRecord from "../../logic/entities/PlaybackProgressRecord";
 
+const EXTERNAL_SOURCE_PODCAST_RSS = 2;
+
 // Channel Info handling
 class ElementParserHelper {
     public element: Element;
@@ -46,7 +48,7 @@ class ElementParserHelper {
     };
 }
 
-async function parseChannelFromRSS(rssContent: string): Promise<Channel | null> {
+async function parseChannelFromRSS(rssFeed: string, rssContent: string): Promise<Channel | null> {
     const channel = new Channel();
     const xmlParser = new xmldom.DOMParser();
     const xmlDoc = xmlParser.parseFromString(rssContent, "text/xml");
@@ -69,8 +71,9 @@ async function parseChannelFromRSS(rssContent: string): Promise<Channel | null> 
 
     channel.title = channelNode.firstChild("title").getText();
     channel.description = channelNode.firstChild("description").getText();
-    channel.author = channelNode.firstChild("author").getText(); // usually itunes:author
-    channel.link = channelNode.firstChild("link").getText();
+    //channelNode.firstChild("author").getText(); // usually itunes:author
+    channel.resource_url = rssFeed;
+    //channelNode.firstChild("link").getText();
     // TODO: the image tag differs in rss feeds - sometimes there's a href attribute, and sometimes there are nested <url> tags
     channel.imageURL = ""; // channelNode.firstChild("image").getAttr("href");
 
@@ -94,7 +97,8 @@ async function parseChannelFromRSS(rssContent: string): Promise<Channel | null> 
             asTimepoint = new Timepoint(~~durationText);
         }
         episode.durationInSeconds = asTimepoint.seconds;
-        episode.audioURL = episodeItem.firstChild("enclosure").getAttr("url");
+        episode.external_source = EXTERNAL_SOURCE_PODCAST_RSS;
+        episode.resource_url = episodeItem.firstChild("enclosure").getAttr("url");
         episode.imageURL =episodeItem.firstChild("image").getAttr("href");
 
         // channels don't yet gave actual agenda so generate a random one
@@ -122,8 +126,8 @@ async function downloadAllRss(): Promise<Channel[]> {
     const onFetchFailed = async (): Promise<Channel> => {
         return Promise.reject(new Error("Download failed!"));
     };
-    const parseWithPromise = async (rssContent: string): Promise<Channel> => {
-        const parsedChannel: Channel | null = await parseChannelFromRSS(rssContent);
+    const parseWithPromise = async (rssFeed: string, rssContent: string): Promise<Channel> => {
+        const parsedChannel: Channel | null = await parseChannelFromRSS(rssFeed, rssContent);
         if (parsedChannel) {
             return parsedChannel;
         } else {
@@ -139,7 +143,10 @@ async function downloadAllRss(): Promise<Channel[]> {
     // Fire all requests at once, wait and process sequentially after that
     const promises: Promise<Channel>[] = [];
     for (const channel in PODCAST_TO_RSS) {
-        const rssPromise = AsyncLoader.fetchTextFile(PODCAST_TO_RSS[channel]).then(parseWithPromise, onFetchFailed);
+        const rssPromise = AsyncLoader.fetchTextFile(PODCAST_TO_RSS[channel])
+            .then(async (rssContent: string) => {
+                return parseWithPromise(PODCAST_TO_RSS[channel], rssContent);
+            }, onFetchFailed);
         promises.push(rssPromise);
     }
     return Promise.all(promises);

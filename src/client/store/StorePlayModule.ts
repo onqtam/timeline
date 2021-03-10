@@ -160,7 +160,7 @@ export default {
         // Should only be called by the loadEpisode action
         internalSetActiveEpisode: (state: StorePlayViewModel, episode: Episode): void => {
             state.activeEpisode = episode;
-            state.audioFile.filepath = episode.audioURL;
+            state.audioFile.filepath = episode.resource_url!;
             state.audioFile.duration = episode.durationInSeconds;
             // Force resize the audio window because it depends on the length of the audio
             state.resizeAudioWindow(state.audioWindow.duration);

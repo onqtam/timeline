@@ -10,6 +10,7 @@ import axios, { AxiosResponse } from "axios";
 import { YouTubeDurationToSeconds } from "../../logic/MiscHelpers";
 
 const YOUTUBE_DATA_API_KEY="AIzaSyDi1AK9ELda6EtNFYqFhDxzZFZH2mmzlRw";
+const EXTERNAL_SOURCE_YOUTUBE = 1;
 
 export default class ChannelController {
     public static getRoutes(): RouteInfo[] {
@@ -90,7 +91,7 @@ export default class ChannelController {
             .select("id")
             .from(Channel, "channel")
             .where(`channel."external_id" = :youtubeId`, { youtubeId: YTChannelId })
-            .andWhere(`channel."external_source" = :source`, { source: "youtube" })
+            .andWhere(`channel."external_source" = :source`, { source: EXTERNAL_SOURCE_YOUTUBE })
             .execute())[0];
 
         if (channelIdResult) {
@@ -109,11 +110,10 @@ export default class ChannelController {
 
             const channel = new Channel();
             channel.external_id = YTChannelId;
-            channel.external_source = "youtube";
+            channel.external_source = EXTERNAL_SOURCE_YOUTUBE;
             channel.title = snippet.title;
             channel.description = snippet.description;
-            channel.author = "";
-            channel.link = "";
+            channel.resource_url = "";
             channel.imageURL = snippet.thumbnails.high.url;
 
             return (await QB().insert()
@@ -138,7 +138,7 @@ export default class ChannelController {
             .select()
             .from(Episode, "episode")
             .where(`episode."external_id" = :youtubeId`, params)
-            .andWhere(`episode."external_source" = :source`, { source: "youtube" })
+            .andWhere(`episode."external_source" = :source`, { source: EXTERNAL_SOURCE_YOUTUBE })
             .execute())[0];
         if (episode) {
             response.end(EncodingUtils.jsonify(episode));
@@ -171,12 +171,12 @@ export default class ChannelController {
 
             const episode = new Episode();
             episode.external_id = result.data.items[0].id;
-            episode.external_source = "youtube";
+            episode.external_source = EXTERNAL_SOURCE_YOUTUBE;
             episode.title = snippet.title;
             episode.description = snippet.description;
             episode.publicationDate = new Date(Date.parse(snippet.publishedAt));
             episode.durationInSeconds = YouTubeDurationToSeconds(duration);
-            episode.audioURL = "";
+            episode.resource_url = "";
             episode.imageURL = snippet.thumbnails.high.url;
             episode.owningChannelId = await ChannelController.getYouTubeChannelId(snippet.channelId);
 
