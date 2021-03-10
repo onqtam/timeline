@@ -22,7 +22,7 @@ export function YouTubeDurationToSeconds(duration: string) {
     const matchArray = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
 
     const match2 = matchArray!.slice(1).map(function (x) {
-        if (x !== null) {
+        if (x != null) { // don't change this to `!==` !!!
             return x.replace(/\D/, "");
         }
     });

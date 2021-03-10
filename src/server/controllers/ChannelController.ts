@@ -93,8 +93,6 @@ export default class ChannelController {
             .andWhere(`channel."external_source" = :source`, { source: "youtube" })
             .execute())[0];
 
-        console.log(channelIdResult);
-
         if (channelIdResult) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             return (channelIdResult as any).id;
