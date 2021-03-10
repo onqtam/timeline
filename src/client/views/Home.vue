@@ -39,14 +39,14 @@ export default class HomeView extends Vue {
     parseAlert = false;
 
     submit() {
-        let parseResult = parseYouTubeVideoIdFromUrl(this.youtubeUrl);
+        const parseResult = parseYouTubeVideoIdFromUrl(this.youtubeUrl);
         if (parseResult) {
             this.parseAlert = false;
             store.dispatch.channel.getYouTubeEpisode({ url: parseResult })
-            .then(episode => {
-                console.assert(episode, "No such episode exists!");
-                this.$router.push("/play/" + episode!.id);
-            });
+                .then(episode => {
+                    console.assert(episode, "No such episode exists!");
+                    this.$router.push("/play/" + episode!.id);
+                });
         } else {
             this.parseAlert = true;
         }

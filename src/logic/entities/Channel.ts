@@ -10,9 +10,9 @@ export { Episode, AgendaItem };
 export class Channel {
     @PrimaryGeneratedColumn()
     public id!: number;
-    @Column({nullable: true})
+    @Column({ nullable: true })
     public external_source?: string;
-    @Column({nullable: true})
+    @Column({ nullable: true })
     public external_id?: string;
     @Column()
     public title!: string;

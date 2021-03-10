@@ -12,24 +12,24 @@ export class Clipboard {
 
 // taken from here: https://stackoverflow.com/a/8260383/3162383
 export function parseYouTubeVideoIdFromUrl(url: string): string|false {
-    var regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
-    var match = url.match(regExp);
-    return (match && match[7].length == 11) ? match[7] : false;
+    const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[7].length === 11) ? match[7] : false;
 }
 
 // taken from here: https://stackoverflow.com/a/30134889
 export function YouTubeDurationToSeconds(duration: string) {
-    var matchArray = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
+    const matchArray = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
 
-    var match2 = matchArray!.slice(1).map(function(x) {
-        if (x != null) {
-            return x.replace(/\D/, '');
+    const match2 = matchArray!.slice(1).map(function (x) {
+        if (x !== null) {
+            return x.replace(/\D/, "");
         }
     });
 
-    var hours = match2[0] ? parseInt(match2[0]) : 0;
-    var minutes = match2[1] ? parseInt(match2[1]) : 0;
-    var seconds = match2[2] ? parseInt(match2[2]) : 0;
+    const hours = match2[0] ? parseInt(match2[0]) : 0;
+    const minutes = match2[1] ? parseInt(match2[1]) : 0;
+    const seconds = match2[2] ? parseInt(match2[2]) : 0;
 
     return hours * 3600 + minutes * 60 + seconds;
 }
