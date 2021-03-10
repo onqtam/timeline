@@ -77,10 +77,12 @@ export class Agenda implements IReviveFromJSON {
 export class Episode implements IReviveFromJSON {
     @PrimaryGeneratedColumn()
     public id!: number;
-    @Column({ nullable: true })
-    public external_source?: string;
+    @Column()
+    public external_source!: number;
     @Column({ nullable: true })
     public external_id?: string;
+    @Column({ nullable: true })
+    public resource_url?: string;
     @Column()
     public title!: string;
     @Column()
@@ -91,8 +93,6 @@ export class Episode implements IReviveFromJSON {
     @Column()
     @Min(1)
     public durationInSeconds!: number;
-    @Column()
-    public audioURL!: string;
     @Column()
     public imageURL!: string;
     @Column()
@@ -110,7 +110,7 @@ export class Episode implements IReviveFromJSON {
             this.description = "";
             this.publicationDate = new Date(0);
             this.durationInSeconds = 1;
-            this.audioURL = "";
+            this.resource_url = "";
             this.imageURL = "";
         }
     }
