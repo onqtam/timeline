@@ -71,9 +71,9 @@ async function parseChannelFromRSS(rssFeed: string, rssContent: string): Promise
 
     channel.title = channelNode.firstChild("title").getText();
     channel.description = channelNode.firstChild("description").getText();
-    //channelNode.firstChild("author").getText(); // usually itunes:author
+    // channelNode.firstChild("author").getText(); // usually itunes:author
     channel.resource_url = rssFeed;
-    //channelNode.firstChild("link").getText();
+    // channelNode.firstChild("link").getText();
     // TODO: the image tag differs in rss feeds - sometimes there's a href attribute, and sometimes there are nested <url> tags
     channel.imageURL = ""; // channelNode.firstChild("image").getAttr("href");
 
