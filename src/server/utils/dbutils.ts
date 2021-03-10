@@ -7,6 +7,7 @@ export function QBE<Entity>(entityClass: ObjectType<Entity> | Function | string,
     return getConnection().createQueryBuilder(entityClass, alias);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function QB(): SelectQueryBuilder<any> {
     return getConnection().createQueryBuilder();
 }

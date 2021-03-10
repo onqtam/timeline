@@ -6,10 +6,10 @@ import RouteInfo from "../RouteInfo";
 import EncodingUtils from "../../logic/EncodingUtils";
 import { HTTPVerb } from "../../logic/HTTPVerb";
 import { QBE, QB } from "../utils/dbutils";
-import axios, { AxiosResponse } from 'axios';
+import axios, { AxiosResponse } from "axios";
 import { YouTubeDurationToSeconds } from "../../logic/MiscHelpers";
 
-const YOUTUBE_DATA_API_KEY="AIzaSyDi1AK9ELda6EtNFYqFhDxzZFZH2mmzlRw"
+const YOUTUBE_DATA_API_KEY="AIzaSyDi1AK9ELda6EtNFYqFhDxzZFZH2mmzlRw";
 
 export default class ChannelController {
     public static getRoutes(): RouteInfo[] {
@@ -84,7 +84,7 @@ export default class ChannelController {
     }
 
     static async getYouTubeChannelId(YTChannelId: string): Promise<number> {
-        console.assert(YTChannelId.length == 24); // should be revisited
+        console.assert(YTChannelId.length === 24); // should be revisited
 
         const channelIdResult: number|undefined = (await QB()
             .select("id")
@@ -94,8 +94,9 @@ export default class ChannelController {
             .execute())[0];
 
         console.log(channelIdResult);
-        
+
         if (channelIdResult) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             return (channelIdResult as any).id;
         }
 
@@ -105,7 +106,7 @@ export default class ChannelController {
             // there should be only 1 result
             // TODO: handle errors from the youtube API
 
-            console.assert(result.data.items.length == 1);
+            console.assert(result.data.items.length === 1);
             const snippet = result.data.items[0].snippet;
 
             const channel = new Channel();
@@ -116,7 +117,7 @@ export default class ChannelController {
             channel.author = "";
             channel.link = "";
             channel.imageURL = snippet.thumbnails.high.url;
-            
+
             return (await QB().insert()
                 .into(Channel)
                 .values(channel)
@@ -132,7 +133,7 @@ export default class ChannelController {
         console.log("\n== getYouTubeEpisode - Received params: ", JSON.stringify(params));
 
         // youtube IDs have a length of 11: https://stackoverflow.com/a/6250619/3162383
-        console.assert(params.youtubeId.length == 11);
+        console.assert(params.youtubeId.length === 11);
 
         // check if the youtube video ID is already present in our system
         let episode: Episode|undefined = (await QB()
@@ -163,7 +164,7 @@ export default class ChannelController {
         episode = await axios.get(restURL).then(async (result: AxiosResponse) => {
             // there should be only 1 result
             // TODO: handle errors from the youtube API
-            console.assert(result.data.items.length == 1);
+            console.assert(result.data.items.length === 1);
 
             const snippet = result.data.items[0].snippet;
             const duration = result.data.items[0].contentDetails.duration;
@@ -186,7 +187,7 @@ export default class ChannelController {
                 .values(episode)
                 .returning("*")
                 .execute() as InsertResult).raw[0] as Episode;
-        });//.catch(handleError);
+        });// .catch(handleError);
 
         response.end(EncodingUtils.jsonify(episode as Episode));
     }

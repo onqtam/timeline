@@ -2,7 +2,6 @@ import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
 import { IsDate, Min } from "class-validator";
 
 import Timepoint from "./Timepoint";
-import { Channel } from "./Channel";
 import CommonParams from "../CommonParams";
 import EncodingUtils, { IReviveFromJSON } from "../EncodingUtils";
 
@@ -30,25 +29,25 @@ export class Agenda implements IReviveFromJSON {
 
     // taken from here: https://github.com/Ermag/yt-highlights-chrome/blob/master/content.js#L167
     static parseYouTubeTimestamps(text: string): AgendaItem[] {
-        let desc = text.split('\n');
+        const desc = text.split("\n");
 
-        let timeRegex = /([0-9]?[0-9]:)?[0-5]?[0-9]:[0-5][0-9]/g;
-        let items: AgendaItem[] = [];
+        const timeRegex = /([0-9]?[0-9]:)?[0-5]?[0-9]:[0-5][0-9]/g;
+        const items: AgendaItem[] = [];
 
         // Loop trough all lines
         for (let i = 0; i < desc.length; i++) {
-            let timestamp = desc[i].match(timeRegex);
+            const timestamp = desc[i].match(timeRegex);
 
             // If there is timestamp in the line extract it
             if (timestamp) {
-                let txt = desc[i].replace(timestamp[0], '');
-                txt = txt.trim().replace(/(?:https?|ftp):\/\/[\n\S]+/g, '');
+                let txt = desc[i].replace(timestamp[0], "");
+                txt = txt.trim().replace(/(?:https?|ftp):\/\/[\n\S]+/g, "");
 
                 if (txt.length < 2) {
                     continue;
                 }
 
-                let removeChars = ['-', '[', ']']
+                const removeChars = ["-", "[", "]"];
                 for (let k = 0; k < removeChars.length; k++) {
                     // Start of string
                     if (txt.charAt(0) === removeChars[k]) {
@@ -65,7 +64,7 @@ export class Agenda implements IReviveFromJSON {
         }
 
         // make sure there is always an entry at timepoint 0
-        if (items.length > 0 && items[0].timestamp.seconds != 0) {
+        if (items.length > 0 && items[0].timestamp.seconds !== 0) {
             items.unshift(new AgendaItem("", new Timepoint(0)));
         }
 
@@ -78,9 +77,9 @@ export class Agenda implements IReviveFromJSON {
 export class Episode implements IReviveFromJSON {
     @PrimaryGeneratedColumn()
     public id!: number;
-    @Column({nullable: true})
+    @Column({ nullable: true })
     public external_source?: string;
-    @Column({nullable: true})
+    @Column({ nullable: true })
     public external_id?: string;
     @Column()
     public title!: string;
@@ -96,9 +95,10 @@ export class Episode implements IReviveFromJSON {
     public audioURL!: string;
     @Column()
     public imageURL!: string;
-    public agenda: Agenda = new Agenda();
     @Column()
     public owningChannelId!: number;
+
+    public agenda: Agenda = new Agenda();
 
     public get titleAsURL(): string {
         return EncodingUtils.titleAsURL(this.title);
