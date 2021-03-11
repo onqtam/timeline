@@ -32,10 +32,32 @@
                 <v-slider class="d-inline-block" style="width: 250px;"
                     :max=audio.duration
                     min=1
-                    label="Window Size" thumb-label="always"
+                    label="Window Size"
+                    thumb-label="always"
+                    thumb-size="40"
                     v-model=windowDuration>
+                    <template v-slot:thumb-label="item">
+                        {{formatWindowDuration(item.value)}}
+                    </template>
                 </v-slider>
-
+                <!-- ALTERNATIVE POSITIONING OF THE LABEL: -->
+                <!--
+                <v-card flat color="transparent" class="d-inline-block">
+                    <v-subheader>Window Size</v-subheader>
+                    <v-card-text class="pt-0">
+                        <v-slider class="d-inline-block" style="width: 150px;"
+                            :max=audio.duration
+                            min=1
+                            thumb-label="always"
+                            thumb-size="40"
+                            v-model=windowDuration>
+                            <template v-slot:thumb-label="item">
+                                {{formatWindowDuration(item.value)}}
+                            </template>
+                        </v-slider>
+                    </v-card-text>
+                </v-card>
+                -->
                 <v-text-field label="Window Start" class="d-inline-block" style="width: 80px;"
                     v-mask="'##:##:##'"
                     autocomplete="off"
@@ -179,6 +201,9 @@ export default class TimelinePlayer extends Vue {
         }
         store.commit.play.setAudioWindow({ start: this.windowStart - backward_offset, end: this.windowStart + value - backward_offset });
     }
+    formatWindowDuration(input: number): string {
+        return (new Timepoint(input)).format();
+    }
 
     windowStartAsString = Timepoint.FullFormat(this.windowStart);
     windowStartChange() {
@@ -240,12 +265,14 @@ export default class TimelinePlayer extends Vue {
 
     initYouTubePlayer() {
         // TODO: figure out how to add this script properly to the website
+        // also look for inspiration here: https://github.com/feross/yt-player
         var tag = document.createElement('script');
         tag.id = 'iframe-demo';
         tag.src = 'https://www.youtube.com/iframe_api';
         var firstScriptTag = document.getElementsByTagName('script')[0];
         firstScriptTag.parentNode!.insertBefore(tag, firstScriptTag);
 
+        // the youtube script expects such a function to exist and calls it when ready
         (<any>window).onYouTubeIframeAPIReady = () => {
             this.youtube_player = new (<any>window).YT.Player('player_iframe', {
                 events: {
