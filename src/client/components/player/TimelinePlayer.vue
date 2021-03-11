@@ -1,5 +1,17 @@
 <template>
     <div class="timeline-player">
+        <!-- controls=0 -->
+        <!-- TODO: maybe integrate &origin=unpinch.io as parameter -->
+        <iframe 
+            v-if=isYouTube
+            width="100%"
+            height="500px"
+            id="player_iframe"
+            :src="`https://www.youtube.com/embed/${activeEpisode.external_id}?enablejsapi=1&modestbranding=0&rel=0`"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen
+        />
         <div class="controls">
             <div class="slider-controls">
                 <v-btn @click=togglePlay>
@@ -44,7 +56,6 @@
 
                 <AgendaComponent
                     class="agenda"
-                    v-if=activeEpisode
                     :currentAudioPosition=audioPos
                     :agenda=activeEpisode.agenda
                     :audioWindow=audioWindow
@@ -52,7 +63,8 @@
                 </AgendaComponent>
 
                 <audio nocontrols
-                    class="audio-element"
+                    v-if=!isYouTube
+                    class="d-none"
                     ref="audio-element"
                     :src=audio.filepath
                 >
@@ -77,7 +89,7 @@
             @update:currentAudioPosition=onZoomlinePositionMoved
         >
         </Timeline>
-        <Funnel
+        <!-- <Funnel
             class="funnel"
             ref="funnel"
             :duration_full=audio.duration
@@ -95,7 +107,7 @@
             :currentAudioPosition=audioPos
             @update:currentAudioPosition=onZoomlinePositionMoved
         >
-        </Zoomline>
+        </Zoomline> -->
     </div>
 </template>
 
@@ -105,20 +117,23 @@ import store from "@/client/store";
 import { default as AudioFile, AudioWindow } from "@/logic/AudioFile";
 import Timepoint from "@/logic/entities/Timepoint";
 
+// taken from here: https://github.com/feross/yt-player
+// const YTPlayer = require("@/logic/yt-player.js");
+
 import { default as Annotations } from "./Annotations.vue";
 import { default as Timeline } from "./Timeline.vue";
-import { default as Funnel } from "./Funnel.vue";
-import { default as Zoomline } from "./Zoomline.vue";
+// import { default as Funnel } from "./Funnel.vue";
+// import { default as Zoomline } from "./Zoomline.vue";
 import AgendaComponent from "./Agenda.vue";
 import { Episode } from "@/logic/entities/Episode";
-import { ActiveAppMode } from "../../store/StoreDeviceInfoModule";
+import CommonParams from "@/logic/CommonParams";
 
 @Component({
     components: {
         Annotations,
         Timeline,
-        Funnel,
-        Zoomline,
+        // Funnel,
+        // Zoomline,
         AgendaComponent
     }
 })
@@ -132,8 +147,9 @@ export default class TimelinePlayer extends Vue {
     public get audioPos(): Timepoint {
         return store.state.play.audioPos;
     }
-
-    isZoomline = false;
+    public get activeEpisode(): Episode {
+        return store.state.play.activeEpisode;
+    }
 
     // ================================================================
     // == window size & position
@@ -195,26 +211,8 @@ export default class TimelinePlayer extends Vue {
         this.windowEndAsString = Timepoint.FullFormat(this.windowEnd);
     }
 
-    // ================================================================
-    // == other stuff
-    // ================================================================
+    isZoomline = false;
 
-    public get volume(): number {
-        return store.state.play.volume;
-    }
-    public set volume(value: number) {
-        store.commit.play.setVolume(value);
-        this.audioElement.volume = value;
-    }
-    public get isMuted(): boolean {
-        return !this.audioElement || this.audioElement.muted;
-    }
-    public get isPaused(): boolean {
-        return !this.audioElement || this.audioElement.paused;
-    }
-    public get activeEpisode(): Episode {
-        return store.state.play.activeEpisode;
-    }
     private get zoomlineRangeStart(): number {
         return this.audioWindow.start.seconds;
     }
@@ -222,8 +220,73 @@ export default class TimelinePlayer extends Vue {
         const seconds: number = this.audioWindow.start.seconds + this.audioWindow.duration;
         return Math.min(seconds, this.audio.duration);
     }
-    private get zoomlineMarkCount(): number {
-        return store.state.play.audioWindow.timeslotCount + 1;
+
+    // ================================================================
+    // == YouTube iframe API
+    // ================================================================
+
+    get isYouTube(): boolean {
+        return this.activeEpisode.external_source == CommonParams.EXTERNAL_SOURCE_YOUTUBE;
+    }
+
+    youtube_player: any;
+    youtube_player_state = 0;
+
+    isPlaying = false;
+
+    isYouTubePlayerPlaying() {
+        return this.youtube_player_state == 1 || this.youtube_player_state == 3;
+    }
+
+    isYouTubePlayerPaused() {
+        return this.youtube_player_state == -1 || this.youtube_player_state == 0 || this.youtube_player_state == 2;
+    }
+
+    initYouTubePlayer() {
+        // TODO: figure out how to add this script properly to the website
+        var tag = document.createElement('script');
+        tag.id = 'iframe-demo';
+        tag.src = 'https://www.youtube.com/iframe_api';
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode!.insertBefore(tag, firstScriptTag);
+
+        (<any>window).onYouTubeIframeAPIReady = () => {
+            console.log("== onYouTubeIframeAPIReady");
+            this.youtube_player = new (<any>window).YT.Player('player_iframe', {
+                events: {
+                    'onReady': this.onPlayerReady,
+                    'onStateChange': this.onPlayerStateChange
+                }
+            });
+        };
+    }
+
+    onPlayerReady(_event: any) {
+        console.log("== onPlayerReady");
+    }
+
+    onPlayerStateChange(event: any) {
+        this.youtube_player_state = event.data;
+        if (this.youtube_player_state == 1) {
+            this.isPlaying = true;
+            this.play();
+        } else {
+            this.isPlaying = false;
+            clearInterval(this.audioPlayTimeIntervalId);
+        }
+        console.log("== onPlayerStateChange " + event.data);
+    }
+
+    // ================================================================
+    // == playback controls
+    // ================================================================
+
+    public get isPaused(): boolean {
+        if (this.isYouTube) {
+            return this.isYouTubePlayerPaused();
+        } else {
+            return !this.audioElement || this.audioElement.paused;
+        }
     }
 
     // Internal Data members
@@ -231,59 +294,52 @@ export default class TimelinePlayer extends Vue {
         return this.$refs["audio-element"] as HTMLAudioElement;
     }
     private audioPlayTimeIntervalId: number = -1;
-    private activeAppMode: ActiveAppMode = ActiveAppMode.StandardScreen;
 
-    // Public API
-    public beforeCreate(): void {
-        this.$markRecomputable("audioElement");
-    }
-    public mounted(): void {
-        this.onWindowResized();
-        store.commit.device.addOnAppModeChangedListener(this.onWindowResized.bind(this));
-        // const playbackProgress: number = store.state.user.getPlaybackProgressForEpisode(this.activeEpisode.id).seconds;
-        // store.commit.play.moveAudioPos(playbackProgress);
-        this.$recompute("audioElement");
-    }
-    public beforeDestroy(): void {
-        this.$destroyRecomputables();
-    }
-    public destroyed(): void {
-        store.commit.device.removeOnAppModeChangedListener(this.onWindowResized.bind(this));
-    }
     public togglePlay(): void {
-        if (this.audioElement.paused) {
+        if (this.isPaused) {
             this.play();
         } else {
             this.pause();
         }
     }
     public play(): void {
-        this.audioElement.currentTime = this.audioPos.seconds;
-        this.audioElement.volume = this.volume;
-        this.audioElement.play();
+        console.log("🚀 ~ play()");
         this.audioPlayTimeIntervalId = window.setInterval(() => this.updateAudioPos(), 16);
-        this.$recompute("audioElement");
+        if (this.isYouTube) {
+            this.youtube_player.playVideo();
+        } else {
+            this.audioElement.currentTime = this.audioPos.seconds;
+            this.audioElement.volume = this.volume;
+            this.audioElement.play();
+            this.$recompute("audioElement");
+        }
     }
     public pause(): void {
+        console.log("🚀 ~ pause()");
         clearInterval(this.audioPlayTimeIntervalId);
-        this.audioElement.pause();
-        this.$recompute("audioElement");
-    }
-
-    public toggleMute(): void {
-        this.audioElement.muted = !this.audioElement.muted;
-        this.$recompute("audioElement");
+        if (this.isYouTube) {
+            this.youtube_player.pauseVideo();
+        } else {
+            this.audioElement.pause();
+            this.$recompute("audioElement");
+        }
     }
 
     // TODO: deep watching is slow!!! can we use mapState to avoid the x.y.z nesting when accessing the state?
     @Watch("audioPos", { deep: true })
     private watchAudioPos() {
-        // if we have moved the cursor from somewhere else by cmomitting a new audioPos to the play vuex
+        // if we have moved the cursor from somewhere else by committing a new audioPos to the play vuex
         // store (we recognize that if it's offset by more than 1 second from the current <audio> element)
         // then we should update the audio element - otherwise audioPlayTimeIntervalId would kick in and
         // reset the position based on what the <audio> element believes is the right position
-        if (Math.abs(this.audioElement.currentTime - this.audioPos.seconds) > 1) {
-            this.audioElement.currentTime = this.audioPos.seconds;
+        if (this.isYouTube) {
+            if (Math.abs(this.youtube_player.getCurrentTime() - this.audioPos.seconds) > 1 && this.isYouTubePlayerPaused) {
+                this.youtube_player.seekTo(this.audioPos.seconds, true);
+            }
+        } else {
+            if (Math.abs(this.audioElement.currentTime - this.audioPos.seconds) > 1) {
+                this.audioElement.currentTime = this.audioPos.seconds;
+            }
         }
     }
 
@@ -295,7 +351,12 @@ export default class TimelinePlayer extends Vue {
     }
     private updateAudioPos(): void {
         const wasInSync: boolean = this.isTimelineWindowSynced();
-        store.commit.play.moveAudioPos(this.audioElement.currentTime);
+        if (this.isYouTube) {
+            store.commit.play.moveAudioPos(this.youtube_player.getCurrentTime());
+        } else {
+            store.commit.play.moveAudioPos(this.audioElement.currentTime);
+        }
+        console.log("updateAudioPos: " + this.audioPos.seconds);
         const isInSync: boolean = this.isTimelineWindowSynced();
         if (wasInSync && !isInSync) {
             const newWindowPos = this.audioWindow.start.seconds + this.audioWindow.duration;
@@ -308,14 +369,73 @@ export default class TimelinePlayer extends Vue {
     }
     private onZoomlinePositionMoved(newValue: number): void {
         store.commit.play.seekTo(newValue);
-        this.audioElement.currentTime = newValue;
+        if (this.isYouTube) {
+
+        } else {
+            this.audioElement.currentTime = newValue;
+        }
     }
     private onTimelineWindowMoved(newValue: number): void {
         store.commit.play.moveAudioWindow(newValue);
     }
 
-    private onWindowResized(): void {
-        console.log("window resized!");
+    // ================================================================
+    // == volume controls
+    // ================================================================
+
+    public get volume(): number {
+        return store.state.play.volume;
+    }
+    public set volume(value: number) {
+        store.commit.play.setVolume(value);
+        if (this.isYouTube) {
+            this.youtube_player.setVolume(value);
+        } else {
+            this.audioElement.volume = value;
+        }
+    }
+    public get isMuted(): boolean {
+        return !this.audioElement || this.audioElement.muted;
+    }
+    public toggleMute(): void {
+        if (this.isYouTube) {
+
+        } else {
+            this.audioElement.muted = !this.audioElement.muted;
+            this.$recompute("audioElement");
+        }
+    }
+
+    // ================================================================
+    // == hooks
+    // ================================================================
+
+    beforeCreate() {
+        if (!this.isYouTube) {
+            this.$markRecomputable("audioElement");
+        }
+    }
+
+    created() {
+        console.log("== created");
+        if (this.isYouTube) {
+            this.initYouTubePlayer();
+        }
+        console.log("== created DONE");
+    }
+
+    mounted() {
+        // const playbackProgress: number = store.state.user.getPlaybackProgressForEpisode(this.activeEpisode.id).seconds;
+        // store.commit.play.moveAudioPos(playbackProgress);
+        if (!this.isYouTube) {
+            this.$recompute("audioElement");
+        }
+    }
+
+    beforeDestroy() {
+        if (!this.isYouTube) {
+            this.$destroyRecomputables();
+        }
     }
 };
 
@@ -355,13 +475,9 @@ export default class TimelinePlayer extends Vue {
 //     }
 // }
 
-.zoomline {
-    height: 40px;
-}
-
-.audio-element {
-    display: none;
-}
+// .zoomline {
+//     height: 40px;
+// }
 
 .slider-controls {
     width: 100%;

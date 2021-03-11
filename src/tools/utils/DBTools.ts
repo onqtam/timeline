@@ -13,8 +13,7 @@ import Comment from "../../logic/entities/Comments";
 import VoteCommentRecord from "../../logic/entities/VoteCommentRecord";
 import UserSettings from "../../logic/entities/UserSettings";
 import PlaybackProgressRecord from "../../logic/entities/PlaybackProgressRecord";
-
-const EXTERNAL_SOURCE_PODCAST_RSS = 2;
+import CommonParams from "../../logic/CommonParams";
 
 // Channel Info handling
 class ElementParserHelper {
@@ -97,7 +96,7 @@ async function parseChannelFromRSS(rssFeed: string, rssContent: string): Promise
             asTimepoint = new Timepoint(~~durationText);
         }
         episode.durationInSeconds = asTimepoint.seconds;
-        episode.external_source = EXTERNAL_SOURCE_PODCAST_RSS;
+        episode.external_source = CommonParams.EXTERNAL_SOURCE_PODCAST_RSS;
         episode.resource_url = episodeItem.firstChild("enclosure").getAttr("url");
         episode.imageURL =episodeItem.firstChild("image").getAttr("href");
 

@@ -12,4 +12,6 @@ export default class CommonParams {
     }
     // TODO: Move to a compile time constant?
     public static readonly IsRunningOnClient: boolean = "document" in globalThis;
+    public static readonly EXTERNAL_SOURCE_YOUTUBE = 1;
+    public static readonly EXTERNAL_SOURCE_PODCAST_RSS = 2;
 }
