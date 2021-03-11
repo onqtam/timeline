@@ -1,13 +1,14 @@
 <template>
     <div class="timeline-player">
         <!-- controls=0 -->
+        <!-- the controls for youtube are useful to see the progress bar and the buffering -->
         <!-- TODO: maybe integrate &origin=unpinch.io as parameter -->
         <iframe 
             v-if=isYouTube
             width="100%"
             height="500px"
             id="player_iframe"
-            :src="`https://www.youtube.com/embed/${activeEpisode.external_id}?enablejsapi=1&modestbranding=0&rel=0&controls=0`"
+            :src="`https://www.youtube.com/embed/${activeEpisode.external_id}?enablejsapi=1&modestbranding=0&rel=0`"
             frameborder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowfullscreen
@@ -19,13 +20,16 @@
                     <v-icon v-else>mdi-pause</v-icon>
                 </v-btn>
                 <v-btn class="mute-button" @click=toggleMute>
-                    <v-icon v-if="!isMuted && volume > 0.5">mdi-volume-high</v-icon>
-                    <v-icon v-if="!isMuted && volume <= 0.5 && volume > 0">mdi-volume-medium</v-icon>
+                    <v-icon v-if="!isMuted && volume > 50">mdi-volume-high</v-icon>
+                    <v-icon v-if="!isMuted && volume <= 50 && volume > 0">mdi-volume-medium</v-icon>
                     <v-icon v-if="isMuted || volume === 0">mdi-volume-off</v-icon>
                 </v-btn>
                 <!-- commented out for now - takes too much space and isn't useful for now -->
-                <!-- <v-slider class="volume-slider" :min=0 :max=1 :step=0.01 :value.sync=volume></v-slider> -->
-                <v-slider class="d-inline-block" style="width: 250px; margin-top: 20px;"
+                <v-slider class="d-inline-block" style="width: 150px;"
+                    :min=0 :max=100 :step=1 v-model=volume
+                    label="Volume" thumb-label="always">
+                </v-slider>
+                <v-slider class="d-inline-block" style="width: 250px;"
                     :max=audio.duration
                     min=1
                     label="Window Size" thumb-label="always"
@@ -244,9 +248,16 @@ export default class TimelinePlayer extends Vue {
 
         (<any>window).onYouTubeIframeAPIReady = () => {
             this.youtube_player = new (<any>window).YT.Player('player_iframe', {
-                events: { 'onStateChange': this.onPlayerStateChange }
+                events: {
+                    'onReady': this.onPlayerReady,
+                    'onStateChange': this.onPlayerStateChange
+                }
             });
         };
+    }
+
+    onPlayerReady(event: any) {
+        this.youtube_player.setVolume(this.volume);
     }
 
     onPlayerStateChange(event: any) {
@@ -296,6 +307,9 @@ export default class TimelinePlayer extends Vue {
         const vol = this.youtube_player.getVolume();
         if (vol != this.volume) {
             this.volume = vol;
+        }
+        if (this.isMuted != this.youtube_player.isMuted()) {
+            this.isMuted = this.youtube_player.isMuted();
         }
 
         let justSyncedPlayerAndVuex = false;
@@ -359,15 +373,7 @@ export default class TimelinePlayer extends Vue {
             // this.audioElement.volume = value;
         }
     }
-    public get isMuted(): boolean {
-        if (this.isYouTube) {
-            if (this.youtube_player) {
-                return this.youtube_player.isMuted();
-            }
-        }
-        // return !this.audioElement || this.audioElement.muted;
-        return false;
-    }
+    isMuted = false;
     public toggleMute(): void {
         if (this.isYouTube) {
             if (this.youtube_player) {
@@ -381,6 +387,7 @@ export default class TimelinePlayer extends Vue {
             // this.audioElement.muted = !this.audioElement.muted;
             // this.$recompute("audioElement");
         }
+        this.isMuted = !this.isMuted;
     }
 
     // ================================================================
