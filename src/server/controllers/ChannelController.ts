@@ -125,6 +125,8 @@ export default class ChannelController {
     }
 
     static async getYouTubeEpisode(request: Request, response: Response): Promise<void> {
+        await ChannelController.makeSureThereIsAtleastOneNormalMP3(); // NASTY HACK! :D
+
         const params = {
             youtubeId: request.params.youtubeId
         };
@@ -188,5 +190,26 @@ export default class ChannelController {
         });// .catch(handleError);
 
         response.end(EncodingUtils.jsonify(episode as Episode));
+    }
+
+    static async makeSureThereIsAtleastOneNormalMP3(): Promise<void> {
+        const numMP3: number|undefined = await QB()
+            .select()
+            .from(Episode, "episode")
+            .where(`episode."external_source" = :source`, { source: CommonParams.EXTERNAL_SOURCE_PODCAST_RSS })
+            .getCount();
+        if (!numMP3) {
+            // taken from here: https://wakingup.libsyn.com/rss
+            const episode = new Episode();
+            episode.external_source = CommonParams.EXTERNAL_SOURCE_PODCAST_RSS;
+            episode.title = "#240 — The Boundaries of Self";
+            episode.description = "desc desc desc";
+            episode.publicationDate = new Date(Date.now());
+            episode.durationInSeconds = 2637;
+            episode.resource_url = "https://traffic.libsyn.com/secure/wakingup/Making_Sense_240_David_Whyte2028Paywall29.mp3";
+            episode.imageURL = "img img img";
+            episode.owningChannelId = 1; // whatever...
+            await QB().insert().into(Episode).values(episode).execute();
+        }
     }
 }
