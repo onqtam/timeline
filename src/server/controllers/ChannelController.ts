@@ -5,12 +5,12 @@ import { Agenda } from "../../logic/entities/Episode";
 import RouteInfo from "../RouteInfo";
 import EncodingUtils from "../../logic/EncodingUtils";
 import { HTTPVerb } from "../../logic/HTTPVerb";
+import CommonParams from "../../logic/CommonParams";
 import { QBE, QB } from "../utils/dbutils";
 import axios, { AxiosResponse } from "axios";
 import { YouTubeDurationToSeconds } from "../../logic/MiscHelpers";
 
 const YOUTUBE_DATA_API_KEY="AIzaSyDi1AK9ELda6EtNFYqFhDxzZFZH2mmzlRw";
-const EXTERNAL_SOURCE_YOUTUBE = 1;
 
 export default class ChannelController {
     public static getRoutes(): RouteInfo[] {
@@ -91,7 +91,7 @@ export default class ChannelController {
             .select("id")
             .from(Channel, "channel")
             .where(`channel."external_id" = :youtubeId`, { youtubeId: YTChannelId })
-            .andWhere(`channel."external_source" = :source`, { source: EXTERNAL_SOURCE_YOUTUBE })
+            .andWhere(`channel."external_source" = :source`, { source: CommonParams.EXTERNAL_SOURCE_YOUTUBE })
             .execute())[0];
 
         if (channelIdResult) {
@@ -110,7 +110,7 @@ export default class ChannelController {
 
             const channel = new Channel();
             channel.external_id = YTChannelId;
-            channel.external_source = EXTERNAL_SOURCE_YOUTUBE;
+            channel.external_source = CommonParams.EXTERNAL_SOURCE_YOUTUBE;
             channel.title = snippet.title;
             channel.description = snippet.description;
             channel.resource_url = "";
@@ -138,7 +138,7 @@ export default class ChannelController {
             .select()
             .from(Episode, "episode")
             .where(`episode."external_id" = :youtubeId`, params)
-            .andWhere(`episode."external_source" = :source`, { source: EXTERNAL_SOURCE_YOUTUBE })
+            .andWhere(`episode."external_source" = :source`, { source: CommonParams.EXTERNAL_SOURCE_YOUTUBE })
             .execute())[0];
         if (episode) {
             response.end(EncodingUtils.jsonify(episode));
@@ -171,7 +171,7 @@ export default class ChannelController {
 
             const episode = new Episode();
             episode.external_id = result.data.items[0].id;
-            episode.external_source = EXTERNAL_SOURCE_YOUTUBE;
+            episode.external_source = CommonParams.EXTERNAL_SOURCE_YOUTUBE;
             episode.title = snippet.title;
             episode.description = snippet.description;
             episode.publicationDate = new Date(Date.parse(snippet.publishedAt));

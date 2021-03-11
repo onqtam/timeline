@@ -1,7 +1,5 @@
 <template>
     <div>
-        <!-- controls=0 -->
-        <iframe width="100%" height="500px" src="https://www.youtube.com/embed/nM9f0W2KD5s?" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen/>
         <TimelinePlayer v-if=isDataLoaded ref="timeline-player" class="timeline-player"/>
         <CommentSection v-if=isDataLoaded ref="comment-section"/>
     </div>
