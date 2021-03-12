@@ -3,7 +3,7 @@
         <!-- controls=0 -->
         <!-- the controls for youtube are useful to see the progress bar and the buffering -->
         <!-- TODO: maybe integrate &origin=unpinch.io as parameter -->
-        <iframe 
+        <iframe
             v-if=isYouTube
             width="100%"
             height="500px"
@@ -151,6 +151,19 @@ import AgendaComponent from "./Agenda.vue";
 import { Episode } from "@/logic/entities/Episode";
 import CommonParams from "@/logic/CommonParams";
 
+declare global {
+    // eslint-disable-next-line @typescript-eslint/interface-name-prefix
+    interface Window {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        onYouTubeIframeAPIReady: any;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        YT: any;
+    }
+}
+
+window.onYouTubeIframeAPIReady = window.onYouTubeIframeAPIReady || {};
+window.YT = window.YT || {};
+
 @Component({
     components: {
         Annotations,
@@ -253,40 +266,43 @@ export default class TimelinePlayer extends Vue {
     // ================================================================
 
     get isYouTube() {
-        return this.activeEpisode.external_source == CommonParams.EXTERNAL_SOURCE_YOUTUBE;
+        return this.activeEpisode.external_source === CommonParams.EXTERNAL_SOURCE_YOUTUBE;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     youtube_player: any;
     youtube_player_state = 0;
 
     get isYouTubePlayerPlaying() {
-        return this.youtube_player_state == 1 || this.youtube_player_state == 3;
+        return this.youtube_player_state === 1 || this.youtube_player_state === 3;
     }
 
     initYouTubePlayer() {
         // TODO: figure out how to add this script properly to the website
         // also look for inspiration here: https://github.com/feross/yt-player
-        var tag = document.createElement('script');
-        tag.id = 'iframe-demo';
-        tag.src = 'https://www.youtube.com/iframe_api';
-        var firstScriptTag = document.getElementsByTagName('script')[0];
+        const tag = document.createElement("script");
+        tag.id = "iframe-demo";
+        tag.src = "https://www.youtube.com/iframe_api";
+        const firstScriptTag = document.getElementsByTagName("script")[0];
         firstScriptTag.parentNode!.insertBefore(tag, firstScriptTag);
 
         // the youtube script expects such a function to exist and calls it when ready
-        (<any>window).onYouTubeIframeAPIReady = () => {
-            this.youtube_player = new (<any>window).YT.Player('player_iframe', {
+        window.onYouTubeIframeAPIReady = () => {
+            this.youtube_player = new window.YT.Player("player_iframe", {
                 events: {
-                    'onReady': this.onPlayerReady,
-                    'onStateChange': this.onPlayerStateChange
+                    onReady: this.onPlayerReady,
+                    onStateChange: this.onPlayerStateChange
                 }
             });
         };
     }
 
-    onPlayerReady(event: any) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onPlayerReady(_event: any) {
         this.youtube_player.setVolume(this.volume);
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onPlayerStateChange(event: any) {
         this.youtube_player_state = event.data;
         if (this.isYouTubePlayerPlaying) {
@@ -326,16 +342,17 @@ export default class TimelinePlayer extends Vue {
     syncPlayersIntervalId = window.setInterval(() => this.syncPlayers(), 16);
 
     syncPlayers() {
-        if (!this.youtube_player || !this.isYouTubePlayerPlaying)
+        if (!this.youtube_player || !this.isYouTubePlayerPlaying) {
             return;
+        }
 
         // first update the volume-related controls if they have changed
         // in the youtube player since there are no event listeners
         const vol = this.youtube_player.getVolume();
-        if (vol != this.volume) {
+        if (vol !== this.volume) {
             this.volume = vol;
         }
-        if (this.isMuted != this.youtube_player.isMuted()) {
+        if (this.isMuted !== this.youtube_player.isMuted()) {
             this.isMuted = this.youtube_player.isMuted();
         }
 
@@ -359,8 +376,9 @@ export default class TimelinePlayer extends Vue {
         // cache the youtube player time for the next cycle
         this.youtubePlayerTimeLast = youtubePlayerTime;
         // do not continue with the logic if we've already done something
-        if (justSyncedPlayerAndVuex)
+        if (justSyncedPlayerAndVuex) {
             return;
+        }
 
         // if youtube and vuex are in sync (relatively - within less than 1 second)
         const wasInSync = this.isTimelineWindowSynced();
@@ -393,7 +411,7 @@ export default class TimelinePlayer extends Vue {
     public set volume(value: number) {
         store.commit.play.setVolume(value);
         if (this.isYouTube) {
-            if (this.youtube_player && value != this.youtube_player.getVolume()) {
+            if (this.youtube_player && value !== this.youtube_player.getVolume()) {
                 this.youtube_player.setVolume(value);
             }
         } else {
