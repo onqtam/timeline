@@ -270,11 +270,13 @@ export default class TimelinePlayer extends Vue {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    youtube_player: any;
-    youtube_player_state = 0;
+    youtubePlayer: any;
+    youtubeState = -1;
+
+    get isYouTubePlayerReady() { return this.youtubeState != -1; }
 
     get isYouTubePlayerPlaying() {
-        return this.youtube_player_state === 1 || this.youtube_player_state === 3;
+        return this.youtubeState === 1 || this.youtubeState === 3;
     }
 
     initYouTubePlayer() {
@@ -288,7 +290,7 @@ export default class TimelinePlayer extends Vue {
 
         // the youtube script expects such a function to exist and calls it when ready
         window.onYouTubeIframeAPIReady = () => {
-            this.youtube_player = new window.YT.Player("player_iframe", {
+            this.youtubePlayer = new window.YT.Player("player_iframe", {
                 events: {
                     onReady: this.onPlayerReady,
                     onStateChange: this.onPlayerStateChange
@@ -299,17 +301,19 @@ export default class TimelinePlayer extends Vue {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onPlayerReady(_event: any) {
-        this.youtube_player.setVolume(this.volume);
+        this.youtubeState = 0;
+        this.youtubePlayer.setVolume(this.volume);
+        console.log("== onPlayerReady");
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onPlayerStateChange(event: any) {
-        this.youtube_player_state = event.data;
+        this.youtubeState = event.data;
         if (this.isYouTubePlayerPlaying) {
             this.play();
         }
         // https://developers.google.com/youtube/iframe_api_reference#Events
-        // console.log("== onPlayerStateChange " + event.data);
+        console.log("== onPlayerStateChange " + event.data);
     }
 
     // ================================================================
@@ -324,12 +328,14 @@ export default class TimelinePlayer extends Vue {
         this.isPaused ? this.play() : this.pause();
     }
     play() {
-        if (this.youtube_player) {
-            this.youtube_player.playVideo();
+        if (this.isYouTubePlayerReady) {
+            this.youtubePlayer.playVideo();
         }
     }
     pause() {
-        this.youtube_player.pauseVideo();
+        if (this.isYouTubePlayerReady) {
+            this.youtubePlayer.pauseVideo();
+        }
     }
 
     private isTimelineWindowSynced(): boolean {
@@ -342,22 +348,22 @@ export default class TimelinePlayer extends Vue {
     syncPlayersIntervalId = window.setInterval(() => this.syncPlayers(), 16);
 
     syncPlayers() {
-        if (!this.youtube_player || !this.isYouTubePlayerPlaying) {
+        if (!this.isYouTubePlayerReady) {
             return;
         }
 
         // first update the volume-related controls if they have changed
         // in the youtube player since there are no event listeners
-        const vol = this.youtube_player.getVolume();
+        const vol = this.youtubePlayer.getVolume();
         if (vol !== this.volume) {
             this.volume = vol;
         }
-        if (this.isMuted !== this.youtube_player.isMuted()) {
-            this.isMuted = this.youtube_player.isMuted();
+        if (this.isMuted !== this.youtubePlayer.isMuted()) {
+            this.isMuted = this.youtubePlayer.isMuted();
         }
 
         let justSyncedPlayerAndVuex = false;
-        const youtubePlayerTime = this.youtube_player.getCurrentTime();
+        const youtubePlayerTime = this.youtubePlayer.getCurrentTime();
 
         // if there's divergence between youtube and vuex bigger than 1 second
         if (Math.abs(youtubePlayerTime - this.audioPos.seconds) > 1) {
@@ -369,7 +375,7 @@ export default class TimelinePlayer extends Vue {
                 // otherwise update the youtube player because vuex's value has been changed
                 // TODO: look into allowSeekAhead (true/false) while dragging over the timeline
                 // https://developers.google.com/youtube/iframe_api_reference#seekTo
-                this.youtube_player.seekTo(this.audioPos.seconds, true);
+                this.youtubePlayer.seekTo(this.audioPos.seconds, true);
             }
             justSyncedPlayerAndVuex = true;
         }
@@ -411,8 +417,8 @@ export default class TimelinePlayer extends Vue {
     public set volume(value: number) {
         store.commit.play.setVolume(value);
         if (this.isYouTube) {
-            if (this.youtube_player && value !== this.youtube_player.getVolume()) {
-                this.youtube_player.setVolume(value);
+            if (this.isYouTubePlayerReady && value !== this.youtubePlayer.getVolume()) {
+                this.youtubePlayer.setVolume(value);
             }
         } else {
             // this.audioElement.volume = value;
@@ -421,11 +427,11 @@ export default class TimelinePlayer extends Vue {
     isMuted = false;
     public toggleMute(): void {
         if (this.isYouTube) {
-            if (this.youtube_player) {
+            if (this.isYouTubePlayerReady) {
                 if (this.isMuted) {
-                    this.youtube_player.unMute();
+                    this.youtubePlayer.unMute();
                 } else {
-                    this.youtube_player.mute();
+                    this.youtubePlayer.mute();
                 }
             }
         } else {
