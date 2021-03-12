@@ -13,6 +13,11 @@
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowfullscreen
         />
+
+        <!-- artificial vertical offset if this is just audio - to see the slider thumbs -->
+        <br v-if=!isYouTube>
+        <br v-if=!isYouTube>
+
         <div class="controls">
             <div class="slider-controls">
                 <v-btn @click=togglePlay>
@@ -186,6 +191,9 @@ export default class TimelinePlayer extends Vue {
     public get activeEpisode(): Episode {
         return store.state.play.activeEpisode;
     }
+    private get audioElement(): HTMLAudioElement {
+        return this.$refs["audio-element"] as HTMLAudioElement;
+    }
 
     // ================================================================
     // == window size & position
@@ -318,20 +326,36 @@ export default class TimelinePlayer extends Vue {
     // ================================================================
 
     get isPaused(): boolean {
-        return !this.isYouTubePlaying;
+        if (this.isYouTube) {
+            return !this.isYouTubePlaying;
+        } else {
+            return !this.audioElement || this.audioElement.paused;
+        }
     }
 
     togglePlay() {
         this.isPaused ? this.play() : this.pause();
     }
     play() {
-        if (this.isYouTubeReady) {
-            this.youtubePlayer.playVideo();
+        if (this.isYouTube) {
+            if (this.isYouTubeReady) {
+                this.youtubePlayer.playVideo();
+            }
+        } else {
+            this.audioElement.currentTime = this.audioPos.seconds;
+            this.audioElement.volume = this.volume / 100;
+            this.audioElement.play();
+            this.$recompute("audioElement");
         }
     }
     pause() {
-        if (this.isYouTubeReady) {
-            this.youtubePlayer.pauseVideo();
+        if (this.isYouTube) {
+            if (this.isYouTubeReady) {
+                this.youtubePlayer.pauseVideo();
+            }
+        } else {
+            this.audioElement.pause();
+            this.$recompute("audioElement");
         }
     }
 
@@ -342,9 +366,29 @@ export default class TimelinePlayer extends Vue {
     }
 
     youtubePlayerTimeLast = 0;
-    syncPlayersIntervalId = window.setInterval(() => this.syncPlayers(), 16);
+    syncPlayersIntervalId = window.setInterval(() => this.isYouTube ? this.syncYoutube() : this.syncAudio(), 16);
 
-    syncPlayers() {
+    syncAudio() {
+        this.syncCursorAndWindow(this.audioElement.currentTime);
+    }
+
+    syncCursorAndWindow(newCursorPos: number) {
+        // if youtube and vuex are in sync (relatively - within less than 1 second)
+        const wasInSync = this.isTimelineWindowSynced();
+        // advance vuex based on youtube
+        store.commit.play.moveAudioPos(newCursorPos);
+        // move the window forward if the cursor was within it but is no longer
+        if (wasInSync && !this.isTimelineWindowSynced()) {
+            const newWindowPos = this.audioWindow.start.seconds + this.audioWindow.duration;
+            store.commit.play.moveAudioWindow(newWindowPos);
+        }
+        // pause the player if we've reached the end (not relevant for youtube but whatever)
+        if (this.audioPos.seconds >= this.audio.duration) {
+            this.pause();
+        }
+    }
+
+    syncYoutube() {
         if (!this.isYouTubeReady) {
             return;
         }
@@ -383,22 +427,13 @@ export default class TimelinePlayer extends Vue {
             return;
         }
 
-        // if youtube and vuex are in sync (relatively - within less than 1 second)
-        const wasInSync = this.isTimelineWindowSynced();
-        // advance vuex based on youtube
-        store.commit.play.moveAudioPos(youtubePlayerTime);
-        // move the window forward if the cursor was within it but is no longer
-        if (wasInSync && !this.isTimelineWindowSynced()) {
-            const newWindowPos = this.audioWindow.start.seconds + this.audioWindow.duration;
-            store.commit.play.moveAudioWindow(newWindowPos);
-        }
-        // pause the player if we've reached the end - not relevant for youtube
-        if (this.audioPos.seconds >= this.audio.duration) {
-            this.pause();
-        }
+        this.syncCursorAndWindow(youtubePlayerTime);
     }
     private onZoomlinePositionMoved(newValue: number): void {
         store.commit.play.seekTo(newValue);
+        if (!this.isYouTube) {
+            this.audioElement.currentTime = newValue;
+        }
     }
     private onTimelineWindowMoved(newValue: number): void {
         store.commit.play.moveAudioWindow(newValue);
@@ -418,7 +453,7 @@ export default class TimelinePlayer extends Vue {
                 this.youtubePlayer.setVolume(value);
             }
         } else {
-            // this.audioElement.volume = value;
+            this.audioElement.volume = value / 100;
         }
     }
     isMuted = false;
@@ -432,8 +467,8 @@ export default class TimelinePlayer extends Vue {
                 }
             }
         } else {
-            // this.audioElement.muted = !this.audioElement.muted;
-            // this.$recompute("audioElement");
+            this.audioElement.muted = !this.audioElement.muted;
+            this.$recompute("audioElement");
         }
         this.isMuted = !this.isMuted;
     }
@@ -444,7 +479,7 @@ export default class TimelinePlayer extends Vue {
 
     beforeCreate() {
         if (!this.isYouTube) {
-            // this.$markRecomputable("audioElement");
+            this.$markRecomputable("audioElement");
         }
     }
 
@@ -458,7 +493,7 @@ export default class TimelinePlayer extends Vue {
         // const playbackProgress: number = store.state.user.getPlaybackProgressForEpisode(this.activeEpisode.id).seconds;
         // store.commit.play.moveAudioPos(playbackProgress);
         if (!this.isYouTube) {
-            // this.$recompute("audioElement");
+            this.$recompute("audioElement");
         }
     }
 
