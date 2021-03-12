@@ -265,23 +265,19 @@ export default class TimelinePlayer extends Vue {
     // == YouTube iframe API
     // ================================================================
 
-    get isYouTube() {
-        return this.activeEpisode.external_source === CommonParams.EXTERNAL_SOURCE_YOUTUBE;
-    }
-
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     youtubePlayer: any;
     youtubeState = -1;
 
-    get isYouTubePlayerReady() { return this.youtubeState != -1; }
-
-    get isYouTubePlayerPlaying() {
-        return this.youtubeState === 1 || this.youtubeState === 3;
+    get isYouTubeReady() { return this.youtubeState !== -1; }
+    get isYouTubePlaying() { return this.youtubeState === 1 || this.youtubeState === 3; }
+    get isYouTube() {
+        return this.activeEpisode.external_source === CommonParams.EXTERNAL_SOURCE_YOUTUBE;
     }
 
     initYouTubePlayer() {
+        console.log("== initYouTubePlayer");
         // TODO: figure out how to add this script properly to the website
-        // also look for inspiration here: https://github.com/feross/yt-player
         const tag = document.createElement("script");
         tag.id = "iframe-demo";
         tag.src = "https://www.youtube.com/iframe_api";
@@ -290,6 +286,7 @@ export default class TimelinePlayer extends Vue {
 
         // the youtube script expects such a function to exist and calls it when ready
         window.onYouTubeIframeAPIReady = () => {
+            console.log("== onYouTubeIframeAPIReady");
             this.youtubePlayer = new window.YT.Player("player_iframe", {
                 events: {
                     onReady: this.onPlayerReady,
@@ -301,19 +298,19 @@ export default class TimelinePlayer extends Vue {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onPlayerReady(_event: any) {
+        console.log("== onPlayerReady");
         this.youtubeState = 0;
         this.youtubePlayer.setVolume(this.volume);
-        console.log("== onPlayerReady");
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onPlayerStateChange(event: any) {
+        console.log("== onPlayerStateChange " + event.data);
         this.youtubeState = event.data;
-        if (this.isYouTubePlayerPlaying) {
+        if (this.isYouTubePlaying) {
             this.play();
         }
         // https://developers.google.com/youtube/iframe_api_reference#Events
-        console.log("== onPlayerStateChange " + event.data);
     }
 
     // ================================================================
@@ -321,19 +318,19 @@ export default class TimelinePlayer extends Vue {
     // ================================================================
 
     get isPaused(): boolean {
-        return !this.isYouTubePlayerPlaying;
+        return !this.isYouTubePlaying;
     }
 
     togglePlay() {
         this.isPaused ? this.play() : this.pause();
     }
     play() {
-        if (this.isYouTubePlayerReady) {
+        if (this.isYouTubeReady) {
             this.youtubePlayer.playVideo();
         }
     }
     pause() {
-        if (this.isYouTubePlayerReady) {
+        if (this.isYouTubeReady) {
             this.youtubePlayer.pauseVideo();
         }
     }
@@ -348,7 +345,7 @@ export default class TimelinePlayer extends Vue {
     syncPlayersIntervalId = window.setInterval(() => this.syncPlayers(), 16);
 
     syncPlayers() {
-        if (!this.isYouTubePlayerReady) {
+        if (!this.isYouTubeReady) {
             return;
         }
 
@@ -417,7 +414,7 @@ export default class TimelinePlayer extends Vue {
     public set volume(value: number) {
         store.commit.play.setVolume(value);
         if (this.isYouTube) {
-            if (this.isYouTubePlayerReady && value !== this.youtubePlayer.getVolume()) {
+            if (this.isYouTubeReady && value !== this.youtubePlayer.getVolume()) {
                 this.youtubePlayer.setVolume(value);
             }
         } else {
@@ -427,7 +424,7 @@ export default class TimelinePlayer extends Vue {
     isMuted = false;
     public toggleMute(): void {
         if (this.isYouTube) {
-            if (this.isYouTubePlayerReady) {
+            if (this.isYouTubeReady) {
                 if (this.isMuted) {
                     this.youtubePlayer.unMute();
                 } else {
