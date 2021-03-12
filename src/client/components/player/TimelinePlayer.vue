@@ -151,6 +151,7 @@ import AgendaComponent from "./Agenda.vue";
 import { Episode } from "@/logic/entities/Episode";
 import CommonParams from "@/logic/CommonParams";
 
+// for more info about this take a look at https://stackoverflow.com/a/12709880/3162383
 declare global {
     // eslint-disable-next-line @typescript-eslint/interface-name-prefix
     interface Window {
@@ -160,7 +161,6 @@ declare global {
         YT: any;
     }
 }
-
 window.onYouTubeIframeAPIReady = window.onYouTubeIframeAPIReady || {};
 window.YT = window.YT || {};
 
