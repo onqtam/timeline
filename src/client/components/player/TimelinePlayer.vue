@@ -369,7 +369,18 @@ export default class TimelinePlayer extends Vue {
     syncPlayersIntervalId = window.setInterval(() => this.isYouTube ? this.syncYoutube() : this.syncAudio(), 16);
 
     syncAudio() {
+        // if there's divergence between the audio and vuex bigger than 1 second
+        if (Math.abs(this.audioElement.currentTime - this.audioPos.seconds) > 1) {
+            // update the audio pos because the vuex position has most probably been changed
+            // because of a route change (different window/annotation or different time pos)
+            this.audioElement.currentTime = this.audioPos.seconds;
+        }
         this.syncCursorAndWindow(this.audioElement.currentTime);
+        // this is necessary because `this.audioElement.paused` doesn't seem
+        // reactive and `this.isPaused` doesn't properly change the play/pause icon
+        if (this.audioElement.paused) {
+            this.pause();
+        }
     }
 
     syncCursorAndWindow(newCursorPos: number) {
@@ -381,10 +392,6 @@ export default class TimelinePlayer extends Vue {
         if (wasInSync && !this.isTimelineWindowSynced()) {
             const newWindowPos = this.audioWindow.start.seconds + this.audioWindow.duration;
             store.commit.play.moveAudioWindow(newWindowPos);
-        }
-        // pause the player if we've reached the end (not relevant for youtube but whatever)
-        if (this.audioPos.seconds >= this.audio.duration) {
-            this.pause();
         }
     }
 
@@ -422,11 +429,11 @@ export default class TimelinePlayer extends Vue {
         }
         // cache the youtube player time for the next cycle
         this.youtubePlayerTimeLast = youtubePlayerTime;
-        // do not continue with the logic if we've already done something
+        // just return if we've already done something as we've handled all cases
         if (justSyncedPlayerAndVuex) {
             return;
         }
-
+        // in case of no divergence between youtube and vuex - update the audio pos & window
         this.syncCursorAndWindow(youtubePlayerTime);
     }
     private onZoomlinePositionMoved(newValue: number): void {
