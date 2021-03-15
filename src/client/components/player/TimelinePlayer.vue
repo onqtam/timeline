@@ -316,7 +316,7 @@ export default class TimelinePlayer extends Vue {
     onPlayerStateChange(event: any) {
         console.log("== onPlayerStateChange " + event.data);
         this.youtubeState = event.data;
-        if (this.isYouTubePlaying) {
+        if (this.youtubeState == 1) {
             this.play();
         }
         // https://developers.google.com/youtube/iframe_api_reference#Events
