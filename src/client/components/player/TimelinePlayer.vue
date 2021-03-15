@@ -1,6 +1,7 @@
 <template>
     <div class="timeline-player">
-        <!-- controls=0 -->
+        <!-- in src: &controls=0 -->
+        <!-- in allow: autoplay; -->
         <!-- the controls for youtube are useful to see the progress bar and the buffering -->
         <!-- TODO: maybe integrate &origin=unpinch.io as parameter -->
         <iframe
@@ -10,7 +11,7 @@
             id="player_iframe"
             :src="`https://www.youtube.com/embed/${activeEpisode.external_id}?enablejsapi=1&modestbranding=0&rel=0`"
             frameborder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowfullscreen
         />
 
