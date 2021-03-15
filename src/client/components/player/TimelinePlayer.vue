@@ -20,7 +20,7 @@
         <br v-if=!isYouTube>
 
         <div class="controls">
-            <div class="slider-controls">
+            <div style="width: 100%">
                 <v-btn @click=togglePlay>
                     <v-icon v-if=isPaused>mdi-play</v-icon>
                     <v-icon v-else>mdi-pause</v-icon>
@@ -78,7 +78,7 @@
                 ></v-text-field>
 
                 <!-- TODO: use tooltips instead of title attribute - https://vuetifyjs.com/en/components/tooltips/ -->
-                <v-btn :title="isZoomline ? 'Pinch' : 'Unpinch'" @click="isZoomline = !isZoomline" width="50px">
+                <v-btn :title="isZoomline ? 'Pinch' : 'Unpinch'" @click="toggleZoomline" width="50px">
                     {{ isZoomline ? '►◄' : '◄►' }}
                 </v-btn>
 
@@ -91,6 +91,7 @@
                     :currentAudioPosition=audioPos
                     :agenda=activeEpisode.agenda
                     :audioWindow=audioWindow
+                    @update:currentAudioPosition=onCursorPositionMoved
                 >
                 </AgendaComponent>
 
@@ -104,42 +105,25 @@
             </div>
         </div>
         <Annotations
-            class="annotations"
             ref="annotations"
             :currentAudioPosition=audioPos
             :agenda=activeEpisode.agenda
             :audioWindow=audioWindow
+            @update:audioWindowSet=onTimelineWindowSet
+            @update:currentAudioPosition=onCursorPositionMoved
         >
         </Annotations>
         <Timeline
             class="timeline"
             ref="timeline"
             :audioWindow=audioWindow
-            :rangeStart=0 :rangeEnd=audio.duration
             :currentAudioPosition=audioPos
+            :isZoomline=isZoomline
+            :shouldAnimate=shouldAnimate
             @update:audioWindowStart=onTimelineWindowMoved
-            @update:currentAudioPosition=onZoomlinePositionMoved
+            @update:currentAudioPositionNoAnimate=onCursorPositionMovedNoAnimate
         >
         </Timeline>
-        <!-- <Funnel
-            class="funnel"
-            ref="funnel"
-            :duration_full=audio.duration
-            :rangeStart_full=zoomlineRangeStart :rangeEnd_full=zoomlineRangeEnd
-            :currentAudioPosition_full=audioPos
-            :timelineWidthRatio=1.0
-            @update:currentAudioPosition=onZoomlinePositionMoved
-        >
-        </Funnel>
-
-        <Zoomline
-            class="zoomline"
-            ref="zoomline"
-            :rangeStart=zoomlineRangeStart :rangeEnd=zoomlineRangeEnd
-            :currentAudioPosition=audioPos
-            @update:currentAudioPosition=onZoomlinePositionMoved
-        >
-        </Zoomline> -->
     </div>
 </template>
 
@@ -151,11 +135,10 @@ import Timepoint from "@/logic/entities/Timepoint";
 
 import { default as Annotations } from "./Annotations.vue";
 import { default as Timeline } from "./Timeline.vue";
-// import { default as Funnel } from "./Funnel.vue";
-// import { default as Zoomline } from "./Zoomline.vue";
 import AgendaComponent from "./Agenda.vue";
 import { Episode } from "@/logic/entities/Episode";
 import CommonParams from "@/logic/CommonParams";
+import { debounce } from "lodash";
 
 // for more info about this take a look at https://stackoverflow.com/a/12709880/3162383
 declare global {
@@ -170,12 +153,12 @@ declare global {
 window.onYouTubeIframeAPIReady = window.onYouTubeIframeAPIReady || {};
 window.YT = window.YT || {};
 
+const TIME_DIVERGENCE_BOUNDRY = 1;
+
 @Component({
     components: {
         Annotations,
         Timeline,
-        // Funnel,
-        // Zoomline,
         AgendaComponent
     }
 })
@@ -261,13 +244,9 @@ export default class TimelinePlayer extends Vue {
     }
 
     isZoomline = false;
-
-    private get zoomlineRangeStart(): number {
-        return this.audioWindow.start.seconds;
-    }
-    private get zoomlineRangeEnd(): number {
-        const seconds: number = this.audioWindow.start.seconds + this.audioWindow.duration;
-        return Math.min(seconds, this.audio.duration);
+    toggleZoomline() {
+        this.isZoomline = !this.isZoomline;
+        this.animateCursorAndWindow();
     }
 
     // ================================================================
@@ -371,7 +350,7 @@ export default class TimelinePlayer extends Vue {
 
     syncAudio() {
         // if there's divergence between the audio and vuex bigger than 1 second
-        if (Math.abs(this.audioElement.currentTime - this.audioPos.seconds) > 1) {
+        if (Math.abs(this.audioElement.currentTime - this.audioPos.seconds) > TIME_DIVERGENCE_BOUNDRY) {
             // update the audio pos because the vuex position has most probably been changed
             // because of a route change (different window/annotation or different time pos)
             this.audioElement.currentTime = this.audioPos.seconds;
@@ -387,13 +366,29 @@ export default class TimelinePlayer extends Vue {
     syncCursorAndWindow(newCursorPos: number) {
         // if youtube and vuex are in sync (relatively - within less than 1 second)
         const wasInSync = this.isTimelineWindowSynced();
-        // advance vuex based on youtube
-        store.commit.play.moveAudioPos(newCursorPos);
+        // advance vuex based on youtube - ONLY if we are not animating! otherwise the cursor
+        // would be playing catch-up with the position it should be at during normal playback
+        if (!this.shouldAnimate) {
+            store.commit.play.moveAudioPos(newCursorPos);
+        }
         // move the window forward if the cursor was within it but is no longer
         if (wasInSync && !this.isTimelineWindowSynced()) {
             const newWindowPos = this.audioWindow.start.seconds + this.audioWindow.duration;
             store.commit.play.moveAudioWindow(newWindowPos);
+            this.animateCursorAndWindow();
         }
+    }
+
+    shouldAnimate = false;
+    stopAnimating() {
+        // console.log("== stop animating")
+        this.shouldAnimate = false;
+    }
+    debouncedStopAnimating = debounce(this.stopAnimating, 400); // == css transition duration
+    animateCursorAndWindow() {
+        // console.log("== animate!")
+        this.shouldAnimate = true;
+        this.debouncedStopAnimating();
     }
 
     syncYoutube() {
@@ -415,9 +410,9 @@ export default class TimelinePlayer extends Vue {
         const youtubePlayerTime = this.youtubePlayer.getCurrentTime();
 
         // if there's divergence between youtube and vuex bigger than 1 second
-        if (Math.abs(youtubePlayerTime - this.audioPos.seconds) > 1) {
+        if (Math.abs(youtubePlayerTime - this.audioPos.seconds) > TIME_DIVERGENCE_BOUNDRY) {
             // if youtube's player has been moved (compared to it's previous position)
-            if (Math.abs(youtubePlayerTime - this.youtubePlayerTimeLast) > 1) {
+            if (Math.abs(youtubePlayerTime - this.youtubePlayerTimeLast) > TIME_DIVERGENCE_BOUNDRY) {
                 // then update vuex and also reposition the window if need be
                 store.commit.play.seekTo(youtubePlayerTime);
             } else {
@@ -437,7 +432,11 @@ export default class TimelinePlayer extends Vue {
         // in case of no divergence between youtube and vuex - update the audio pos & window
         this.syncCursorAndWindow(youtubePlayerTime);
     }
-    private onZoomlinePositionMoved(newValue: number): void {
+    private onCursorPositionMoved(newValue: number): void {
+        this.animateCursorAndWindow();
+        this.onCursorPositionMovedNoAnimate(newValue);
+    }
+    private onCursorPositionMovedNoAnimate(newValue: number): void {
         store.commit.play.seekTo(newValue);
         if (!this.isYouTube) {
             this.audioElement.currentTime = newValue;
@@ -445,6 +444,9 @@ export default class TimelinePlayer extends Vue {
     }
     private onTimelineWindowMoved(newValue: number): void {
         store.commit.play.moveAudioWindow(newValue);
+    }
+    private onTimelineWindowSet(payload: { start: number, end: number }): void {
+        store.commit.play.setAudioWindow(payload);
     }
 
     // ================================================================
@@ -523,9 +525,6 @@ export default class TimelinePlayer extends Vue {
     background: rgb(37, 37, 37);
 }
 
-// .annotations {
-// }
-
 .timeline {
     height: 80px;
     width: 100%;
@@ -548,27 +547,5 @@ export default class TimelinePlayer extends Vue {
 //         max-width: 100%
 //     }
 // }
-
-// .zoomline {
-//     height: 40px;
-// }
-
-.slider-controls {
-    width: 100%;
-}
-</style>
-
-<style lang="less">
-@import "../../cssresources/theme.less";
-
-.current-play-position {
-    position: relative;
-    top: -100%;
-    height: 100%;
-    width: 0.5%;
-    min-width: 3px;
-    background: @theme-focus-color-4;
-    transition: @player-transition-time;
-}
 
 </style>

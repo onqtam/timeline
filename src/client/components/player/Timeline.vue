@@ -11,17 +11,13 @@
         v-ripple
         @contextmenu="showContextMenu"
     >
-        <!-- Highlights the part of the audio that should be zoomed, only in Standard -->
-        <div class="zoom-window"
-            :style="{
-                left: normalize(audioWindow.start.seconds) + '%',
-                width: normalize(audioWindow.duration) + '%',
-            }"
-        >
-        </div>
+        <!-- Highlights the part of the audio that should be zoomed -->
+        <div class="zoom-window" :style="computeWindowStyle"
+            :class="shouldAnimate ? 'animated-transition' : ''"
+        />
 
         <!-- Displays a chart of the audio file, only in Standard. The data in the chart varies depending on settings -->
-        <VChart ref="chart" class="standard-chart" :type=ChartType.Line :data=chartData :options=chartOptions></VChart>
+        <VChart v-if=!isZoomline ref="chart" class="standard-chart" :type=ChartType.Line :data=chartData :options=chartOptions></VChart>
 
         <!-- Displays the small vertical lines that break down the timeline into small sections -->
         <div class="mark-container">
@@ -35,7 +31,8 @@
 
         <!-- Displays a vertical line denoting the current audio position; -->
         <div
-            class="current-play-position standard-play-position"
+            class="current-play-position"
+            :class="shouldAnimate ? 'animated-transition' : ''"
             v-if="currentAudioPosition.seconds >= rangeStart && currentAudioPosition.seconds <= rangeEnd"
             :style="{ left: normalize(currentAudioPosition.seconds) + '%' }"
         >
@@ -87,25 +84,34 @@ import store from "../../store";
     }
 })
 export default class Timeline extends Vue {
-    // Props
-    // In seconds
-    @Prop({ type: Number })
-    public rangeStart!: number;
-    // In seconds
-    @Prop({ type: Number })
-    public rangeEnd!: number;
     @Prop({ type: Number })
     public numberOfMarks!: number;
     @Prop({ type: Timepoint })
     public currentAudioPosition!: Timepoint;
     @Prop()
     public audioWindow!: AudioWindow;
+    @Prop({ type: Boolean })
+    public isZoomline!: boolean;
+    @Prop({ type: Boolean })
+    public shouldAnimate!: boolean;
+
+    get rangeStart() {
+        return this.isZoomline ? this.audioWindow.start.seconds : 0;
+    }
+    get rangeEnd() {
+        return this.isZoomline ? this.windowEnd : this.audioWindow.audioFile.duration;
+    }
 
     get windowStart(): number {
         return this.audioWindow.start.seconds;
     }
     get windowEnd(): number {
         return this.audioWindow.end.seconds;
+    }
+    get computeWindowStyle() {
+        return this.isZoomline ? "left: 0%; width: 100%;" :
+            "left: " + this.normalize(this.audioWindow.start.seconds) + "%; width: " +
+            this.normalize(this.audioWindow.duration) + "%;";
     }
 
     // ================================================================
@@ -115,7 +121,7 @@ export default class Timeline extends Vue {
     showTooltip = false;
     tooltip_x = 0;
     tooltip_y = 0;
-    tooltipValue = "dfasdfasdfas";
+    tooltipValue = "";
 
     moveTooltip(e: MouseEvent) {
         if (!this.showTooltip) { return; }
@@ -184,21 +190,13 @@ export default class Timeline extends Vue {
     // == other stuff
     // ================================================================
 
-    public get computedMarks(): Timepoint[] { return [new Timepoint(0), new Timepoint(this.audioWindow?.audioFile.duration)]; }
-
-    // public get computedMarks(): Timepoint[] {
-    //     if (!this.timepointMarks || this.timepointMarks.length !== this.numberOfMarks) {
-    //         this.timepointMarks = [];
-    //     }
-    //     for (let i = 0; i < this.numberOfMarks + 1; i++) {
-    //         const seconds = this.rangeStart + (i / this.numberOfMarks) * (this.rangeEnd - this.rangeStart);
-    //         if (!this.timepointMarks[i]) {
-    //             this.timepointMarks[i] = new Timepoint(0);
-    //         }
-    //         this.timepointMarks[i].seconds = seconds;
-    //     }
-    //     return this.timepointMarks;
-    // }
+    public get computedMarks(): Timepoint[] {
+        if (this.isZoomline) {
+            return [new Timepoint(this.windowStart), new Timepoint(this.windowEnd)];
+        } else {
+            return [new Timepoint(0), new Timepoint(this.audioWindow?.audioFile.duration)];
+        }
+    }
 
     public get chartData(): IChartistData {
         const histogram = store.state.play.commentDensityHistogram;
@@ -264,7 +262,7 @@ export default class Timeline extends Vue {
         const newCursorPos = this.calculateCursorPositionFromMouse(mouseX);
         const newWindowStart = this.calculateWindowStartFromMouse(mouseX);
         this.$emit("update:audioWindowStart", newWindowStart);
-        this.$emit("update:currentAudioPosition", newCursorPos);
+        this.$emit("update:currentAudioPositionNoAnimate", newCursorPos);
     }
 
     private onJumpToPosition(event: MouseEvent): void {
@@ -302,6 +300,19 @@ export default class Timeline extends Vue {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="less">
 @import "../../cssresources/theme.less";
+
+.animated-transition {
+    transition: @player-transition-time;
+}
+
+.current-play-position {
+    position: relative;
+    top: -100%;
+    height: 100%;
+    width: 0.5%;
+    min-width: 3px;
+    background: @theme-focus-color-4;
+}
 
 .timeline-container {
     width: 100%;
@@ -357,7 +368,6 @@ export default class Timeline extends Vue {
     border-left: @border;
     border-right: @border;
     cursor: ew-resize;
-    transition: @player-transition-time;
     box-sizing: content-box;
 }
 .standard-chart {

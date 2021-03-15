@@ -72,6 +72,7 @@ export default class AgendaComponent extends Vue {
             return;
         }
         this.$router.push("?t=" + this.agenda.items[index].timestamp.formatAsUrlParam());
+        this.$emit("update:currentAudioPosition", this.agenda.items[index].timestamp.seconds);
     }
 
     // TODO: reuse code with Annotations
