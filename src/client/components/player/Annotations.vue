@@ -28,7 +28,6 @@ import Timepoint from "@/logic/entities/Timepoint";
 import { AudioWindow } from "@/logic/AudioFile";
 import { Agenda, AgendaItem } from "@/logic/entities/Episode";
 import MathHelpers from "@/logic/MathHelpers";
-import store from "@/client/store";
 
 @Component
 export default class Annotations extends Vue {
