@@ -11,7 +11,7 @@
                     :to="'?start=' + item.timestamp.formatAsUrlParam() + '&end=' + getEndOfItemAsTimepoint(index).formatAsUrlParam()"
                 >
                     <!-- this outer 100% sized div is necessary for the tooltips - sticking the `v-on="on"` on the `router-link` doesn't work -->
-                    <div v-on="on" style="width: 100%; height: 100%;" @click="moveAudioWindow(index)">
+                    <div v-ripple v-on="on" style="width: 100%; height: 100%;" @click="moveAudioWindow(index)">
                         <div :style="computeProgressStyle(item, index)"/>
                     </div>
                 </router-link>
