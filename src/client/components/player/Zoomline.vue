@@ -103,6 +103,16 @@ export default class Zoomline extends Vue {
 <style scoped lang="less">
 @import "../../cssresources/theme.less";
 
+.current-play-position {
+    position: relative;
+    top: -100%;
+    height: 100%;
+    width: 0.5%;
+    min-width: 3px;
+    background: @theme-focus-color-4;
+    transition: @player-transition-time;
+}
+
 .zoomline-container {
     width: 100%;
     height: 100%;

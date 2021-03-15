@@ -83,8 +83,8 @@ export default class Annotations extends Vue {
     }
 
     moveAudioWindow(index: number) {
-        store.commit.play.setAudioWindow({ start: this.agenda.items[index].timestamp.seconds, end: this.getEndOfItemAsTimepoint(index).seconds });
-        store.commit.play.moveAudioPos(this.agenda.items[index].timestamp.seconds);
+        this.$emit("update:audioWindowSet", { start: this.agenda.items[index].timestamp.seconds, end: this.getEndOfItemAsTimepoint(index).seconds });
+        this.$emit("update:currentAudioPosition", this.agenda.items[index].timestamp.seconds);
     }
 };
 </script>
