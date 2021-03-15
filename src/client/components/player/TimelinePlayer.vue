@@ -295,7 +295,7 @@ export default class TimelinePlayer extends Vue {
     onPlayerStateChange(event: any) {
         console.log("== onPlayerStateChange " + event.data);
         this.youtubeState = event.data;
-        if (this.youtubeState == 1) {
+        if (this.youtubeState === 1) {
             this.play();
         }
         // https://developers.google.com/youtube/iframe_api_reference#Events
@@ -445,7 +445,7 @@ export default class TimelinePlayer extends Vue {
     private onTimelineWindowMoved(newValue: number): void {
         store.commit.play.moveAudioWindow(newValue);
     }
-    private onTimelineWindowSet(payload: { start: number, end: number }): void {
+    private onTimelineWindowSet(payload: { start: number; end: number }): void {
         store.commit.play.setAudioWindow(payload);
     }
 

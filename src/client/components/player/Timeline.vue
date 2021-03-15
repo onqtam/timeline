@@ -109,8 +109,8 @@ export default class Timeline extends Vue {
         return this.audioWindow.end.seconds;
     }
     get computeWindowStyle() {
-        return this.isZoomline ? "left: 0%; width: 100%;" :
-            "left: " + this.normalize(this.audioWindow.start.seconds) + "%; width: " +
+        return this.isZoomline ? "left: 0%; width: 100%;"
+            : "left: " + this.normalize(this.audioWindow.start.seconds) + "%; width: " +
             this.normalize(this.audioWindow.duration) + "%;";
     }
 
