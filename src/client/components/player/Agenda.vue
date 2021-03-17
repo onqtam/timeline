@@ -1,24 +1,24 @@
 <template>
     <div class="d-inline-block" style="height: 50px;"> <!-- TODO: this height restriction is because it otherwise stretches vertically - don't know why -->
-        <v-dialog v-model="showDialog" scrollable max-width="700px">
+        <v-dialog v-model=showDialog scrollable max-width="700px">
             <template v-slot:activator="{ on, attrs }">
-                <v-btn v-bind="attrs" v-on="on"><v-icon>mdi-playlist-play</v-icon>topics</v-btn>
+                <v-btn v-bind=attrs v-on=on><v-icon>mdi-playlist-play</v-icon>topics</v-btn>
             </template>
             <v-card>
                 <v-card-title class="justify-center">All topics in episode</v-card-title>
                 <v-divider></v-divider>
                 <v-card-text>
                     <v-list>
-                        <v-list-item-group v-model="activeIndex" active-class="blue--text">
+                        <v-list-item-group v-model=activeIndex active-class="blue--text">
                             <template v-for="(item, index) in agenda.items">
-                                <v-list-item :key=item.timestamp.seconds :active="isAgendaItemActive(index)">
+                                <v-list-item :key=item.timestamp.seconds :active=isAgendaItemActive(index)>
                                     <v-list-item-action>
-                                        <v-list-item-action-text v-text="item.timestamp.format()"></v-list-item-action-text>
+                                        <v-list-item-action-text v-text=item.timestamp.format() />
                                     </v-list-item-action>
                                     <!-- TODO: CLAMP LENGTH OF TEXT -->
                                     <v-list-item-title>{{ item.text }}</v-list-item-title>
                                 </v-list-item>
-                                <v-progress-linear v-if="activeIndex == index" :value="computeProgressPercentage(index)" :key="'progress_' + index"></v-progress-linear>
+                                <v-progress-linear v-if="activeIndex == index" :value=computeProgressPercentage(index) :key="'progress_' + index"></v-progress-linear>
                                 <v-divider v-if="index + 1 < agenda.items.length" :key="'divider_' + index"></v-divider>
                             </template>
                         </v-list-item-group>
