@@ -134,7 +134,7 @@ export default class CommentController {
 
         // Fill in values for missing buckets
         for (let i = 0; i < xAxis.length; i++) {
-            while (~~xAxis[i] !== i) {
+            while (xAxis[i] !== i) {
                 xAxis.splice(i, 0, i);
                 yAxis.splice(i, 0, 0);
                 i++;
