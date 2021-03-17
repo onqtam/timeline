@@ -42,7 +42,7 @@
                     thumb-label="always"
                     thumb-size="40"
                     v-model=windowDuration>
-                    <template v-slot:thumb-label="item">
+                    <template v-slot:thumb-label=item>
                         {{formatWindowDuration(item.value)}}
                     </template>
                 </v-slider>
@@ -68,17 +68,17 @@
                     v-mask="'##:##:##'"
                     autocomplete="off"
                     v-model=windowStartAsString
-                    @change="windowStartChange"
+                    @change=windowStartChange
                 ></v-text-field>
                 <v-text-field label="Window End" class="d-inline-block" style="width: 80px;"
                     v-mask="'##:##:##'"
                     autocomplete="off"
                     v-model=windowEndAsString
-                    @change="windowEndChange"
+                    @change=windowEndChange
                 ></v-text-field>
 
                 <!-- TODO: use tooltips instead of title attribute - https://vuetifyjs.com/en/components/tooltips/ -->
-                <v-btn :title="isZoomline ? 'Pinch' : 'Unpinch'" @click="toggleZoomline" width="50px">
+                <v-btn :title="isZoomline ? 'Pinch' : 'Unpinch'" @click=toggleZoomline width="50px">
                     {{ isZoomline ? '►◄' : '◄►' }}
                 </v-btn>
 
@@ -121,7 +121,7 @@
             :isZoomline=isZoomline
             :shouldAnimate=shouldAnimate
             @update:audioWindowStart=onTimelineWindowMoved
-            @update:currentAudioPositionNoAnimate=onCursorPositionMovedNoAnimate
+            @update:currentAudioPosition=onCursorPositionMoved
         >
         </Timeline>
     </div>
@@ -432,11 +432,10 @@ export default class TimelinePlayer extends Vue {
         // in case of no divergence between youtube and vuex - update the audio pos & window
         this.syncCursorAndWindow(youtubePlayerTime);
     }
-    private onCursorPositionMoved(newValue: number): void {
-        this.animateCursorAndWindow();
-        this.onCursorPositionMovedNoAnimate(newValue);
-    }
-    private onCursorPositionMovedNoAnimate(newValue: number): void {
+    private onCursorPositionMoved(newValue: number, animate = true): void {
+        if (animate) {
+            this.animateCursorAndWindow();
+        }
         store.commit.play.seekTo(newValue);
         if (!this.isYouTube) {
             this.audioElement.currentTime = newValue;

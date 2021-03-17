@@ -12,7 +12,7 @@
         @contextmenu="showContextMenu"
     >
         <!-- Highlights the part of the audio that should be zoomed -->
-        <div class="zoom-window" :style="computeWindowStyle"
+        <div class="zoom-window" :style=computeWindowStyle
             :class="shouldAnimate ? 'animated-transition' : ''"
         />
 
@@ -21,7 +21,7 @@
 
         <!-- Displays the small vertical lines that break down the timeline into small sections -->
         <div class="mark-container">
-            <div class="mark" v-for="(timepoint, index) in computedMarks" :key="index">
+            <div class="mark" v-for="(timepoint, index) in computedMarks" :key=index>
                 <div class="vertical-line"></div>
                 <div class="vertical-line-label">
                     {{ timepoint.format() }}
@@ -42,21 +42,21 @@
         </div>
 
         <!-- this is the tooltip that follows the cursor and showing the position in the audio beneath -->
-        <v-tooltip top :position-x="tooltip_x" :position-y="tooltip_y" v-model="showTooltip">{{ tooltipValue }}</v-tooltip>
+        <v-tooltip top :position-x=tooltip_x :position-y=tooltip_y v-model=showTooltip>{{ tooltipValue }}</v-tooltip>
 
         <!-- this is the right-click menu -->
-        <v-menu v-model="shouldShowContextMenu" :position-x="right_click_menu_x" :position-y="right_click_menu_y" absolute offset-y>
+        <v-menu v-model=shouldShowContextMenu :position-x=right_click_menu_x :position-y=right_click_menu_y absolute offset-y>
             <v-list>
                 <v-list-item-group> <!-- necessary for the hovering effects of the separate elements to be present -->
                     <v-list-item>
-                        <v-list-item-title @click="copy_position">
+                        <v-list-item-title @click=copy_position>
                             <v-icon>mdi-link-variant</v-icon>
                             copy link to current position
                         </v-list-item-title>
                     </v-list-item>
                     <v-divider/>
                     <v-list-item>
-                        <v-list-item-title @click="copy_range">
+                        <v-list-item-title @click=copy_range>
                             <v-icon>mdi-link-variant</v-icon>
                             copy link to range
                         </v-list-item-title>
@@ -109,9 +109,12 @@ export default class Timeline extends Vue {
         return this.audioWindow.end.seconds;
     }
     get computeWindowStyle() {
-        return this.isZoomline ? "left: 0%; width: 100%;"
-            : "left: " + this.normalize(this.audioWindow.start.seconds) + "%; width: " +
+        if (this.isZoomline) {
+            return "left: 0%; width: 100%;";
+        } else {
+            return "left: " + this.normalize(this.audioWindow.start.seconds) + "%; width: " +
             this.normalize(this.audioWindow.duration) + "%;";
+        }
     }
 
     // ================================================================
@@ -190,6 +193,7 @@ export default class Timeline extends Vue {
     // == other stuff
     // ================================================================
 
+    // TODO: remove/rework this at some point - we don't have many marks anymore - just 2
     public get computedMarks(): Timepoint[] {
         if (this.isZoomline) {
             return [new Timepoint(this.windowStart), new Timepoint(this.windowEnd)];
@@ -262,7 +266,7 @@ export default class Timeline extends Vue {
         const newCursorPos = this.calculateCursorPositionFromMouse(mouseX);
         const newWindowStart = this.calculateWindowStartFromMouse(mouseX);
         this.$emit("update:audioWindowStart", newWindowStart);
-        this.$emit("update:currentAudioPositionNoAnimate", newCursorPos);
+        this.$emit("update:currentAudioPosition", newCursorPos, false);
     }
 
     private onJumpToPosition(event: MouseEvent): void {
