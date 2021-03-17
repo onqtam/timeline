@@ -102,36 +102,56 @@ export default class CommentController {
         const params = {
             episodeId: ~~request.params.episodeId
         };
-        const FIXED_TIMESLOT_SIZE: number = 60; // Group every X seconds together
+        const episode: Episode|undefined = (await QB()
+            .select()
+            .from(Episode, "episode")
+            .where(`episode."id" = :episodeId`, params)
+            .execute())[0];
+
+        if (!episode) {
+            console.assert(false); // will soon go over all asserts & error handling on the API side and do it properly
+            response.status(404).end();
+            return;
+        }
+
+        // we want exactly 100 buckets so the bucket length is 1% of the episode duration
+        const NUM_BUCKETS = 100;
+        const BUCKET_SIZE = episode.durationInSeconds / NUM_BUCKETS;
 
         type CommentDensityRecord = {
-            timeslotIndex: number;
+            bucketIndex: number;
             commentCount: number;
         };
-        const commentTimeslotHistogram: CommentDensityRecord[] = await getConnection()
-            .createQueryBuilder(Comment, "comment")
-            .select(`comment."timepointSeconds" / ${FIXED_TIMESLOT_SIZE}`, "timeslotIndex")
+        const commentBucketHistogram: CommentDensityRecord[] = await QBE(Comment, "comment")
+            .select(`cast(comment."timepointSeconds" / ${BUCKET_SIZE} as int)`, "bucketIndex")
             .addSelect("count(*)", "commentCount")
-            .where(`comment."episodeId" = :episodeId`, params) // For this episode
-            .groupBy(`"timeslotIndex"`)
-            .orderBy(`"timeslotIndex"`)
+            .where(`comment."episodeId" = :episodeId`, params)
+            .groupBy(`"bucketIndex"`)
+            .orderBy(`"bucketIndex"`)
             .execute();
-        const xAxis: number[] = commentTimeslotHistogram.map(record => record.timeslotIndex);
-        const yAxis: number[] = commentTimeslotHistogram.map(record => ~~record.commentCount); // node-pg returns COUNT as a string so convert to number
-        // Fill in values for missing timeslots
+        const xAxis: number[] = commentBucketHistogram.map(record => record.bucketIndex);
+        let yAxis: number[] = commentBucketHistogram.map(record => ~~record.commentCount); // node-pg returns COUNT as a string so convert to number
+
+        // Fill in values for missing buckets
         for (let i = 0; i < xAxis.length; i++) {
-            while (xAxis[i] !== i) {
+            while (~~xAxis[i] !== i) {
                 xAxis.splice(i, 0, i);
                 yAxis.splice(i, 0, 0);
                 i++;
             }
         }
-        const resultData = {
-            xAxis: xAxis,
-            yAxis: yAxis,
-            xAxisDistance: FIXED_TIMESLOT_SIZE
-        };
-        response.end(EncodingUtils.jsonify(resultData));
+        // Fill in values for the remaining empty buckets
+        for (let i = xAxis.length; i < NUM_BUCKETS; i++) {
+            yAxis.splice(i, 0, 0);
+        }
+
+        // calibrate all values to be between 0 and 1 based on how they compare to the max
+        const maxElem = Math.max(...yAxis);
+        if (maxElem) { // avoid division by zero
+            yAxis = yAxis.map(elem => elem / maxElem);
+        }
+
+        response.end(EncodingUtils.jsonify(yAxis));
     }
 
     private static async getVotes(request: Request, response: Response): Promise<void> {
@@ -225,7 +245,7 @@ export default class CommentController {
 
         const query_updateCommentCounters = QB()
             .update(Comment)
-            .where(`"commentId" = :cid`, { cid: params.commentId })
+            .where(`"id" = :cid`, { cid: params.commentId })
             .set({
                 upVotes: () => `"upVotes" + ` + upVotes,
                 downVotes: () => `"downVotes" + ` + downVotes

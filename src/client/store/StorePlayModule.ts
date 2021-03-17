@@ -13,15 +13,9 @@ import { HTTPVerb } from "@/logic/HTTPVerb";
 import { SettingPair } from "./StoreUserModule";
 import User from "@/logic/entities/User";
 
-type Histogram = {
-    xAxis: number[];
-    yAxis: number[];
-    xAxisDistance: number;
-};
-
 type FullCommentData = {
     allComments: Comment[];
-    commentDensityHistogram: Histogram;
+    commentDensityHistogram: number[];
     votesByUser: VoteCommentRecord[];
 }
 
@@ -31,7 +25,7 @@ class StorePlayViewModel {
     public audioWindow!: AudioWindow;
     public volume!: number;
     public allThreads!: Comment[];
-    public commentDensityHistogram: Histogram;
+    public commentDensityHistogram: number[];
     public upvotes: Set<number>; // this being in user instead of play is arbitrary
     public downvotes: Set<number>; // this being in user instead of play is arbitrary
     public activeEpisode!: Episode;
@@ -44,11 +38,7 @@ class StorePlayViewModel {
         this.volume = 95;
         this.allThreads = [];
 
-        this.commentDensityHistogram = {
-            xAxis: [],
-            yAxis: [],
-            xAxisDistance: 0
-        };
+        this.commentDensityHistogram = [];
         this.upvotes = new Set<number>();
         this.downvotes = new Set<number>();
     }
@@ -121,7 +111,7 @@ class StorePlayViewModel {
         const query_comments = AsyncLoader.makeRestRequest(loadCommentsURL, HTTPVerb.Get, null, Comment) as Promise<Comment[]>;
 
         const loadHistogramURL: string = `${CommonParams.APIServerRootURL}/comments/histogram/${episode.id}`;
-        const query_histogram = AsyncLoader.makeRestRequest(loadHistogramURL, HTTPVerb.Get, null) as Promise<Histogram>;
+        const query_histogram = AsyncLoader.makeRestRequest(loadHistogramURL, HTTPVerb.Get, null) as Promise<number[]>;
 
         let votesByUser: VoteCommentRecord[] = [];
         if (!store.state.user.info.isGuest) {
@@ -169,20 +159,14 @@ export default {
             state.allThreads = commentData.allComments;
             state.commentDensityHistogram = commentData.commentDensityHistogram;
 
-            for (const curr of commentData.votesByUser) {
+            commentData.votesByUser.map(curr => {
                 if (curr.wasVotePositive) {
                     state.upvotes.add(curr.commentId);
                 } else {
                     state.downvotes.add(curr.commentId);
                 }
-            }
+            });
 
-            // The received histograms doesn't contain values beyond the last comment
-            // so fill in trailing zeros
-            // TODO: Figure out how to do this faster
-            const valueCount: number = ~~(state.audioFile.duration / state.commentDensityHistogram.xAxisDistance);
-            state.commentDensityHistogram.xAxis.length = valueCount;
-            state.commentDensityHistogram.xAxis.fill(0);
             console.log("Comments for active episode updated");
         },
         internalLocalPostNewComment: (state: StorePlayViewModel, payload: { newLocalComment: Comment; commentToReplyTo: Comment|undefined }): void => {
