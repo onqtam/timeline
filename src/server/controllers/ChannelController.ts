@@ -73,6 +73,7 @@ export default class ChannelController {
             .execute())[0];
 
         if (!episode) {
+            console.assert(false);
             response.status(404).end();
             return;
         }

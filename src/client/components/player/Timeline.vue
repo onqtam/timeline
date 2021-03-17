@@ -16,8 +16,8 @@
             :class="shouldAnimate ? 'animated-transition' : ''"
         />
 
-        <!-- Displays a chart of the audio file, only in Standard. The data in the chart varies depending on settings -->
-        <VChart v-if=!isZoomline ref="chart" class="standard-chart" :type=ChartType.Line :data=chartData :options=chartOptions></VChart>
+        <!-- Displays a chart of the audio file, only in Standard. -->
+        <Chart v-if=!isZoomline ref="chart"/>
 
         <!-- Displays the small vertical lines that break down the timeline into small sections -->
         <div class="mark-container">
@@ -72,15 +72,14 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 import Timepoint from "@/logic/entities/Timepoint";
 import { AudioWindow } from "@/logic/AudioFile";
 import MathHelpers from "@/logic/MathHelpers";
+import { default as Chart } from "./Chart.vue";
 import { Clipboard } from "@/logic/MiscHelpers";
 
-import VChart, { ChartType } from "../primitives/VChart.vue";
-import Chartist, { IChartistData, ILineChartOptions } from "chartist";
 import store from "../../store";
 
 @Component({
     components: {
-        VChart
+        Chart
     }
 })
 export default class Timeline extends Vue {
@@ -202,45 +201,10 @@ export default class Timeline extends Vue {
         }
     }
 
-    public get chartData(): IChartistData {
-        const histogram = store.state.play.commentDensityHistogram;
-        if (this.$refs.chart) {
-            // Force update the chart element as Vue doesn't pick the changes for some reason
-            (this.$refs.chart as Vue).$forceUpdate();
-        }
-        return {
-            labels: histogram.xAxis,
-            series: [histogram.yAxis]
-        };
-    }
-
-    public get chartOptions(): ILineChartOptions {
-        const histogram = store.state.play.commentDensityHistogram;
-        return {
-            chartPadding: {
-                right: 0, left: 0, top: 0, bottom: 0
-            },
-            showArea: false,
-            showPoint: false,
-            axisX: {
-                showGrid: false,
-                offset: 0,
-                type: Chartist.StepAxis,
-                ticks: histogram.xAxis
-            },
-            axisY: {
-                showGrid: false,
-                offset: 0
-            }
-        };
-    }
-
     // Internal data members
     // Whether the user is currently dragging the corresponding element
     private isDraggingPlayElement: boolean = false;
     private timepointMarks: Timepoint[] = [];
-    // Store the enum as a member to access it in the template
-    private ChartType = ChartType;
 
     private normalize(value: number): number { return MathHelpers.normalize(value, this.rangeStart, this.rangeEnd); }
 
@@ -373,13 +337,6 @@ export default class Timeline extends Vue {
     border-right: @border;
     cursor: ew-resize;
     box-sizing: content-box;
-}
-.standard-chart {
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    position: absolute;
 }
 
 .current-play-position-label {
