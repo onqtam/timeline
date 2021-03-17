@@ -82,8 +82,8 @@ export default class Server {
         });
         await dbConnection;
 
-        cron.schedule('* * * * *', function() {
-            // console.log('running a task every minute');
+        cron.schedule("* * * * *", () => {
+            // console.log("running a task every minute");
         });
 
         // Hide implementation details about the promise type
