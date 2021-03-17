@@ -1,4 +1,5 @@
 import express, { Request, Response } from "express";
+import cron from "node-cron";
 import bodyParser from "body-parser";
 import expressSession from "express-session";
 import { createConnection } from "typeorm";
@@ -80,6 +81,11 @@ export default class Server {
             console.log(`API server is playing on http://localhost:${CommonParams.APIServerPort}`);
         });
         await dbConnection;
+
+        cron.schedule('* * * * *', function() {
+            // console.log('running a task every minute');
+        });
+
         // Hide implementation details about the promise type
         return User.initSpecialUsers() as unknown as Promise<void>;
     }
