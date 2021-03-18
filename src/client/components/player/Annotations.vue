@@ -39,7 +39,7 @@ export default class Annotations extends Vue {
     @Prop()
     public audioWindow?: AudioWindow;
 
-    computeBarStyle(item: AgendaItem, itemIndex: number) {
+    computeBarStyle(item: AgendaItem, itemIndex: number): string {
         // the computation here assumes that there is always an entry in the agenda at timepoint 0
         const percentOfTotalEpiside = 100 * ((itemIndex + 1 < this.agenda.items.length
             ? this.agenda.items[itemIndex + 1].timestamp.seconds
@@ -49,7 +49,7 @@ export default class Annotations extends Vue {
         return "width: calc(" + percentOfTotalEpiside + "% - 0.2em); background: " + color;
     }
 
-    computeProgressStyle(item: AgendaItem, itemIndex: number) {
+    computeProgressStyle(item: AgendaItem, itemIndex: number): string {
         // TODO: sadly this computation doesn't account for the gaps so when near the
         // end the coloring doesn't 100% align with the progress bar on the timeline
         let percent = 0;
@@ -81,7 +81,7 @@ export default class Annotations extends Vue {
         return this.currentAudioPosition.seconds >= this.getEndOfItem(itemIndex);
     }
 
-    moveAudioWindow(index: number) {
+    moveAudioWindow(index: number): void {
         this.$emit("update:audioWindowSet", { start: this.agenda.items[index].timestamp.seconds, end: this.getEndOfItemAsTimepoint(index).seconds });
         this.$emit("update:currentAudioPosition", this.agenda.items[index].timestamp.seconds);
     }

@@ -54,7 +54,7 @@ export default class AgendaComponent extends Vue {
 
     showDialog = false;
 
-    get activeIndex() {
+    get activeIndex(): number {
         for (let i = 0; i < this.agenda.items.length; i++) {
             if (this.isAgendaItemActive(i)) {
                 return i;
@@ -88,7 +88,7 @@ export default class AgendaComponent extends Vue {
             : this.audioWindow!.audioFile.duration;
     }
 
-    computeProgressPercentage(itemIndex: number) {
+    computeProgressPercentage(itemIndex: number): number {
         if (this.isAgendaItemActive(itemIndex)) {
             return 100 * (this.currentAudioPosition.seconds - this.agenda.items[itemIndex].timestamp.seconds) /
                 (this.getEndOfItem(itemIndex) - this.agenda.items[itemIndex].timestamp.seconds);

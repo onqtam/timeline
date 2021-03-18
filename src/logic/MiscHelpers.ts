@@ -1,5 +1,5 @@
 export class Clipboard {
-    public static copyToClipboard(text: string) {
+    public static copyToClipboard(text: string): void {
         const elem = document.createElement("textarea");
         elem.value = text;
         document.body.appendChild(elem);
@@ -18,7 +18,7 @@ export function parseYouTubeVideoIdFromUrl(url: string): string|false {
 }
 
 // taken from here: https://stackoverflow.com/a/30134889
-export function YouTubeDurationToSeconds(duration: string) {
+export function YouTubeDurationToSeconds(duration: string): number {
     const matchArray = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
 
     const match2 = matchArray!.slice(1).map(function (x) {

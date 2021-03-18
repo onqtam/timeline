@@ -38,7 +38,7 @@ import CommentComponent from "../components/comments/Comment.vue";
     components: {
         CommentComponent
     },
-    beforeRouteLeave: function (to: Route, from: Route, next: NavigationGuardNext<UserView>) {
+    beforeRouteLeave: function (to: Route, from: Route, next: NavigationGuardNext<UserView>): void {
         store.dispatch.user.saveSettings();
         next();
     }
@@ -63,7 +63,7 @@ export default class UserView extends Vue {
 
     comments: Comment[] = [];
 
-    created() {
+    created(): void {
         store.dispatch.user.loadUserComments({ userId: this.userId }).then((comments: Comment[]) => {
             this.comments = comments;
         });

@@ -94,10 +94,10 @@ export default class Timeline extends Vue {
     @Prop({ type: Boolean })
     public shouldAnimate!: boolean;
 
-    get rangeStart() {
+    get rangeStart(): number {
         return this.isZoomline ? this.audioWindow.start.seconds : 0;
     }
-    get rangeEnd() {
+    get rangeEnd(): number {
         return this.isZoomline ? this.windowEnd : this.audioWindow.audioFile.duration;
     }
 
@@ -107,7 +107,7 @@ export default class Timeline extends Vue {
     get windowEnd(): number {
         return this.audioWindow.end.seconds;
     }
-    get computeWindowStyle() {
+    get computeWindowStyle(): string {
         if (this.isZoomline) {
             return "left: 0%; width: 100%;";
         } else {
@@ -125,7 +125,7 @@ export default class Timeline extends Vue {
     tooltip_y = 0;
     tooltipValue = "";
 
-    moveTooltip(e: MouseEvent) {
+    moveTooltip(e: MouseEvent): void {
         if (!this.showTooltip) { return; }
 
         const newPosition = this.calculateCursorPositionFromMouse(e.clientX);
@@ -143,7 +143,7 @@ export default class Timeline extends Vue {
     right_click_menu_x = 0;
     right_click_menu_y = 0;
 
-    showContextMenu(e: MouseEvent) {
+    showContextMenu(e: MouseEvent): void {
         e.preventDefault();
         this.shouldShowContextMenu = false;
         this.right_click_menu_x = e.clientX;
@@ -153,7 +153,7 @@ export default class Timeline extends Vue {
         });
     }
 
-    registerEscapeKeyHook() {
+    registerEscapeKeyHook(): void {
         const escapeHandler = (e: KeyboardEvent) => {
             if (e.key === "Escape" && this.shouldShowContextMenu) {
                 this.shouldShowContextMenu = false;
@@ -167,11 +167,11 @@ export default class Timeline extends Vue {
         });
     }
 
-    created() {
+    created(): void {
         this.registerEscapeKeyHook();
     }
 
-    copy_position() {
+    copy_position(): void {
         // TODO: probably rework this with something from the Vue router so that we don't hardcode the `#` symbol
         let url = window.location.origin;
         url += "/#/play/" + store.state.play.activeEpisode.id;
@@ -179,7 +179,7 @@ export default class Timeline extends Vue {
         Clipboard.copyToClipboard(url);
     }
 
-    copy_range() {
+    copy_range(): void {
         // TODO: probably rework this with something from the Vue router so that we don't hardcode the `#` symbol
         let url = window.location.origin;
         url += "/#/play/" + store.state.play.activeEpisode.id;

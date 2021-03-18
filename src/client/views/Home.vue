@@ -38,7 +38,7 @@ export default class HomeView extends Vue {
     youtubeUrl = "";
     parseAlert = false;
 
-    submit() {
+    submit(): void {
         const parseResult = parseYouTubeVideoIdFromUrl(this.youtubeUrl);
         if (parseResult) {
             this.parseAlert = false;

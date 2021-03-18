@@ -22,7 +22,7 @@ import ChannelComponent from "@/client/components/Channel.vue";
     components: {
         ChannelComponent
     },
-    beforeRouteEnter(to: Route, from: Route, next: NavigationGuardNext<ChannelsView>) {
+    beforeRouteEnter(to: Route, from: Route, next: NavigationGuardNext<ChannelsView>): void {
         store.dispatch.channel.initChannelData().finally(next);
     }
 })

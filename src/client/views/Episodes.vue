@@ -42,10 +42,10 @@ const beforeRouteChange = (to: Route, from: Route, next: NavigationGuardNext<Epi
     components: {
         EpisodeComponent
     },
-    beforeRouteEnter(to: Route, from: Route, next: NavigationGuardNext<EpisodesView>) {
+    beforeRouteEnter(to: Route, from: Route, next: NavigationGuardNext<EpisodesView>): void {
         beforeRouteChange(to, from, next, undefined);
     },
-    beforeRouteUpdate(to: Route, from: Route, next: NavigationGuardNext<EpisodesView>) {
+    beforeRouteUpdate(to: Route, from: Route, next: NavigationGuardNext<EpisodesView>): void {
         beforeRouteChange(to, from, next, this);
     }
 })

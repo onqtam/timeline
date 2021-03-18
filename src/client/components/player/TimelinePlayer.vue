@@ -228,7 +228,7 @@ export default class TimelinePlayer extends Vue {
     }
 
     windowStartAsString = Timepoint.FullFormat(this.windowStart);
-    windowStartChange() {
+    windowStartChange(): void {
         const fromStr = Timepoint.tryParseFromFormattedText(this.windowStartAsString, 3);
         if (!fromStr || fromStr.seconds > this.windowEnd) {
             // if it cannot be parsed or is after the end - reset it
@@ -241,7 +241,7 @@ export default class TimelinePlayer extends Vue {
     }
 
     windowEndAsString = Timepoint.FullFormat(this.windowEnd)
-    windowEndChange() {
+    windowEndChange(): void {
         const fromStr = Timepoint.tryParseFromFormattedText(this.windowEndAsString, 3);
         if (!fromStr) {
             // if it cannot be parsed - reset it
@@ -255,13 +255,13 @@ export default class TimelinePlayer extends Vue {
     // TODO: deep watching is slow!!! can we use mapState to avoid the x.y.z nesting when accessing the state?
     // TODO: perhaps use the callback we've given to setInterval?
     @Watch("audioWindow", { deep: true })
-    private watchAudioWindow() {
+    private watchAudioWindow(): void {
         this.windowStartAsString = Timepoint.FullFormat(this.windowStart);
         this.windowEndAsString = Timepoint.FullFormat(this.windowEnd);
     }
 
     isZoomline = false;
-    toggleZoomline() {
+    toggleZoomline(): void {
         this.isZoomline = !this.isZoomline;
         this.animateCursorAndWindow();
     }
@@ -274,13 +274,13 @@ export default class TimelinePlayer extends Vue {
     youtubePlayer: any;
     youtubeState = -1;
 
-    get isYouTubeReady() { return this.youtubeState !== -1; }
-    get isYouTubePlaying() { return this.youtubeState === 1 || this.youtubeState === 3; }
-    get isYouTube() {
+    get isYouTubeReady(): boolean { return this.youtubeState !== -1; }
+    get isYouTubePlaying(): boolean { return this.youtubeState === 1 || this.youtubeState === 3; }
+    get isYouTube(): boolean {
         return this.activeEpisode.external_source === CommonParams.EXTERNAL_SOURCE_YOUTUBE;
     }
 
-    initYouTubePlayer() {
+    initYouTubePlayer(): void {
         console.log("== initYouTubePlayer");
         // TODO: figure out how to add this script properly to the website
         const tag = document.createElement("script");
@@ -302,14 +302,14 @@ export default class TimelinePlayer extends Vue {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    onPlayerReady(_event: any) {
+    onPlayerReady(_event: any): void {
         console.log("== onPlayerReady");
         this.youtubeState = 0;
         this.youtubePlayer.setVolume(this.volume);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    onPlayerStateChange(event: any) {
+    onPlayerStateChange(event: any): void {
         console.log("== onPlayerStateChange " + event.data);
         this.youtubeState = event.data;
         if (this.youtubeState === 1) {
@@ -330,10 +330,10 @@ export default class TimelinePlayer extends Vue {
         }
     }
 
-    togglePlay() {
+    togglePlay(): void {
         this.isPaused ? this.play() : this.pause();
     }
-    play() {
+    play(): void {
         if (this.isYouTube) {
             if (this.isYouTubeReady) {
                 this.youtubePlayer.playVideo();
@@ -345,7 +345,7 @@ export default class TimelinePlayer extends Vue {
             this.$recompute("audioElement");
         }
     }
-    pause() {
+    pause(): void {
         if (this.isYouTube) {
             if (this.isYouTubeReady) {
                 this.youtubePlayer.pauseVideo();
@@ -364,7 +364,7 @@ export default class TimelinePlayer extends Vue {
     youtubePlayerTimeLast = 0;
     syncPlayersIntervalId = window.setInterval(() => this.isYouTube ? this.syncYoutube() : this.syncAudio(), 16);
 
-    syncAudio() {
+    syncAudio(): void {
         // if there's divergence between the audio and vuex bigger than 1 second
         if (Math.abs(this.audioElement.currentTime - this.audioPos.seconds) > TIME_DIVERGENCE_BOUNDRY) {
             // update the audio pos because the vuex position has most probably been changed
@@ -379,7 +379,7 @@ export default class TimelinePlayer extends Vue {
         }
     }
 
-    syncCursorAndWindow(newCursorPos: number) {
+    syncCursorAndWindow(newCursorPos: number): void {
         // if youtube and vuex are in sync (relatively - within less than 1 second)
         const wasInSync = this.isTimelineWindowSynced;
         // advance vuex based on youtube - ONLY if we are not animating! otherwise the cursor
@@ -396,18 +396,18 @@ export default class TimelinePlayer extends Vue {
     }
 
     shouldAnimate = false;
-    stopAnimating() {
+    stopAnimating(): void {
         // console.log("== stop animating")
         this.shouldAnimate = false;
     }
     debouncedStopAnimating = debounce(this.stopAnimating, 400); // == css transition duration
-    animateCursorAndWindow() {
+    animateCursorAndWindow(): void {
         // console.log("== animate!")
         this.shouldAnimate = true;
         this.debouncedStopAnimating();
     }
 
-    syncYoutube() {
+    syncYoutube(): void {
         if (!this.isYouTubeReady) {
             return;
         }
@@ -502,19 +502,19 @@ export default class TimelinePlayer extends Vue {
     // == hooks
     // ================================================================
 
-    beforeCreate() {
+    beforeCreate(): void {
         if (!this.isYouTube) {
             this.$markRecomputable("audioElement");
         }
     }
 
-    created() {
+    created(): void {
         if (this.isYouTube) {
             this.initYouTubePlayer();
         }
     }
 
-    mounted() {
+    mounted(): void {
         // const playbackProgress: number = store.state.user.getPlaybackProgressForEpisode(this.activeEpisode.id).seconds;
         // store.commit.play.moveAudioPos(playbackProgress);
         if (!this.isYouTube) {
@@ -522,7 +522,7 @@ export default class TimelinePlayer extends Vue {
         }
     }
 
-    beforeDestroy() {
+    beforeDestroy(): void {
         clearInterval(this.syncPlayersIntervalId);
         if (!this.isYouTube) {
             this.$destroyRecomputables();

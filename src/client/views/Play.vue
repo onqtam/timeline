@@ -21,7 +21,7 @@ import CommentSection from "@/client/components/comments/CommentSection.vue";
         TimelinePlayer,
         CommentSection
     },
-    beforeRouteUpdate(to: Route, from: Route, next: NavigationGuardNext<PlayView>) {
+    beforeRouteUpdate(to: Route, from: Route, next: NavigationGuardNext<PlayView>): void {
         // eslint-disable-next-line @typescript-eslint/no-use-before-define
         PlayView.updateBasedOnRoute(to);
 
@@ -51,7 +51,7 @@ export default class PlayView extends Vue {
     private _localPlaybackStorageTimerId: number = -1;
     private _serverPlaybackStorageTimerId: number = -1;
 
-    static updateBasedOnRoute(to: Route) {
+    static updateBasedOnRoute(to: Route): void {
         const initialTimepoint = Timepoint.tryParseFromURL(to.query.t as string);
         const start = Timepoint.tryParseFromURL(to.query.start as string);
         const end = Timepoint.tryParseFromURL(to.query.end as string);

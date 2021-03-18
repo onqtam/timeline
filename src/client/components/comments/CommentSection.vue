@@ -118,13 +118,13 @@ export default class CommentSection extends Vue {
     // == deleting comments
     // ================================================================
 
-    get showDeleteCommentDialog() {
+    get showDeleteCommentDialog(): boolean {
         return store.state.play.commentToDelete !== undefined;
     }
     set showDeleteCommentDialog(newVal: boolean) {
         store.commit.play.setCommentToDelete(undefined);
     }
-    deleteComment(shouldDelete: boolean) {
+    deleteComment(shouldDelete: boolean): void {
         if (shouldDelete) {
             store.dispatch.play.deleteComment(store.state.play.commentToDelete!);
         }
@@ -145,7 +145,7 @@ export default class CommentSection extends Vue {
     debouncedAudioWindow = CommentSection.deepCopyAudioWindow(this.audioWindow);
     showLoadingCommentsOverlay = false;
 
-    stopLoadingComments() {
+    stopLoadingComments(): void {
         if (this.showLoadingCommentsOverlay) {
             this.debouncedAudioWindow = CommentSection.deepCopyAudioWindow(this.audioWindow);
         }
