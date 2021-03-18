@@ -21,6 +21,8 @@ export class AgendaItem implements IReviveFromJSON {
 export class Agenda implements IReviveFromJSON {
     public items: AgendaItem[] = [];
 
+    static readonly NO_ITEMS_IN_AGENDA = "There are no timestamps for this episode";
+
     public reviveSubObjects(): void {
         for (const item of this.items) {
             EncodingUtils.reviveObjectAs(item, AgendaItem);
@@ -65,7 +67,12 @@ export class Agenda implements IReviveFromJSON {
 
         // make sure there is always an entry at timepoint 0
         if (items.length > 0 && items[0].timestamp.seconds !== 0) {
-            items.unshift(new AgendaItem("", new Timepoint(0)));
+            items.unshift(new AgendaItem("<inserted automatically>", new Timepoint(0)));
+        }
+
+        // default agenda item - because it will be used as a progress bar for the playback
+        if (items.length === 0) {
+            items.unshift(new AgendaItem(Agenda.NO_ITEMS_IN_AGENDA, new Timepoint(0)));
         }
 
         // TODO: make sure the items are sorted correctly based on the timepoints

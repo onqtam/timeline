@@ -126,7 +126,7 @@ export default class ChannelController {
     }
 
     static async getYouTubeEpisode(request: Request, response: Response): Promise<void> {
-        await ChannelController.makeSureThereIsAtleastOneNormalMP3(); // NASTY HACK! :D
+        await ChannelController.makeSureThereIsAtLeastOneNormalMP3(); // NASTY HACK! :D
 
         const params = {
             youtubeId: request.params.youtubeId
@@ -193,7 +193,7 @@ export default class ChannelController {
         response.end(EncodingUtils.jsonify(episode as Episode));
     }
 
-    static async makeSureThereIsAtleastOneNormalMP3(): Promise<void> {
+    static async makeSureThereIsAtLeastOneNormalMP3(): Promise<void> {
         const numMP3: number|undefined = await QB()
             .select()
             .from(Episode, "episode")

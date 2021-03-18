@@ -37,7 +37,7 @@
                 </v-slider>
                 <v-slider class="d-inline-block" style="width: 250px;"
                     :max=audio.duration
-                    :min=minDuration
+                    :min=10
                     label="Window Size"
                     thumb-label="always"
                     thumb-size="40"
@@ -194,11 +194,6 @@ export default class TimelinePlayer extends Vue {
     }
     set windowEnd(value: number) {
         store.commit.play.setAudioWindow({ start: this.windowStart, end: value });
-    }
-    get minDuration(): number {
-        // for really short episodes this will be 10 seconds and for really long
-        // episodes it will be 0.5% of their length (5 hour episode => 90 seconds)
-        return Math.max(10, this.audio.duration * 0.005);
     }
     get windowDuration(): number {
         return this.audioWindow.duration;

@@ -2,12 +2,11 @@
     <div
         ref="annotations-container"
         class="annotations-container"
-        v-if="agenda.items.length > 0"
     >
         <v-tooltip top v-for="(item, index) in agenda.items" :key=item.timestamp.seconds transition="fade-transition">
             <template v-slot:activator="{ on }">
-                <router-link
-                    class="annotation" :style="computeBarStyle(item, index)"
+                <router-link v-if=hasItems
+                    class="annotation clickable" :style="computeBarStyle(item, index)"
                     :to="'?start=' + item.timestamp.formatAsUrlParam() + '&end=' + getEndOfItemAsTimepoint(index).formatAsUrlParam()"
                 >
                     <!-- this outer 100% sized div is necessary for the tooltips - sticking the `v-on="on"` on the `router-link` doesn't work -->
@@ -15,6 +14,13 @@
                         <div :style="computeProgressStyle(item, index)"/>
                     </div>
                 </router-link>
+
+                <!-- we don't want this clickable & hoverable without timestamps -->
+                <div v-else class="annotation" :style="computeBarStyle(item, index)">
+                    <div v-on=on style="width: 100%; height: 100%;">
+                        <div :style="computeProgressStyle(item, index)"/>
+                    </div>
+                </div>
             </template>
             <!-- TODO: CLAMP LENGTH OF TEXT -->
             <span>{{item.text}}</span>
@@ -39,14 +45,17 @@ export default class Annotations extends Vue {
     @Prop()
     public audioWindow?: AudioWindow;
 
+    get hasItems(): boolean {
+        return !(this.agenda.items.length === 1 && this.agenda.items[0].text === Agenda.NO_ITEMS_IN_AGENDA);
+    }
+
     computeBarStyle(item: AgendaItem, itemIndex: number): string {
         // the computation here assumes that there is always an entry in the agenda at timepoint 0
         const percentOfTotalEpiside = 100 * ((itemIndex + 1 < this.agenda.items.length
             ? this.agenda.items[itemIndex + 1].timestamp.seconds
             : this.audioWindow!.audioFile.duration) -
                                 item.timestamp.seconds) / this.audioWindow!.audioFile.duration;
-        const color = this.isAgendaItemCompleted(itemIndex) ? "red" : "yellow";
-        return "width: calc(" + percentOfTotalEpiside + "% - 0.2em); background: " + color;
+        return "width: calc(" + percentOfTotalEpiside + "% - 2px);";
     }
 
     computeProgressStyle(item: AgendaItem, itemIndex: number): string {
@@ -104,20 +113,23 @@ export default class Annotations extends Vue {
 
 .annotation {
     background-color: rgb(255, 238, 5);
-    transition: 300ms;
     height: 100%;
     display: flex;
     align-items: flex-end;
     overflow: hidden;
     height: 10px;
-    cursor: pointer;
+}
 
+.clickable {
+    transition: 300ms;
+    cursor: pointer;
     &:hover {
-        background-color: rgb(141, 132, 0);
+        background-color: rgb(141, 132, 0); // doesn't work for some reason
         margin-top: -3px;
         height: 16px;
     }
 }
+
 
 // .annotations-container .annotation:first-child {
 //     border-top-left-radius: 6px;
