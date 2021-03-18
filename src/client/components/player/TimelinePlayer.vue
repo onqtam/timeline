@@ -37,7 +37,7 @@
                 </v-slider>
                 <v-slider class="d-inline-block" style="width: 250px;"
                     :max=audio.duration
-                    min=1
+                    :min=minDuration
                     label="Window Size"
                     thumb-label="always"
                     thumb-size="40"
@@ -195,16 +195,33 @@ export default class TimelinePlayer extends Vue {
     set windowEnd(value: number) {
         store.commit.play.setAudioWindow({ start: this.windowStart, end: value });
     }
+    get minDuration(): number {
+        // for really short episodes this will be 10 seconds and for really long
+        // episodes it will be 0.5% of their length (5 hour episode => 90 seconds)
+        return Math.max(10, this.audio.duration * 0.005);
+    }
     get windowDuration(): number {
         return this.audioWindow.duration;
     }
     set windowDuration(value: number) {
-        let backward_offset = 0;
-        // offset backward both the start and end of the window so that the duration fits
-        if (this.windowStart + value > this.audio.duration) {
-            backward_offset = this.windowStart + value - this.audio.duration;
+        if (this.isTimelineWindowSynced) {
+            // we want the cursor to remain in the same relative position in the window
+            const ratio = (this.audioPos.seconds - this.windowStart) / this.windowDuration;
+            const start = this.audioPos.seconds - value * ratio;
+            const end = start + value;
+            // offset the window forward or backward so that the duration fits if need be
+            let offset = start < 0 ? start : 0;
+            offset += end > this.audio.duration ? end - this.audio.duration : 0;
+            store.commit.play.setAudioWindow({ start: start - offset, end: end - offset });
+        } else {
+            // if the cursor is not in the window - just expand the window from the end
+            let backward_offset = 0;
+            // offset the window backward so that the duration fits if need be
+            if (this.windowStart + value > this.audio.duration) {
+                backward_offset = this.windowStart + value - this.audio.duration;
+            }
+            store.commit.play.setAudioWindow({ start: this.windowStart - backward_offset, end: this.windowStart + value - backward_offset });
         }
-        store.commit.play.setAudioWindow({ start: this.windowStart - backward_offset, end: this.windowStart + value - backward_offset });
     }
     formatWindowDuration(input: number): string {
         return (new Timepoint(input)).format();
@@ -339,10 +356,9 @@ export default class TimelinePlayer extends Vue {
         }
     }
 
-    private isTimelineWindowSynced(): boolean {
-        const start: number = this.audioWindow.start.seconds;
-        return this.audioPos.seconds >= this.audioWindow.start.seconds &&
-            this.audioPos.seconds <= start + this.audioWindow.duration;
+    private get isTimelineWindowSynced(): boolean {
+        return this.audioPos.seconds >= this.windowStart &&
+            this.audioPos.seconds <= this.windowStart + this.audioWindow.duration;
     }
 
     youtubePlayerTimeLast = 0;
@@ -365,14 +381,14 @@ export default class TimelinePlayer extends Vue {
 
     syncCursorAndWindow(newCursorPos: number) {
         // if youtube and vuex are in sync (relatively - within less than 1 second)
-        const wasInSync = this.isTimelineWindowSynced();
+        const wasInSync = this.isTimelineWindowSynced;
         // advance vuex based on youtube - ONLY if we are not animating! otherwise the cursor
         // would be playing catch-up with the position it should be at during normal playback
         if (!this.shouldAnimate) {
             store.commit.play.moveAudioPos(newCursorPos);
         }
         // move the window forward if the cursor was within it but is no longer
-        if (wasInSync && !this.isTimelineWindowSynced()) {
+        if (wasInSync && !this.isTimelineWindowSynced) {
             const newWindowPos = this.audioWindow.start.seconds + this.audioWindow.duration;
             store.commit.play.moveAudioWindow(newWindowPos);
             this.animateCursorAndWindow();

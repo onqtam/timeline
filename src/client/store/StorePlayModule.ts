@@ -34,7 +34,7 @@ class StorePlayViewModel {
     constructor() {
         this.audioFile = new AudioFile();
         this.audioPos = new Timepoint();
-        this.audioWindow = new AudioWindow(this.audioFile, new Timepoint(0), 80, 4);
+        this.audioWindow = new AudioWindow(this.audioFile, new Timepoint(0), 0, 4);
         this.volume = 95;
         this.allThreads = [];
 
@@ -47,16 +47,6 @@ class StorePlayViewModel {
         this.audioWindow.timeslotCount = newSlotCount;
     }
 
-    // Resizing the window will also move the start of the window
-    // so that the old center of the window is the same as the new one if this possible.
-    // If that's not possible (e.g. either side of the window has reached the respective audio file side)
-    // we only resize in the direction it's possible to
-    public resizeAudioWindow(newWindowDuration: number): void {
-        const unclampedWindowStart: number = this.audioWindow.start.seconds - (newWindowDuration-this.audioWindow.duration)/2;
-        const maxWindowStart = Math.max(0, this.audioFile.duration - newWindowDuration);
-        this.audioWindow.start.seconds = MathHelpers.clamp(unclampedWindowStart, 0, maxWindowStart);
-        this.audioWindow.duration = newWindowDuration;
-    }
     public moveAudioWindow(newStart: number): void {
         this.audioWindow.start.seconds = newStart;
     }
@@ -152,8 +142,7 @@ export default {
             state.activeEpisode = episode;
             state.audioFile.filepath = episode.resource_url ? episode.resource_url : "";
             state.audioFile.duration = episode.durationInSeconds;
-            // Force resize the audio window because it depends on the length of the audio
-            state.resizeAudioWindow(state.audioWindow.duration);
+            state.setAudioWindow(0, state.audioFile.duration / 10); // 10% of the episode
         },
         internalSetActiveEpisodeComments: (state: StorePlayViewModel, commentData: FullCommentData): void => {
             state.allThreads = commentData.allComments;
@@ -224,15 +213,12 @@ export default {
             state.volume = newVolume;
         },
         moveAudioWindow: (state: StorePlayViewModel, newStart: number): void => {
-            // console.log("🚀 ~ file: StorePlayModule.ts ~ line 309 ~ newStart", newStart);
             state.moveAudioWindow(newStart);
         },
         moveAudioPos: (state: StorePlayViewModel, newStart: number): void => {
-            // console.log("🚀 ~ file: StorePlayModule.ts ~ line 313 ~ newStart", newStart);
             state.moveAudioPos(newStart);
         },
         setAudioWindow: (state: StorePlayViewModel, payload: {start: number; end: number}): void => {
-            // console.log("🚀 ~ file: StorePlayModule.ts ~ line 313 ~ newStart", newStart);
             state.setAudioWindow(payload.start, payload.end);
         },
         seekTo: (state: StorePlayViewModel, secondToSeekTo: number): void => {
