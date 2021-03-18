@@ -5,7 +5,7 @@
     >
         <v-tooltip top v-for="(item, index) in agenda.items" :key=item.timestamp.seconds transition="fade-transition">
             <template v-slot:activator="{ on }">
-                <router-link v-if=hasItems
+                <router-link v-if=agenda.hasItems
                     class="annotation clickable" :style="computeBarStyle(item, index)"
                     :to="'?start=' + item.timestamp.formatAsUrlParam() + '&end=' + getEndOfItemAsTimepoint(index).formatAsUrlParam()"
                 >
@@ -33,21 +33,18 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 import Timepoint from "@/logic/entities/Timepoint";
 import { AudioWindow } from "@/logic/AudioFile";
 import { Agenda, AgendaItem } from "@/logic/entities/Episode";
-import MathHelpers from "@/logic/MathHelpers";
 
 @Component
 export default class Annotations extends Vue {
     // Props
-    @Prop({ type: Timepoint })
-    public currentAudioPosition!: Timepoint;
+    @Prop({ type: Number })
+    public audioPos!: number;
     @Prop({ type: Agenda })
     public agenda!: Agenda;
     @Prop()
     public audioWindow?: AudioWindow;
 
-    get hasItems(): boolean {
-        return !(this.agenda.items.length === 1 && this.agenda.items[0].text === Agenda.NO_ITEMS_IN_AGENDA);
-    }
+    get audioDuration(): number { return this.audioWindow!.audioFile.duration; }
 
     computeBarStyle(item: AgendaItem, itemIndex: number): string {
         // the computation here assumes that there is always an entry in the agenda at timepoint 0
@@ -61,33 +58,16 @@ export default class Annotations extends Vue {
     computeProgressStyle(item: AgendaItem, itemIndex: number): string {
         // TODO: sadly this computation doesn't account for the gaps so when near the
         // end the coloring doesn't 100% align with the progress bar on the timeline
-        let percent = 0;
-        if (this.isAgendaItemActive(itemIndex) || this.isAgendaItemCompleted(itemIndex)) {
-            percent = 100 * (this.currentAudioPosition.seconds - item.timestamp.seconds) /
-                (this.getEndOfItem(itemIndex) - item.timestamp.seconds);
-        }
+        const percent = this.agenda.computeProgressPercentage(itemIndex, this.audioPos, this.audioDuration);
         return "background: red; height: 100%; width: " + percent + "%;";
     }
 
-    // TODO: reuse code with Agenda
-    getEndOfItem(itemIndex: number): number {
-        return itemIndex + 1 < this.agenda.items.length
-            ? this.agenda.items[itemIndex + 1].timestamp.seconds
-            : this.audioWindow!.audioFile.duration;
-    }
-
     getEndOfItemAsTimepoint(itemIndex: number): Timepoint {
-        return new Timepoint(this.getEndOfItem(itemIndex));
-    }
-
-    isAgendaItemActive(itemIndex: number): boolean {
-        return MathHelpers.isBetweenOpenEnded(this.currentAudioPosition.seconds,
-            this.agenda.items[itemIndex].timestamp.seconds,
-            this.agenda.items[itemIndex + 1]?.timestamp.seconds || Number.POSITIVE_INFINITY);
+        return new Timepoint(this.agenda.getEndOfItem(itemIndex, this.audioDuration));
     }
 
     isAgendaItemCompleted(itemIndex: number): boolean {
-        return this.currentAudioPosition.seconds >= this.getEndOfItem(itemIndex);
+        return this.audioPos >= this.agenda.getEndOfItem(itemIndex, this.audioDuration);
     }
 
     moveAudioWindow(index: number): void {
@@ -129,7 +109,6 @@ export default class Annotations extends Vue {
         height: 16px;
     }
 }
-
 
 // .annotations-container .annotation:first-child {
 //     border-top-left-radius: 6px;

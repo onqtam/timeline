@@ -88,7 +88,7 @@
 
                 <AgendaComponent
                     class="agenda"
-                    :currentAudioPosition=audioPos
+                    :audioPos=audioPos.seconds
                     :agenda=activeEpisode.agenda
                     :audioWindow=audioWindow
                     @update:currentAudioPosition=onCursorPositionMoved
@@ -106,7 +106,7 @@
         </div>
         <Annotations
             ref="annotations"
-            :currentAudioPosition=audioPos
+            :audioPos=audioPos.seconds
             :agenda=activeEpisode.agenda
             :audioWindow=audioWindow
             @update:audioWindowSet=onTimelineWindowSet

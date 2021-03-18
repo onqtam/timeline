@@ -11,14 +11,14 @@
                     <v-list>
                         <v-list-item-group v-model=activeIndex active-class="blue--text">
                             <template v-for="(item, index) in agenda.items">
-                                <v-list-item :key=item.timestamp.seconds :active=isAgendaItemActive(index)>
+                                <v-list-item :key=item.timestamp.seconds :active="agenda.isAgendaItemActive(index, audioPos)">
                                     <v-list-item-action>
                                         <v-list-item-action-text v-text=item.timestamp.format() />
                                     </v-list-item-action>
                                     <!-- TODO: CLAMP LENGTH OF TEXT -->
                                     <v-list-item-title>{{ item.text }}</v-list-item-title>
                                 </v-list-item>
-                                <v-progress-linear v-if="activeIndex == index" :value=computeProgressPercentage(index) :key="'progress_' + index"></v-progress-linear>
+                                <v-progress-linear v-if="activeIndex == index" :value="agenda.computeProgressPercentage(index, audioPos, audioDuration)" :key="'progress_' + index"></v-progress-linear>
                                 <v-divider v-if="index + 1 < agenda.items.length" :key="'divider_' + index"></v-divider>
                             </template>
                         </v-list-item-group>
@@ -37,26 +37,24 @@
 import { Component, Vue, Prop } from "vue-property-decorator";
 
 import { AudioWindow } from "@/logic/AudioFile";
-import Timepoint from "@/logic/entities/Timepoint";
 import { Agenda } from "@/logic/entities/Episode";
-import MathHelpers from "@/logic/MathHelpers";
-
-import store from "@/client/store";
 
 @Component
 export default class AgendaComponent extends Vue {
-    @Prop({ type: Timepoint })
-    public currentAudioPosition!: Timepoint;
+    @Prop({ type: Number })
+    public audioPos!: number;
     @Prop({ type: Agenda })
     agenda!: Agenda;
     @Prop()
-    public audioWindow?: AudioWindow;
+    public audioWindow!: AudioWindow;
+
+    get audioDuration(): number { return this.audioWindow!.audioFile.duration; }
 
     showDialog = false;
 
     get activeIndex(): number {
         for (let i = 0; i < this.agenda.items.length; i++) {
-            if (this.isAgendaItemActive(i)) {
+            if (this.agenda.isAgendaItemActive(i, this.audioPos)) {
                 return i;
             }
         }
@@ -73,27 +71,6 @@ export default class AgendaComponent extends Vue {
         }
         this.$router.push("?t=" + this.agenda.items[index].timestamp.formatAsUrlParam());
         this.$emit("update:currentAudioPosition", this.agenda.items[index].timestamp.seconds);
-    }
-
-    // TODO: reuse code with Annotations
-    isAgendaItemActive(itemIndex: number): boolean {
-        return MathHelpers.isBetweenOpenEnded(store.state.play.audioPos.seconds,
-            this.agenda.items[itemIndex].timestamp.seconds,
-            this.agenda.items[itemIndex + 1]?.timestamp.seconds || Number.POSITIVE_INFINITY);
-    }
-
-    getEndOfItem(itemIndex: number): number {
-        return itemIndex + 1 < this.agenda.items.length
-            ? this.agenda.items[itemIndex + 1].timestamp.seconds
-            : this.audioWindow!.audioFile.duration;
-    }
-
-    computeProgressPercentage(itemIndex: number): number {
-        if (this.isAgendaItemActive(itemIndex)) {
-            return 100 * (this.currentAudioPosition.seconds - this.agenda.items[itemIndex].timestamp.seconds) /
-                (this.getEndOfItem(itemIndex) - this.agenda.items[itemIndex].timestamp.seconds);
-        }
-        return 0;
     }
 }
 </script>

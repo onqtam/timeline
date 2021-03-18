@@ -4,6 +4,7 @@ import { IsDate, Min } from "class-validator";
 import Timepoint from "./Timepoint";
 import CommonParams from "../CommonParams";
 import EncodingUtils, { IReviveFromJSON } from "../EncodingUtils";
+import MathHelpers from "../../logic/MathHelpers";
 
 export class AgendaItem implements IReviveFromJSON {
     public timestamp: Timepoint = new Timepoint(0);
@@ -27,6 +28,34 @@ export class Agenda implements IReviveFromJSON {
         for (const item of this.items) {
             EncodingUtils.reviveObjectAs(item, AgendaItem);
         }
+    }
+
+    isAgendaItemActive(itemIndex: number, audioPos: number): boolean {
+        return MathHelpers.isBetweenOpenEnded(audioPos,
+            this.items[itemIndex].timestamp.seconds,
+            this.items[itemIndex + 1]?.timestamp.seconds || Number.POSITIVE_INFINITY);
+    }
+
+    getEndOfItem(itemIndex: number, episodeDuration: number): number {
+        return itemIndex + 1 < this.items.length
+            ? this.items[itemIndex + 1].timestamp.seconds
+            : episodeDuration;
+    }
+
+    isAgendaItemCompleted(itemIndex: number, audioPos: number, audioDuration: number): boolean {
+        return audioPos >= this.getEndOfItem(itemIndex, audioDuration);
+    }
+
+    computeProgressPercentage(itemIndex: number, audioPos: number, audioDuration: number): number {
+        if (this.isAgendaItemActive(itemIndex, audioPos) || this.isAgendaItemCompleted(itemIndex, audioPos, audioDuration)) {
+            return 100 * (audioPos - this.items[itemIndex].timestamp.seconds) /
+                (this.getEndOfItem(itemIndex, audioDuration) - this.items[itemIndex].timestamp.seconds);
+        }
+        return 0;
+    }
+
+    get hasItems(): boolean {
+        return !(this.items.length === 1 && this.items[0].text === Agenda.NO_ITEMS_IN_AGENDA);
     }
 
     // taken from here: https://github.com/Ermag/yt-highlights-chrome/blob/master/content.js#L167
