@@ -5,7 +5,8 @@
             <!-- <v-container fluid>
                 <v-row>
                     <v-col> -->
-                        <router-view class="brown darken-4" style="width: 1200px;"/>
+                        <!-- the key here is important so pages are re-rendered when path params change -->
+                        <router-view :key=$route.path class="brown darken-4" style="width: 1200px;"/>
                     <!-- </v-col>
                 </v-row>
             </v-container> -->
