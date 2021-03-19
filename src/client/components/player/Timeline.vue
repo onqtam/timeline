@@ -172,17 +172,15 @@ export default class Timeline extends Vue {
     }
 
     copy_position(): void {
-        // TODO: probably rework this with something from the Vue router so that we don't hardcode the `#` symbol
         let url = window.location.origin;
-        url += "/#/play/" + store.state.play.activeEpisode.id;
+        url += "/play/" + store.state.play.activeEpisode.id;
         url += "?t=" + this.currentAudioPosition.formatAsUrlParam();
         Clipboard.copyToClipboard(url);
     }
 
     copy_range(): void {
-        // TODO: probably rework this with something from the Vue router so that we don't hardcode the `#` symbol
         let url = window.location.origin;
-        url += "/#/play/" + store.state.play.activeEpisode.id;
+        url += "/play/" + store.state.play.activeEpisode.id;
         url += "?start=" + (new Timepoint(this.windowStart)).formatAsUrlParam();
         url += "&end=" + (new Timepoint(this.windowEnd)).formatAsUrlParam();
         Clipboard.copyToClipboard(url);

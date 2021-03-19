@@ -162,7 +162,8 @@ export default {
         login: (_context: ActionContext<StoreUserViewModel, StoreUserViewModel>): Promise<void> => {
             console.log("Sending login request");
             const routeToReturnTo: string = router.currentRoute.fullPath;
-            const fullReturnURL: string = encodeURIComponent(`${CommonParams.ClientServerRootURL}/#${routeToReturnTo}`);
+            const fullReturnURLUnencoded = `${CommonParams.ClientServerRootURL}${routeToReturnTo}`;
+            const fullReturnURL: string = encodeURIComponent(fullReturnURLUnencoded);
             const restURL: string = `${CommonParams.APIServerRootURL}/auth/google/?returnTo=${fullReturnURL}`;
             window.location.href = restURL;
             return Promise.resolve();
