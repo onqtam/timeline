@@ -53,13 +53,16 @@ const routes: Array<RouteConfig> = [
         path: "/",
         name: "Home",
         component: HomeView
-        // TODO: Obviously hard-coding a channel isn't perfect but it's a necessity during development
-        // redirect: "/channels/1"
-        // redirect: "/episodes/Making%20Sense%20with%20Sam%20Harris"
+    },
+    {
+        // TODO: perhaps a 404 page?
+        path: "*",
+        redirect: "/"
     }
 ];
 
 const router = new VueRouter({
+    mode: "history",
     routes
 });
 
