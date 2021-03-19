@@ -230,7 +230,7 @@ export default class Timeline extends Vue {
         const newCursorPos = this.calculateCursorPositionFromMouse(mouseX);
         const newWindowStart = this.calculateWindowStartFromMouse(mouseX);
         this.$emit("update:audioWindowStart", newWindowStart);
-        this.$emit("update:currentAudioPosition", newCursorPos, false);
+        this.$emit("update:currentAudioPosition", newCursorPos);
     }
 
     private onJumpToPosition(event: MouseEvent): void {

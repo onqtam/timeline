@@ -91,6 +91,8 @@
                     :audioPos=audioPos.seconds
                     :agenda=activeEpisode.agenda
                     :audioWindow=audioWindow
+                    @update:animate=animateCursorAndWindow
+                    @update:audioWindowSet=onTimelineWindowSet
                     @update:currentAudioPosition=onCursorPositionMoved
                 >
                 </AgendaComponent>
@@ -109,6 +111,7 @@
             :audioPos=audioPos.seconds
             :agenda=activeEpisode.agenda
             :audioWindow=audioWindow
+            @update:animate=animateCursorAndWindow
             @update:audioWindowSet=onTimelineWindowSet
             @update:currentAudioPosition=onCursorPositionMoved
         >
@@ -443,10 +446,7 @@ export default class TimelinePlayer extends Vue {
         // in case of no divergence between youtube and vuex - update the audio pos & window
         this.syncCursorAndWindow(youtubePlayerTime);
     }
-    private onCursorPositionMoved(newValue: number, animate = true): void {
-        if (animate) {
-            this.animateCursorAndWindow();
-        }
+    private onCursorPositionMoved(newValue: number): void {
         store.commit.play.seekTo(newValue);
         if (!this.isYouTube) {
             this.audioElement.currentTime = newValue;

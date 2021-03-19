@@ -35,7 +35,7 @@
 
 <script lang="ts">
 import { Component, Vue, Prop } from "vue-property-decorator";
-
+import Timepoint from "@/logic/entities/Timepoint";
 import { AudioWindow } from "@/logic/AudioFile";
 import { Agenda } from "@/logic/entities/Episode";
 
@@ -69,8 +69,12 @@ export default class AgendaComponent extends Vue {
             // or if we have undefined it once and then select the same as the previous current active index
             return;
         }
-        this.$router.push("?t=" + this.agenda.items[index].timestamp.formatAsUrlParam());
-        this.$emit("update:currentAudioPosition", this.agenda.items[index].timestamp.seconds);
+        this.$router.push("?start=" + this.agenda.items[index].timestamp.formatAsUrlParam() + "&end=" + this.getEndOfItemAsTimepoint(index).formatAsUrlParam());
+        this.$emit("update:animate");
+    }
+
+    getEndOfItemAsTimepoint(itemIndex: number): Timepoint {
+        return new Timepoint(this.agenda.getEndOfItem(itemIndex, this.audioDuration));
     }
 }
 </script>

@@ -71,6 +71,8 @@ export default class Annotations extends Vue {
     }
 
     moveAudioWindow(index: number): void {
+        // we need this if the user re-clicks the same thing - the router doesn't notice that
+        this.$emit("update:animate");
         this.$emit("update:audioWindowSet", { start: this.agenda.items[index].timestamp.seconds, end: this.getEndOfItemAsTimepoint(index).seconds });
         this.$emit("update:currentAudioPosition", this.agenda.items[index].timestamp.seconds);
     }
@@ -104,7 +106,7 @@ export default class Annotations extends Vue {
     transition: 300ms;
     cursor: pointer;
     &:hover {
-        background-color: rgb(141, 132, 0); // doesn't work for some reason
+        background-color: rgb(255, 255, 100);
         margin-top: -3px;
         height: 16px;
     }
