@@ -69,8 +69,8 @@ export default class CommentController {
             .createQueryBuilder(Comment, "comment")
             .where(`comment."parentCommentId" is NULL`) // Roots
             .andWhere(`comment."episodeId" = :episodeId`, params) // For this episode
-            .andWhere(`comment."timepointSeconds" >= :intervalStart`, params) // In the given interval
-            .andWhere(`comment."timepointSeconds" <= :intervalEnd`, params)
+            .andWhere(`comment."startSeconds" >= :intervalStart`, params) // In the given interval
+            .andWhere(`comment."startSeconds" <= :intervalEnd`, params)
             // .leftJoinAndSelect("comment.author", "author")
             // .leftJoinAndSelect("comment.episode", "episode")
             .getMany();
@@ -123,7 +123,7 @@ export default class CommentController {
             commentCount: number;
         };
         const commentBucketHistogram: CommentDensityRecord[] = await QBE(Comment, "comment")
-            .select(`cast(comment."timepointSeconds" / ${BUCKET_SIZE} as int)`, "bucketIndex")
+            .select(`cast(comment."startSeconds" / ${BUCKET_SIZE} as int)`, "bucketIndex")
             .addSelect("count(*)", "commentCount")
             .where(`comment."episodeId" = :episodeId`, params)
             .groupBy(`"bucketIndex"`)
@@ -262,7 +262,7 @@ export default class CommentController {
         const params = {
             episodeId: request.body.episodeId as number,
             commentToReplyToId: request.body.commentToReplyToId as number | null,
-            timepointSeconds: ~~request.body.timepointSeconds as number,
+            startSeconds: ~~request.body.startSeconds as number,
             content: request.body.content as string
         };
         console.log("\n== postComment - Received params: ", JSON.stringify(params));
@@ -283,7 +283,7 @@ export default class CommentController {
         newComment.date_modified = new Date();
         newComment.downVotes = 0;
         newComment.upVotes = 0;
-        newComment.timepoint = new Timepoint(params.timepointSeconds);
+        newComment.start = new Timepoint(params.startSeconds);
         newComment.userId = user.id;
         newComment.userName = user.shortName;
         newComment.episodeId = (await query_episode)!.id;
@@ -296,7 +296,7 @@ export default class CommentController {
         if (params.commentToReplyToId) {
             const query_parentComment: Promise<Comment | undefined> = commentRepo.findOne(params.commentToReplyToId);
             const parentComment = await commentRepo.findDescendantsTree((await query_parentComment)!);
-            console.assert(parentComment.timepoint.seconds === newComment.timepoint.seconds);
+            console.assert(parentComment.start.seconds === newComment.start.seconds);
             if (parentComment.replies === undefined) {
                 parentComment.replies = [];
             }

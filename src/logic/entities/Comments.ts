@@ -31,7 +31,7 @@ export default class Comment {
     @Min(0)
     public downVotes: number = 0;
     @Column(() => Timepoint)
-    public timepoint!: Timepoint;
+    public start!: Timepoint;
     @TreeChildren()
     public replies!: Comment[];
     // SERVER SIDE ONLY
@@ -50,7 +50,7 @@ export default class Comment {
             this.date_modified = new Date();
             this.upVotes = 0;
             this.downVotes = 0;
-            this.timepoint = new Timepoint();
+            this.start = new Timepoint();
             this.replies = [];
         }
     }
@@ -75,7 +75,7 @@ export default class Comment {
     public reviveSubObjects(): void {
         this.date_added = new Date(this.date_added);
         this.date_modified = new Date(this.date_modified);
-        this.timepoint = new Timepoint(this.timepoint.seconds);
+        this.start = new Timepoint(this.start.seconds);
         if (this.replies) {
             for (const reply of this.replies) {
                 EncodingUtils.reviveObjectAs(reply, Comment);

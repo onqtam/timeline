@@ -4,11 +4,11 @@
         <router-link
             class="timepoint"
             :style=routerLinkPositionStyle
-            :to="'?t=' + thread.timepoint.formatAsUrlParam() + '&thread=' + thread.id"
+            :to="'?t=' + thread.start.formatAsUrlParam() + '&thread=' + thread.id"
         >
             <!-- Switch the order if we are close to the end -->
             <v-icon v-if=routerLinkPlacePointerOnLeft>mdi-caret-up</v-icon>
-            {{ thread.timepoint.format() }}
+            {{ thread.start.format() }}
             <v-icon v-if=!routerLinkPlacePointerOnLeft>mdi-caret-up</v-icon>
         </router-link>
         <CommentControlsComponent
@@ -85,7 +85,7 @@ export default class CommentThreadComponent extends Vue {
     private get timepointOffset(): number {
         const audioWindow: AudioWindow = store.state.play.audioWindow;
         const timeslotStart: number = audioWindow.start.seconds + this.timeslotIndex * audioWindow.timeslotDuration;
-        const percentage = (this.thread.timepoint.seconds - timeslotStart) / audioWindow.timeslotDuration;
+        const percentage = (this.thread.start.seconds - timeslotStart) / audioWindow.timeslotDuration;
         // TODO: This is to prevent the position to go beyond the border of the thread
         // The proper computation should be 1 - width of timepoint element
         return MathHelpers.clamp(percentage, 0, 0.75);

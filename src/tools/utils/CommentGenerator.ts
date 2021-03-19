@@ -74,7 +74,7 @@ export default class CommentGenerator {
         const author = this.users[Math.floor(Math.random() * this.users.length)];
         comment.userId = author.id;
         comment.userName = author.shortName;
-        comment.timepoint = timepoint;
+        comment.start = timepoint;
         // Pick a random date earlier in 2020
         const now = new Date();
         comment.date_added = new Date(2020, Math.random() * (now.getMonth() - 1), Math.random() * 28);
@@ -89,7 +89,7 @@ export default class CommentGenerator {
         const thread = this.generateComment(timepoint);
         thread.replies = [];
         for (let i = 0; i < commentsToGenerate; i++) {
-            const nextComment = this.generateComment(thread.timepoint);
+            const nextComment = this.generateComment(thread.start);
             nextComment.parentComment = thread;
             thread.replies.push(nextComment);
         }
@@ -103,9 +103,9 @@ export default class CommentGenerator {
 
         let generatePrimitive: () => Comment;
         if (nestedLevels > 0) {
-            generatePrimitive = (): Comment => this.generateRandomThreadWithChildren(commentsToGenerate, nestedLevels - 1, thread.timepoint);
+            generatePrimitive = (): Comment => this.generateRandomThreadWithChildren(commentsToGenerate, nestedLevels - 1, thread.start);
         } else {
-            generatePrimitive = (): Comment => this.generateComment(thread.timepoint);
+            generatePrimitive = (): Comment => this.generateComment(thread.start);
         }
         for (let i = 0; i < commentsToGenerate; i++) {
             const nextComment = generatePrimitive();

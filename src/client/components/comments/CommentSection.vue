@@ -196,12 +196,12 @@ export default class CommentSection extends Vue {
     // ================================================================
 
     public get activeTimeslots(): Timeslot[] {
-        const visibleThreads = this.commentThreads.filter(thread => this.debouncedAudioWindow.containsTimepoint(thread.timepoint));
+        const visibleThreads = this.commentThreads.filter(thread => this.debouncedAudioWindow.containsTimepoint(thread.start));
         const timeslotDuration = this.debouncedAudioWindow.timeslotDuration;
         const firstTimeslotStart = this.debouncedAudioWindow.start.seconds;
 
         const mapSlotTimeToThreads = (time: number) => {
-            return visibleThreads.filter(thread => MathHelpers.isBetweenOpenEnded(thread.timepoint.seconds, time, time + timeslotDuration));
+            return visibleThreads.filter(thread => MathHelpers.isBetweenOpenEnded(thread.start.seconds, time, time + timeslotDuration));
         };
         const timeslots: Timeslot[] = [];
         for (let i = 0; i < this.debouncedAudioWindow.timeslotCount; i++) {
@@ -272,7 +272,7 @@ export default class CommentSection extends Vue {
         case SortingPredicate.Top:
         default:
             return rhs.totalVotes - lhs.totalVotes;
-            // return lhs.timepoint.seconds - rhs.timepoint.seconds; // this is chronological sorting
+            // return lhs.start.seconds - rhs.start.seconds; // this is chronological sorting
         }
     }
 }

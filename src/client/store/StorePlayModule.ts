@@ -85,7 +85,7 @@ class StorePlayViewModel {
         }
     }
 
-    public generateNewLocalComment(timepointSeconds: number, content: string): Comment {
+    public generateNewLocalComment(startSeconds: number, content: string): Comment {
         const comment = new Comment();
         comment.id = ~~(Math.random() * 99999); // Generate a random id to avoid conflicting keys in vue
         comment.userId = store.state.user.info.id;
@@ -94,7 +94,7 @@ class StorePlayViewModel {
         comment.content = content;
         comment.date_added = new Date();
         comment.date_modified = new Date();
-        comment.timepoint = new Timepoint(timepointSeconds);
+        comment.start = new Timepoint(startSeconds);
         comment.upVotes = 0;
         comment.downVotes = 0;
 
@@ -255,8 +255,8 @@ export default {
         },
 
         postComment: (context: ActionContext<StorePlayViewModel, StorePlayViewModel>, payload: { commentToReplyTo: Comment|undefined; content: string }): Promise<void> => {
-            const timepointSeconds = Math.round(payload.commentToReplyTo ? payload.commentToReplyTo.timepoint.seconds : context.state.audioPos.seconds);
-            const newLocalComment: Comment = context.state.generateNewLocalComment(timepointSeconds, payload.content);
+            const startSeconds = Math.round(payload.commentToReplyTo ? payload.commentToReplyTo.start.seconds : context.state.audioPos.seconds);
+            const newLocalComment: Comment = context.state.generateNewLocalComment(startSeconds, payload.content);
             context.commit("internalLocalPostNewComment", {
                 newLocalComment: newLocalComment,
                 commentToReplyTo: payload.commentToReplyTo
@@ -266,7 +266,7 @@ export default {
             const requestBody = {
                 commentToReplyToId: payload.commentToReplyTo?.id || null,
                 episodeId: context.state.activeEpisode.id,
-                timepointSeconds: timepointSeconds,
+                startSeconds: startSeconds,
                 content: payload.content
             };
 
