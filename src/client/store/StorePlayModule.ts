@@ -50,14 +50,21 @@ class StorePlayViewModel {
         this.audioWindow.start.seconds = newStart;
     }
     public moveAudioPos(newPos: number): void {
-        // TODO: perhaps not assert but handle it gracefully?
-        console.assert(newPos <= this.audioFile.duration);
+        if (newPos > this.audioFile.duration) {
+            console.warn("position out of bounds for the episode!");
+            newPos = this.audioWindow.start.seconds;
+        }
         this.audioPos.seconds = newPos;
     }
     public setAudioWindow(start: number, end: number): void {
-        console.assert(start <= this.audioFile.duration);
-        console.assert(end <= this.audioFile.duration);
-        console.assert(start < end);
+        if (end > this.audioFile.duration) {
+            console.warn("end out of bounds for the episode!");
+            end = this.audioFile.duration;
+        }
+        if (start > end) {
+            console.warn("start is ahead of end for the episode!");
+            start = end - 10;
+        }
         this.audioWindow.start.seconds = start;
         this.audioWindow.duration = end - start;
     }
@@ -222,8 +229,8 @@ export default {
         },
         seekTo: (state: StorePlayViewModel, secondToSeekTo: number): void => {
             state.moveAudioPos(secondToSeekTo);
-            if (!state.audioWindow.containsTimepoint(secondToSeekTo)) {
-                const timeslotStart: number = state.audioWindow.findTimeslotStartForTime(secondToSeekTo);
+            if (!state.audioWindow.containsTimepoint(state.audioPos.seconds)) {
+                const timeslotStart: number = state.audioWindow.findTimeslotStartForTime(state.audioPos.seconds);
                 state.moveAudioWindow(timeslotStart);
             }
         },
