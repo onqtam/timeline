@@ -37,7 +37,7 @@ export default class ChannelController {
         }, {
             path: "/episodes/youtube/:youtubeId",
             verb: HTTPVerb.Get,
-            requiresAuthentication: false,
+            requiresAuthentication: true,
             callback: ChannelController.getYouTubeEpisode
         }];
     }
