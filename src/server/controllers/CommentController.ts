@@ -109,8 +109,8 @@ export default class CommentController {
             .execute())[0];
 
         if (!episode) {
-            console.assert(false); // will soon go over all asserts & error handling on the API side and do it properly
-            response.status(404).end();
+            // TODO: why not simply throw some string and let the catch-all handler just return a 500 status code? ......
+            response.status(404).send("episode not found").end();
             return;
         }
 

@@ -11,6 +11,7 @@ import UserSettings from "@/logic/entities/UserSettings";
 import EncodingUtils from "@/logic/EncodingUtils";
 import Timepoint from "@/logic/entities/Timepoint";
 import { UserPlaybackActivity } from "@/logic/UserActivities";
+import axios, { AxiosResponse } from "axios";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -138,13 +139,23 @@ export default {
             // TODO: Don't fetch the current user if there's no cookie
             console.log("Fetching user data");
             const restURL: string = `${CommonParams.APIServerRootURL}/user/`;
-            const query_loadUser = (AsyncLoader.makeRestRequest(restURL, HTTPVerb.Get, null, User) as Promise<User>)
-                .then(user => {
-                    context.commit("internalSetActiveUser", user);
-                })
-                .catch(reason => {
-                    console.error("Failed to load user: ", reason);
-                });
+
+            const query_loadUser = axios.get(restURL, { withCredentials: true })
+            .then(async (result: AxiosResponse<User>) => {
+                EncodingUtils.reviveObjectAs(result.data, User);
+                context.commit("internalSetActiveUser", result.data);
+            }).catch(reason => {
+                console.error("Failed to load user: ", reason);
+            });
+
+            // const query_loadUser = (AsyncLoader.makeRestRequest(restURL, HTTPVerb.Get, null, User) as Promise<User>)
+            //     .then(user => {
+            //         context.commit("internalSetActiveUser", user);
+            //     })
+            //     .catch(reason => {
+            //         console.error("Failed to load user: ", reason);
+            //     });
+
             const query_loadUserPlayback = context.state.loadPlaybackProgress()
                 .then(episodeProgress => {
                     context.commit("internalSetPlaybackProgress", episodeProgress);
@@ -157,7 +168,11 @@ export default {
         loadUserComments: (context: ActionContext<StoreUserViewModel, StoreUserViewModel>, payload: { userId: number}): Promise<Comment[]> => {
             console.log("Loading user comments from the server");
             const restURL: string = `${CommonParams.APIServerRootURL}/comments/user/${payload.userId}`;
-            return AsyncLoader.makeRestRequest(restURL, HTTPVerb.Get, null, Comment) as Promise<Comment[]>;
+            return axios.get(restURL).then(async (result: AxiosResponse<Comment[]>) => {
+                EncodingUtils.reviveObjectAs(result.data, Comment);
+                return result.data as Comment[];
+            });
+            // return AsyncLoader.makeRestRequest(restURL, HTTPVerb.Get, null, Comment) as Promise<Comment[]>;
         },
         login: (_context: ActionContext<StoreUserViewModel, StoreUserViewModel>): Promise<void> => {
             console.log("Sending login request");

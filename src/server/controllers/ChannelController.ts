@@ -73,8 +73,7 @@ export default class ChannelController {
             .execute())[0];
 
         if (!episode) {
-            console.assert(false);
-            response.status(404).end();
+            response.status(404).send("video ID not found").end();
             return;
         }
 
@@ -103,10 +102,8 @@ export default class ChannelController {
         const restURL = "https://www.googleapis.com/youtube/v3/channels?part=snippet&id=" + YTChannelId + "&key=" + YOUTUBE_DATA_API_KEY;
 
         return axios.get(restURL).then(async (result: AxiosResponse) => {
-            // there should be only 1 result
-            // TODO: handle errors from the youtube API
-
-            console.assert(result.data.items.length === 1);
+            if (result.data.items.length !== 1)
+                throw new Error("something went wrong - did not receive exactly 1 item from YouTube");
             const snippet = result.data.items[0].snippet;
 
             const channel = new Channel();
@@ -134,13 +131,16 @@ export default class ChannelController {
         console.log("\n== getYouTubeEpisode - Received params: ", JSON.stringify(params));
 
         // youtube IDs have a length of 11: https://stackoverflow.com/a/6250619/3162383
-        console.assert(params.youtubeId.length === 11);
+        if (params.youtubeId.length !== 11) {
+            response.status(400).send("invalid YouTube video ID").end();
+            return;
+        }
 
         // check if the youtube video ID is already present in our system
         let episode: Episode|undefined = (await QB()
             .select()
             .from(Episode, "episode")
-            .where(`episode."external_id" = :youtubeId`, params)
+            .where(`episode.external_id = :youtubeId`, params)
             .andWhere(`episode."external_source" = :source`, { source: CommonParams.EXTERNAL_SOURCE_YOUTUBE })
             .execute())[0];
         if (episode) {
@@ -148,29 +148,24 @@ export default class ChannelController {
             return;
         }
 
-        // const handleError = (error: AxiosError) => {
-        //     if (error.response) {
-        //         console.log(error.response.data);
-        //         console.log(error.response.status);
-        //         console.log(error.response.headers);
-        //     } else {
-        //         console.log(error.message);
-        //     }
-        //     response.end();
-        // };
-
         // we don't have that episode in our system - time to fetch info from YouTube
         const restURL = "https://www.googleapis.com/youtube/v3/videos?part=snippet,status,contentDetails&id=" + params.youtubeId + "&key=" + YOUTUBE_DATA_API_KEY;
 
         episode = await axios.get(restURL).then(async (result: AxiosResponse) => {
-            // there should be only 1 result
-            // TODO: handle errors from the youtube API
-            console.assert(result.data.items.length === 1);
+            if (result.data.items.length !== 1)
+                throw new Error("video does not exist!");
 
             const snippet = result.data.items[0].snippet;
             const duration = result.data.items[0].contentDetails.duration;
-            const embeddable = result.data.items[0].status.embeddable;
-            console.assert(embeddable);
+
+            if (!result.data.items[0].status.embeddable) {
+                throw new Error("video not embeddable!");
+            }
+            // status.privacyStatus: "private"/"public"/"unlisted"
+            // https://www.googleapis.com/youtube/v3/videos?part=snippet,status,contentDetails&id=YJWPowbCK_I&key=AIzaSyDi1AK9ELda6EtNFYqFhDxzZFZH2mmzlRw
+            if (result.data.items[0].status.privacyStatus === "private") {
+                throw new Error("video is private!");
+            }
 
             const episode = new Episode();
             episode.external_id = result.data.items[0].id;
@@ -188,7 +183,17 @@ export default class ChannelController {
                 .values(episode)
                 .returning("*")
                 .execute() as InsertResult).raw[0] as Episode;
-        });// .catch(handleError);
+        }).catch((error: Error) => {
+            // TODO: why not simply throw some string and let the catch-all handler just return a 500 status code? ......
+            console.error(error);
+            response.status(400).send(error.message).end();
+            response.end();
+            return undefined;
+        });
+
+        if (!episode) {
+            return;
+        }
 
         response.end(EncodingUtils.jsonify(episode as Episode));
     }

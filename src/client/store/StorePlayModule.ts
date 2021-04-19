@@ -11,6 +11,7 @@ import CommonParams from "@/logic/CommonParams";
 import { HTTPVerb } from "@/logic/HTTPVerb";
 import { SettingPair } from "./StoreUserModule";
 import User from "@/logic/entities/User";
+import axios, { AxiosResponse, AxiosError } from "axios";
 
 type FullCommentData = {
     allComments: Comment[];
@@ -109,18 +110,16 @@ class StorePlayViewModel {
         const loadHistogramURL: string = `${CommonParams.APIServerRootURL}/comments/histogram/${episode.id}`;
         const query_histogram = AsyncLoader.makeRestRequest(loadHistogramURL, HTTPVerb.Get, null) as Promise<number[]>;
 
-        let votesByUser: VoteCommentRecord[] = [];
+        let query_votes: Promise<VoteCommentRecord[]> = Promise.resolve([]);
         if (!store.state.user.info.isGuest) {
             const loadVotesURL: string = `${CommonParams.APIServerRootURL}/comments/votes/${episode.id}`;
-            const query_votes = AsyncLoader.makeRestRequest(loadVotesURL, HTTPVerb.Get, null) as Promise<VoteCommentRecord[]>;
-            // TODO: ideally we would await all 3 at the same time
-            votesByUser = await query_votes;
+            query_votes = AsyncLoader.makeRestRequest(loadVotesURL, HTTPVerb.Get, null) as Promise<VoteCommentRecord[]>;
         }
 
         return {
             allComments: await query_comments,
             commentDensityHistogram: await query_histogram,
-            votesByUser: votesByUser
+            votesByUser: await query_votes
         };
     }
 }
@@ -247,7 +246,6 @@ export default {
     actions: {
         loadEpisode: (context: ActionContext<StorePlayViewModel, StorePlayViewModel>, episode: Episode): Promise<void> => {
             context.commit("internalSetActiveEpisode", episode);
-
             return context.state.loadCommentData(episode)
                 .then((commentData: FullCommentData) => {
                     context.commit("internalSetActiveEpisodeComments", commentData);
@@ -270,12 +268,19 @@ export default {
                 content: payload.content
             };
 
-            return (AsyncLoader.makeRestRequest(URL, HTTPVerb.Post, requestBody) as Promise<{ commentId: number }>).then(commentResult => {
+            return axios.post(URL, requestBody, { withCredentials: true })
+            .then((result: AxiosResponse<{commentId: number}>) => {
                 context.commit("internalLocalUpdateCommentIdFromServer", {
                     comment: newLocalComment,
-                    serverId: commentResult.commentId
+                    serverId: result.data.commentId
                 });
-            }) as unknown as Promise<void>;
+            });
+            // return (AsyncLoader.makeRestRequest(URL, HTTPVerb.Post, requestBody) as Promise<{ commentId: number }>).then(commentResult => {
+            //     context.commit("internalLocalUpdateCommentIdFromServer", {
+            //         comment: newLocalComment,
+            //         serverId: commentResult.commentId
+            //     });
+            // }) as unknown as Promise<void>;
         },
 
         editComment: (context: ActionContext<StorePlayViewModel, StorePlayViewModel>, payload: { comment: Comment; content: string }): Promise<void> => {

@@ -3,6 +3,8 @@ import AsyncLoader from "@/client/utils/AsyncLoader";
 import CommonParams from "@/logic/CommonParams";
 import { HTTPVerb } from "@/logic/HTTPVerb";
 import { ActionContext } from "vuex";
+import EncodingUtils from "@/logic/EncodingUtils";
+import axios, { AxiosResponse, AxiosError } from "axios";
 
 export class StoreChannelViewModel {
     public allChannels!: Channel[];
@@ -74,9 +76,16 @@ export default {
             // }
             return context.state.loadEpisodeData(payload.episodeId);
         },
-        getYouTubeEpisode: async (context: ActionContext<StoreChannelViewModel, StoreChannelViewModel>, payload: { url: string }): Promise<Episode|undefined> => {
+        getYouTubeEpisode: async (context: ActionContext<StoreChannelViewModel, StoreChannelViewModel>, payload: { url: string }): Promise<Episode|string> => {
             const restURL: string = `${CommonParams.APIServerRootURL}/episodes/youtube/${payload.url}`;
-            return AsyncLoader.makeRestRequest(restURL, HTTPVerb.Get, null, Episode) as Promise<Episode|undefined>;
+            return axios.get(restURL, { withCredentials: true })
+            .then((result: AxiosResponse<Episode>) => {
+                EncodingUtils.reviveObjectAs(result.data, Episode);
+                return result.data;
+            }).catch((reason: AxiosError<string>) => {
+                throw reason.response!.data;
+            });
+            // return AsyncLoader.makeRestRequest(restURL, HTTPVerb.Get, null, Episode) as Promise<Episode|undefined>;
         }
     }
 };

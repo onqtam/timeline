@@ -72,8 +72,10 @@ export default class Server {
         }
         // Catch-all, error reporter
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        this.app.use((err: any, _req: any, _res: any, _next: Function) => {
-            console.log(err);
+        this.app.use((err: any, _req: any, res: any, _next: Function) => {
+            console.log("this.app.use error caught")
+            console.error(err);
+            res.status(500).send(err.message);
         });
 
         // Initialization is done, start playing
