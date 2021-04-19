@@ -185,7 +185,6 @@ export default class ChannelController {
             // TODO: why not simply throw some string and let the catch-all handler just return a 500 status code? ......
             console.error(error);
             response.status(400).send(error.message).end();
-            response.end();
             return undefined;
         });
 

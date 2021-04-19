@@ -11,6 +11,16 @@
         v-ripple
         @contextmenu="showContextMenu"
     >
+        <div style="
+            position: absolute;
+            width: 100%;
+            text-align: center;
+            font-size: 3em;
+            color: rgba(255, 255, 255, 0.3);
+        ">
+            {{histrogramText}}
+        </div>
+
         <!-- Highlights the part of the audio that should be zoomed -->
         <div class="zoom-window" :style=computeWindowStyle
             :class="shouldAnimate ? 'animated-transition' : ''"
@@ -114,6 +124,10 @@ export default class Timeline extends Vue {
             return "left: " + this.normalize(this.audioWindow.start.seconds) + "%; width: " +
             this.normalize(this.audioWindow.duration) + "%;";
         }
+    }
+
+    get histrogramText() {
+        return store.state.play.numberOfCommentsTotal ? "comment density histogram" : "0 comments - no histogram";
     }
 
     // ================================================================
@@ -333,7 +347,7 @@ export default class Timeline extends Vue {
     @border: 0.1em double white;
     border-left: @border;
     border-right: @border;
-    cursor: ew-resize;
+    // cursor: ew-resize;
     box-sizing: content-box;
 }
 

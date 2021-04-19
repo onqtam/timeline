@@ -136,10 +136,14 @@ export default {
         loadUser: (context: ActionContext<StoreUserViewModel, StoreUserViewModel>): Promise<void> => {
             context.commit("internalLoadLocalData");
             context.commit("internalSetActiveUser", User.guestUser);
-            // TODO: Don't fetch the current user if there's no cookie
+
+            // Don't fetch the current user if there's no cookie
+            if (context.state.info.isGuest) {
+                return Promise.resolve();
+            }
+
             console.log("Fetching user data");
             const restURL: string = `${CommonParams.APIServerRootURL}/user/`;
-
             const query_loadUser = axios.get(restURL, { withCredentials: true })
                 .then(async (result: AxiosResponse<User>) => {
                     EncodingUtils.reviveObjectAs(result.data, User);

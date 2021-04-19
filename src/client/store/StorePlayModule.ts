@@ -43,6 +43,12 @@ class StorePlayViewModel {
         this.downvotes = new Set<number>();
     }
 
+    // we should use a dedicated getter because in the future we might not have
+    // all comments loaded by default as is currently being done with allThreads
+    public get numberOfCommentsTotal(): number {
+        return this.allThreads.length;
+    }
+
     public setAudioWindowSlots(newSlotCount: number): void {
         this.audioWindow.timeslotCount = newSlotCount;
     }

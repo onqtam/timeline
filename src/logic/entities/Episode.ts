@@ -90,7 +90,15 @@ export class Agenda implements IReviveFromJSON {
                         txt = txt.substr(0, txt.length - 1);
                     }
                 }
-                items.push(new AgendaItem(txt, Timepoint.tryParseFromFormattedText(timestamp[0]) as Timepoint));
+                const timepoint = Timepoint.tryParseFromFormattedText(timestamp[0]) as Timepoint;
+                // this conditional is here to protect against one bad case of timestamps
+                // encountered in the wild: having 2 timestamps on the same line
+                // https://www.youtube.com/watch?v=IikdmjgBuUQ
+                // eslint-disable-next-line no-irregular-whitespace
+                // "Dense - 11:15​  38:35"
+                if (items.length === 0 || items[items.length - 1].timestamp.seconds < timepoint.seconds) {
+                    items.push(new AgendaItem(txt, timepoint));
+                }
             }
         }
 
