@@ -30,6 +30,7 @@
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 import { parseYouTubeVideoIdFromUrl } from "@/logic/MiscHelpers";
+import { Episode } from "@/logic/entities/Channel";
 import store from "@/client/store";
 
 @Component({
@@ -47,9 +48,9 @@ export default class HomeView extends Vue {
             if (parseResult) {
                 this.parseAlert = false;
                 store.dispatch.channel.getYouTubeEpisode({ url: parseResult })
-                    .then(episode => {
-                        this.$router.push("/play/" + (episode as any).id);
-                    }).catch(error => {
+                    .then((episode: Episode) => {
+                        this.$router.push("/play/" + episode.id);
+                    }).catch((error: string) => {
                         this.alertText = error;
                         this.parseAlert = true;
                     });

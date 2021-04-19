@@ -76,7 +76,7 @@ export default {
             // }
             return context.state.loadEpisodeData(payload.episodeId);
         },
-        getYouTubeEpisode: async (context: ActionContext<StoreChannelViewModel, StoreChannelViewModel>, payload: { url: string }): Promise<Episode|string> => {
+        getYouTubeEpisode: async (context: ActionContext<StoreChannelViewModel, StoreChannelViewModel>, payload: { url: string }): Promise<Episode> => {
             const restURL: string = `${CommonParams.APIServerRootURL}/episodes/youtube/${payload.url}`;
             return axios.get(restURL, { withCredentials: true })
                 .then((result: AxiosResponse<Episode>) => {
