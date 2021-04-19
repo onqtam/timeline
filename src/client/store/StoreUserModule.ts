@@ -141,12 +141,12 @@ export default {
             const restURL: string = `${CommonParams.APIServerRootURL}/user/`;
 
             const query_loadUser = axios.get(restURL, { withCredentials: true })
-            .then(async (result: AxiosResponse<User>) => {
-                EncodingUtils.reviveObjectAs(result.data, User);
-                context.commit("internalSetActiveUser", result.data);
-            }).catch(reason => {
-                console.error("Failed to load user: ", reason);
-            });
+                .then(async (result: AxiosResponse<User>) => {
+                    EncodingUtils.reviveObjectAs(result.data, User);
+                    context.commit("internalSetActiveUser", result.data);
+                }).catch(reason => {
+                    console.error("Failed to load user: ", reason);
+                });
 
             // const query_loadUser = (AsyncLoader.makeRestRequest(restURL, HTTPVerb.Get, null, User) as Promise<User>)
             //     .then(user => {

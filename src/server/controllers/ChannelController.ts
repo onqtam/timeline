@@ -102,8 +102,7 @@ export default class ChannelController {
         const restURL = "https://www.googleapis.com/youtube/v3/channels?part=snippet&id=" + YTChannelId + "&key=" + YOUTUBE_DATA_API_KEY;
 
         return axios.get(restURL).then(async (result: AxiosResponse) => {
-            if (result.data.items.length !== 1)
-                throw new Error("something went wrong - did not receive exactly 1 item from YouTube");
+            if (result.data.items.length !== 1) { throw new Error("something went wrong - did not receive exactly 1 item from YouTube"); }
             const snippet = result.data.items[0].snippet;
 
             const channel = new Channel();
@@ -152,8 +151,7 @@ export default class ChannelController {
         const restURL = "https://www.googleapis.com/youtube/v3/videos?part=snippet,status,contentDetails&id=" + params.youtubeId + "&key=" + YOUTUBE_DATA_API_KEY;
 
         episode = await axios.get(restURL).then(async (result: AxiosResponse) => {
-            if (result.data.items.length !== 1)
-                throw new Error("video does not exist!");
+            if (result.data.items.length !== 1) { throw new Error("video does not exist!"); }
 
             const snippet = result.data.items[0].snippet;
             const duration = result.data.items[0].contentDetails.duration;

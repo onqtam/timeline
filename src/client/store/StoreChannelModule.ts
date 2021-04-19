@@ -79,12 +79,12 @@ export default {
         getYouTubeEpisode: async (context: ActionContext<StoreChannelViewModel, StoreChannelViewModel>, payload: { url: string }): Promise<Episode|string> => {
             const restURL: string = `${CommonParams.APIServerRootURL}/episodes/youtube/${payload.url}`;
             return axios.get(restURL, { withCredentials: true })
-            .then((result: AxiosResponse<Episode>) => {
-                EncodingUtils.reviveObjectAs(result.data, Episode);
-                return result.data;
-            }).catch((reason: AxiosError<string>) => {
-                throw reason.response!.data;
-            });
+                .then((result: AxiosResponse<Episode>) => {
+                    EncodingUtils.reviveObjectAs(result.data, Episode);
+                    return result.data;
+                }).catch((reason: AxiosError<string>) => {
+                    throw reason.response!.data;
+                });
             // return AsyncLoader.makeRestRequest(restURL, HTTPVerb.Get, null, Episode) as Promise<Episode|undefined>;
         }
     }

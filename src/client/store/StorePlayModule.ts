@@ -11,7 +11,7 @@ import CommonParams from "@/logic/CommonParams";
 import { HTTPVerb } from "@/logic/HTTPVerb";
 import { SettingPair } from "./StoreUserModule";
 import User from "@/logic/entities/User";
-import axios, { AxiosResponse, AxiosError } from "axios";
+import axios, { AxiosResponse } from "axios";
 
 type FullCommentData = {
     allComments: Comment[];
@@ -269,12 +269,12 @@ export default {
             };
 
             return axios.post(URL, requestBody, { withCredentials: true })
-            .then((result: AxiosResponse<{commentId: number}>) => {
-                context.commit("internalLocalUpdateCommentIdFromServer", {
-                    comment: newLocalComment,
-                    serverId: result.data.commentId
+                .then((result: AxiosResponse<{commentId: number}>) => {
+                    context.commit("internalLocalUpdateCommentIdFromServer", {
+                        comment: newLocalComment,
+                        serverId: result.data.commentId
+                    });
                 });
-            });
             // return (AsyncLoader.makeRestRequest(URL, HTTPVerb.Post, requestBody) as Promise<{ commentId: number }>).then(commentResult => {
             //     context.commit("internalLocalUpdateCommentIdFromServer", {
             //         comment: newLocalComment,
