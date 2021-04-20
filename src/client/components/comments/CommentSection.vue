@@ -27,23 +27,17 @@
                 </v-btn>
             </v-btn-toggle>
         </div>
-        <div class="flex-container">
-            <div class="timeslot"
-                v-for="(slot, index) in activeTimeslots" :key="slot.timepoint.seconds"
-                :class=getTimeslotAnimationClass(slot)
-            >
-                <template v-if="slot.threads.length !== 0">
-                    <CommentThreadComponent
-                        v-for="thread in slot.threads" :key="thread.id"
-                        :thread=thread
-                        :timeslotIndex=index
-                        :class="{ 'focused-thread': focusedThreadId === thread.id }"
-                    />
-                </template>
-                <template v-else>
-                    <p>Be the first to contribute in this range!</p>
-                </template>
-            </div>
+        <div class="commentThreads">
+            <template v-if="visibleThreads.length !== 0">
+                <CommentThreadComponent
+                    v-for="thread in visibleThreads" :key="thread.id"
+                    :thread=thread
+                    :class="{ 'focused-thread': focusedThreadId === thread.id }"
+                />
+            </template>
+            <template v-else>
+                <p>Be the first to contribute in this range!</p>
+            </template>
         </div>
 
         <!-- this is the dialog for deleting comments - here because it should be shared with all comments -->
@@ -82,14 +76,8 @@ import { debounce } from "lodash";
 
 import { AudioWindow } from "@/logic/AudioFile";
 import Timepoint from "@/logic/entities/Timepoint";
-import MathHelpers from "@/logic/MathHelpers";
 
 import CommentThreadComponent from "./CommentThread.vue";
-
-class Timeslot {
-    public timepoint!: Timepoint;
-    public threads!: Comment[];
-}
 
 enum SortingPredicate {
     Top,
@@ -139,7 +127,7 @@ export default class CommentSection extends Vue {
         // TODO: fix this code-smell - there should be a better way!
         // this needs to be a deep full copy because otherwise the reactivity of Vue would kick in and updates to the start
         // of the window will trigger updaring of the comment section and that would defeat the purpose of the debouncing
-        return new AudioWindow(aw.audioFile, new Timepoint(aw.start.seconds), aw.duration, aw.timeslotCount);
+        return new AudioWindow(aw.audioFile, new Timepoint(aw.start.seconds), aw.duration);
     }
 
     debouncedAudioWindow = CommentSection.deepCopyAudioWindow(this.audioWindow);
@@ -195,23 +183,10 @@ export default class CommentSection extends Vue {
     // == comment display
     // ================================================================
 
-    public get activeTimeslots(): Timeslot[] {
+    public get visibleThreads(): Comment[] {
         const visibleThreads = this.commentThreads.filter(thread => this.debouncedAudioWindow.containsTimepoint(thread.start));
-        const timeslotDuration = this.debouncedAudioWindow.timeslotDuration;
-        const firstTimeslotStart = this.debouncedAudioWindow.start.seconds;
-
-        const mapSlotTimeToThreads = (time: number) => {
-            return visibleThreads.filter(thread => MathHelpers.isBetweenOpenEnded(thread.start.seconds, time, time + timeslotDuration));
-        };
-        const timeslots: Timeslot[] = [];
-        for (let i = 0; i < this.debouncedAudioWindow.timeslotCount; i++) {
-            const newTimeslot: Timeslot = new Timeslot();
-            newTimeslot.timepoint = new Timepoint(firstTimeslotStart + i * timeslotDuration);
-            newTimeslot.threads = mapSlotTimeToThreads(newTimeslot.timepoint.seconds);
-            timeslots.push(newTimeslot);
-            newTimeslot.threads.sort(this.compareCommentThreads.bind(this));
-        }
-        return timeslots;
+        visibleThreads.sort(this.compareCommentThreads.bind(this));
+        return visibleThreads;
     }
 
     public focusedThreadId: number = -1;
@@ -219,37 +194,18 @@ export default class CommentSection extends Vue {
     private SortingPredicate = SortingPredicate;
     private sortingPredicate: SortingPredicate = SortingPredicate.New;
 
-    public mounted(): void {
-        // Update the number of timeslots CSS var every time we are mounted to make sure it never goes out of sync
-        const root: HTMLElement = document.documentElement;
-        root.style.setProperty("--number-of-timeslots", store.state.play.audioWindow.timeslotCount.toString());
-    }
-
     public focusThread(threadId: number): void {
         const thread: Comment|undefined = this.commentThreads.find(thread => thread.id === threadId);
         // TODO: Report error in a meaningful way
-        // Assert the thread exists and is in an active timeslot
+        // Assert the thread exists and is visible
         console.assert(thread !== undefined);
-        const isInActiveSlot: boolean = this.activeTimeslots.find(slot => slot.threads.indexOf(thread!) !== -1) !== undefined;
+        const isVisible: boolean = this.visibleThreads.indexOf(thread!) !== -1;
 
         const threadElement: HTMLElement|null = document.getElementById(threadId.toString());
-        if (threadElement && isInActiveSlot) {
+        if (threadElement && isVisible) {
             this.focusedThreadId = threadId;
             threadElement.scrollIntoView();
         }
-    }
-
-    private getTimeslotAnimationClass(timeslot: Timeslot): Record<string, boolean> {
-        const now: number = this.audioPos.seconds;
-        const slotStart: number = timeslot.timepoint.seconds;
-        const slotEnd: number = slotStart + this.debouncedAudioWindow.timeslotDuration;
-        const percentage: number = MathHelpers.percentageOfRange(now, slotStart, slotEnd);
-        const rampTime: number = 0.1;
-        return {
-            "timeslot-active-ramp-up": MathHelpers.isBetween(percentage, -rampTime/2, rampTime),
-            "timeslot-active-steady": MathHelpers.isBetween(percentage, rampTime, 1-rampTime),
-            "timeslot-active-ramp-down": MathHelpers.isBetween(percentage, 1-rampTime, 1+rampTime/2)
-        };
     }
 
     private setSortingPredicate(predicate: SortingPredicate): void {
@@ -309,11 +265,7 @@ input, button {
 .comment-management-panel {
     border-left: @top-row-shared-border;
 }
-:root {
-  --number-of-timeslots: 5;
-}
-.timeslot {
-    width: calc(100% / var(--number-of-timeslots) - 1.5%); // distribute evenly but leave some negative space (1.5%) for margins
+.commentThreads {
     max-height: 100%;
     overflow-y: auto;
     padding-right: 0.25em;
@@ -337,13 +289,13 @@ input, button {
     outline: 0.5em double transparent;
     transition: outline-color 1s linear;
 
-    &.timeslot-active-ramp-up {
+    &.commentThreads-active-ramp-up {
         outline-color: fade(@theme-focus-color-4, 40%);
     }
-    &.timeslot-active-steady {
+    &.commentThreads-active-steady {
         outline-color: @theme-focus-color-4;
     }
-    &.timeslot-active-ramp-down {
+    &.commentThreads-active-ramp-down {
         outline-color: fade(@theme-focus-color-4, 40%);
     }
 }

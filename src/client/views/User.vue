@@ -10,8 +10,8 @@
             <label>{{ user.email}}</label>
         </div>
         <div class="slider-controls">
-            <label>Number Of Timeslots</label>
-            <v-slider class="timeslot-count-slider" min=1 max=5 step=1 thumb-label="always" v-model=audioWindowTimeslotCount></v-slider>
+            <!-- <label>Number Of Timeslots</label>
+            <v-slider class="timeslot-count-slider" min=1 max=5 step=1 thumb-label="always" v-model=audioWindowTimeslotCount></v-slider> -->
         </div>
         <router-link v-for="(comment, index) in comments" :key=index
             :to="`/play/${comment.episodeId}?t=${comment.start.formatAsUrlParam()}&thread=${comment.id}`">
@@ -30,7 +30,6 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 import store from "../store";
 import User from "../../logic/entities/User";
 import Comment from "@/logic/entities/Comments";
-import UserSettings, { ValueLimits } from "../../logic/entities/UserSettings";
 import { NavigationGuardNext, Route } from "vue-router";
 import CommentComponent from "../components/comments/Comment.vue";
 
@@ -50,16 +49,10 @@ export default class UserView extends Vue {
     public get user(): User {
         return store.state.user.info;
     }
-    public get audioWindowTimeslotCount(): number {
-        return store.state.user.info.settings.audioWindowTimeslotCount;
-    }
-    public set audioWindowTimeslotCount(value: number) {
-        const payload = { key: "audioWindowTimeslotCount", value };
-        store.commit.user.localSetSettingValue(payload);
-    }
-    public get timeslotCountLimits(): ValueLimits {
-        return UserSettings.TIMESLOT_LIMITS;
-    }
+    // public set audioWindowTimeslotCount(value: number) {
+    //     const payload = { key: "audioWindowTimeslotCount", value };
+    //     store.commit.user.localSetSettingValue(payload);
+    // }
 
     comments: Comment[] = [];
 

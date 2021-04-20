@@ -45,7 +45,6 @@
 import { Component, Prop, Vue } from "vue-property-decorator";
 import store from "@/client/store";
 import Comment from "@/logic/entities/Comments";
-import { AudioWindow } from "@/logic/AudioFile";
 import MathHelpers from "@/logic/MathHelpers";
 
 import CommentComponent from "./Comment.vue";
@@ -61,9 +60,6 @@ export default class CommentThreadComponent extends Vue {
     // Props
     @Prop({ type: Comment })
     public thread!: Comment;
-    // The index of the timeslot this thread is rendered into
-    @Prop({ type: Number })
-    public timeslotIndex!: number;
 
     // Should equal the value of isExpanded on the component for the head at all times
     private isExpanded: boolean = true;
@@ -81,11 +77,9 @@ export default class CommentThreadComponent extends Vue {
         return this.timepointOffset <= 0.5;
     }
 
-    // Returns the offset of the timepoint in the current timeslot
+    // Returns the offset of the timepoint in the current window
     private get timepointOffset(): number {
-        const audioWindow: AudioWindow = store.state.play.audioWindow;
-        const timeslotStart: number = audioWindow.start.seconds + this.timeslotIndex * audioWindow.timeslotDuration;
-        const percentage = (this.thread.start.seconds - timeslotStart) / audioWindow.timeslotDuration;
+        const percentage = this.thread.start.seconds / store.state.play.audioWindow.duration;
         // TODO: This is to prevent the position to go beyond the border of the thread
         // The proper computation should be 1 - width of timepoint element
         return MathHelpers.clamp(percentage, 0, 0.75);

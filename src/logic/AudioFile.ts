@@ -11,24 +11,15 @@ export class AudioWindow {
     public audioFile!: AudioFile;
     public start!: Timepoint;
     public duration!: number;
-    public timeslotCount!: number;
 
     get end(): Timepoint {
         return new Timepoint(this.start.seconds + this.duration);
     }
 
-    public get timeslotDuration(): number {
-        return ~~(this.duration / this.timeslotCount);
-    }
-    public set timeslotDuration(value: number) {
-        this.timeslotCount = ~~(this.duration / value);
-    }
-
-    constructor(audioFile: AudioFile, start?: Timepoint, duration?: number, timeslotCount?: number) {
+    constructor(audioFile: AudioFile, start?: Timepoint, duration?: number) {
         this.audioFile = audioFile;
         this.start = start!;
         this.duration = duration!;
-        this.timeslotCount = timeslotCount!;
     }
 
     public containsTimepoint(time: Timepoint|number): boolean {
@@ -38,7 +29,7 @@ export class AudioWindow {
         return seconds >= rangeStart && seconds <= rangeEnd;
     }
 
-    public findTimeslotStartForTime(time: Timepoint|number): number {
+    public findWindowStartForTime(time: Timepoint|number): number {
         const seconds: number = time instanceof Timepoint ? time.seconds : time;
         // we want to position the window so that the cursor is always at 10%, except in the corner cases
         return MathHelpers.clamp(seconds - this.duration * 0.1, 0, this.audioFile.duration - this.duration);

@@ -1,7 +1,7 @@
 import User from "../../logic/entities/User";
 import Comment from "../../logic/entities/Comments";
 import { RandomIntegerDistribution, RandomString } from "../../logic/RandomHelpers";
-import MathHelpers from "../../logic/MathHelpers";
+// import MathHelpers from "../../logic/MathHelpers";
 import Timepoint from "../../logic/entities/Timepoint";
 import { Episode } from "../../logic/entities/Episode";
 // import VoteCommentRecord from "../../logic/entities/VoteCommentRecord";
@@ -19,25 +19,25 @@ export default class CommentGenerator {
     public generateRandomComments(): Comment[] {
         const topLevelThreads: Comment[] = [];
 
-        const commentsPerThread = new RandomIntegerDistribution([0, 1, 2, 3, 4, 5], [0.35, 0.2, 0.15, 0.05, 0.1, 0.15]);
-        const threadsPerTimeslot = new RandomIntegerDistribution([0, 1, 2, 3, 4, 5], [0.4, 0.15, 0.1, 0.1, 0.1, 0.15]);
-        const chanceForNested = 0.15;
-        const timeslotDuration = 12;
-        const minutesToGeneratesCommentsIn = 10; // only in the first X minutes
-        for (let t = 0; t < minutesToGeneratesCommentsIn * 60; t += timeslotDuration) {
-            const threadsInSlot = threadsPerTimeslot.sample();
-            for (let i = 0; i < threadsInSlot; i++) {
-                let newThread: Comment;
-                const commentsForCurrentThread = commentsPerThread.sample();
-                const timepoint: Timepoint = new Timepoint(MathHelpers.randInRange(t, t + timeslotDuration));
-                if (Math.random() <= chanceForNested) {
-                    newThread = this.generateRandomThreadWithChildren(commentsForCurrentThread, this.maxNestedComments, timepoint);
-                } else {
-                    newThread = this.generateRandomThread(commentsForCurrentThread, timepoint);
-                }
-                topLevelThreads.push(newThread);
-            }
-        }
+        // const commentsPerThread = new RandomIntegerDistribution([0, 1, 2, 3, 4, 5], [0.35, 0.2, 0.15, 0.05, 0.1, 0.15]);
+        // const threadsPerTimeslot = new RandomIntegerDistribution([0, 1, 2, 3, 4, 5], [0.4, 0.15, 0.1, 0.1, 0.1, 0.15]);
+        // const chanceForNested = 0.15;
+        // const timeslotDuration = 12;
+        // const minutesToGeneratesCommentsIn = 10; // only in the first X minutes
+        // for (let t = 0; t < minutesToGeneratesCommentsIn * 60; t += timeslotDuration) {
+        //     const threadsInSlot = threadsPerTimeslot.sample();
+        //     for (let i = 0; i < threadsInSlot; i++) {
+        //         let newThread: Comment;
+        //         const commentsForCurrentThread = commentsPerThread.sample();
+        //         const timepoint: Timepoint = new Timepoint(MathHelpers.randInRange(t, t + timeslotDuration));
+        //         if (Math.random() <= chanceForNested) {
+        //             newThread = this.generateRandomThreadWithChildren(commentsForCurrentThread, this.maxNestedComments, timepoint);
+        //         } else {
+        //             newThread = this.generateRandomThread(commentsForCurrentThread, timepoint);
+        //         }
+        //         topLevelThreads.push(newThread);
+        //     }
+        // }
 
         return topLevelThreads;
     }

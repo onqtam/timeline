@@ -5,11 +5,9 @@ import { default as AudioFile, AudioWindow } from "@/logic/AudioFile";
 import Comment from "@/logic/entities/Comments";
 import VoteCommentRecord from "@/logic/entities/VoteCommentRecord";
 import { Episode } from "@/logic/entities/Channel";
-import { ActiveAppMode } from "./StoreDeviceInfoModule";
 import AsyncLoader from "../utils/AsyncLoader";
 import CommonParams from "@/logic/CommonParams";
 import { HTTPVerb } from "@/logic/HTTPVerb";
-import { SettingPair } from "./StoreUserModule";
 import User from "@/logic/entities/User";
 import axios, { AxiosResponse } from "axios";
 
@@ -49,10 +47,6 @@ class StorePlayViewModel {
         return this.allThreads.length;
     }
 
-    public setAudioWindowSlots(newSlotCount: number): void {
-        this.audioWindow.timeslotCount = newSlotCount;
-    }
-
     public moveAudioWindow(newStart: number): void {
         this.audioWindow.start.seconds = newStart;
     }
@@ -74,22 +68,6 @@ class StorePlayViewModel {
         }
         this.audioWindow.start.seconds = start;
         this.audioWindow.duration = end - start;
-    }
-    public updateTimeslotCount(appMode: ActiveAppMode): void {
-        switch (appMode) {
-        case ActiveAppMode.LargeDesktop:
-            this.audioWindow.timeslotCount = 7;
-            break;
-        case ActiveAppMode.StandardScreen:
-            this.audioWindow.timeslotCount = 5;
-            break;
-        case ActiveAppMode.Tablet:
-            this.audioWindow.timeslotCount = 3;
-            break;
-        case ActiveAppMode.Mobile:
-            this.audioWindow.timeslotCount = 1;
-            break;
-        }
     }
 
     public generateNewLocalComment(startSeconds: number, content: string): Comment {
@@ -138,15 +116,15 @@ export default {
     namespaced: true as true,
     state: playModule,
     mutations: {
-        setup: (state: StorePlayViewModel): void => {
-            store.state.user.settingsModifiedEvent.subscribe((modifiedSetting: SettingPair) => {
-                // TODO: Once ts-nameof is correctly installed use nameof for the keys
-                switch (modifiedSetting.key) {
-                case "audioWindowTimeslotCount":
-                    state.setAudioWindowSlots(modifiedSetting.value as number);
-                    break;
-                }
-            });
+        setup: (_state: StorePlayViewModel): void => {
+            // store.state.user.settingsModifiedEvent.subscribe((modifiedSetting: SettingPair) => {
+            //     // TODO: Once ts-nameof is correctly installed use nameof for the keys
+            //     switch (modifiedSetting.key) {
+            //     case "audioWindowTimeslotCount":
+            //         state.setAudioWindowSlots(modifiedSetting.value as number);
+            //         break;
+            //     }
+            // });
         },
         // Should only be called by the loadEpisode action
         internalSetActiveEpisode: (state: StorePlayViewModel, episode: Episode): void => {
@@ -235,16 +213,13 @@ export default {
         seekTo: (state: StorePlayViewModel, secondToSeekTo: number): void => {
             state.moveAudioPos(secondToSeekTo);
             if (!state.audioWindow.containsTimepoint(state.audioPos.seconds)) {
-                const timeslotStart: number = state.audioWindow.findTimeslotStartForTime(state.audioPos.seconds);
-                state.moveAudioWindow(timeslotStart);
+                const windowStart: number = state.audioWindow.findWindowStartForTime(state.audioPos.seconds);
+                state.moveAudioWindow(windowStart);
             }
         },
-        setAudioWindowSlots: (state: StorePlayViewModel, newSlots: number): void => {
-            state.setAudioWindowSlots(newSlots);
-        },
-        updateTimeslotCount: (state: StorePlayViewModel, appMode: ActiveAppMode): void => {
-            state.updateTimeslotCount(appMode);
-        },
+        // setAudioWindowSlots: (state: StorePlayViewModel, newSlots: number): void => {
+        //     state.setAudioWindowSlots(newSlots);
+        // },
         setCommentToDelete: (state: StorePlayViewModel, payload?: Comment): void => {
             state.commentToDelete = payload;
         }

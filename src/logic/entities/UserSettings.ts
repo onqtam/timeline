@@ -1,5 +1,4 @@
-import { IsInt, Max, Min } from "class-validator";
-import { Entity, Column, PrimaryGeneratedColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn } from "typeorm";
 import CommonParams from "../CommonParams";
 
 export type ValueLimits = { min: number; max: number };
@@ -9,14 +8,6 @@ export default class UserSettings {
     @PrimaryGeneratedColumn()
     public id!: number;
 
-    public static TIMESLOT_LIMITS: ValueLimits = { min: 1, max: 5 };
-
-    @Column()
-    @IsInt()
-    @Min(UserSettings.TIMESLOT_LIMITS.min)
-    @Max(UserSettings.TIMESLOT_LIMITS.max)
-    public audioWindowTimeslotCount!: number;
-
     constructor() {
         if (CommonParams.IsRunningOnClient) {
             this.initDefaultValues();
@@ -25,6 +16,5 @@ export default class UserSettings {
 
     public initDefaultValues() {
         this.id = -1;
-        this.audioWindowTimeslotCount = UserSettings.TIMESLOT_LIMITS.min;
     }
 }
