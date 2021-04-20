@@ -32,7 +32,7 @@ class StorePlayViewModel {
     constructor() {
         this.audioFile = new AudioFile();
         this.audioPos = new Timepoint();
-        this.audioWindow = new AudioWindow(this.audioFile, new Timepoint(0), 0, 4);
+        this.audioWindow = new AudioWindow(this.audioFile, new Timepoint(0), 0);
         this.volume = 95;
         this.allThreads = [];
 
