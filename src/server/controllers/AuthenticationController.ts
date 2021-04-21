@@ -127,7 +127,7 @@ export default class AuthenticationController {
         done(undefined, user!);
     }
 
-    public static async logout(request: Request, response: Response, next: Function): Promise<void> {
+    public static async logout(request: Request, response: Response, _next: Function): Promise<void> {
         request.session!.destroy(() => {
             // TODO: the cookie does not get cleared!
             response.clearCookie("connect.sid");

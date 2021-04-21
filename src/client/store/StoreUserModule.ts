@@ -191,11 +191,8 @@ export default {
             console.log("Sending logout request");
             const URL: string = `${CommonParams.APIServerRootURL}/logout`;
             return axios.get(URL, { withCredentials: true }).then(() => {
-                // window.location.href = router.currentRoute.fullPath;
                 window.location.reload();
-            })
-            // window.location.href = restURL;
-            // return Promise.resolve();
+            });
         },
         saveSettings: (context: ActionContext<StoreUserViewModel, StoreUserViewModel>): Promise<void> => {
             context.state.localStoreSettings();
