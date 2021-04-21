@@ -4,6 +4,7 @@
             <v-tab to="/">Home</v-tab>
             <v-tab to="/about">About</v-tab>
             <v-tab v-if="!isUserGuest" :to="'/user/' + currentUserId">Profile</v-tab>
+            <v-tab v-if="!isUserGuest" @click=logout>logout</v-tab>
             <v-dialog v-else v-model="showLoginDialog" width="500">
                 <template v-slot:activator="{ on }">
                     <v-tab v-on="on">Login</v-tab>
@@ -57,6 +58,10 @@ export default class Navbar extends Vue {
         } else {
             store.dispatch.user.login();
         }
+    }
+
+    logout(): void {
+        store.dispatch.user.logout();
     }
 }
 </script>

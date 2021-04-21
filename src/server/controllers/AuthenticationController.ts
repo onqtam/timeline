@@ -28,6 +28,10 @@ export default class AuthenticationController {
         // 3. Google redirects to /auth/google/callback
         // 4. Server tells client where to redirect (returnTo URL)
         return [{
+            path: "/logout",
+            verb: HTTPVerb.Get,
+            callback: AuthenticationController.logout
+        }, {
             path: "/auth/google",
             verb: HTTPVerb.Get,
             callback: AuthenticationController.beginGoogleAuth
@@ -121,6 +125,14 @@ export default class AuthenticationController {
             .getOne();
         console.log("Logged in user: ", user);
         done(undefined, user!);
+    }
+
+    public static async logout(request: Request, response: Response, next: Function): Promise<void> {
+        request.session!.destroy(() => {
+            // TODO: the cookie does not get cleared!
+            response.clearCookie("connect.sid");
+            response.status(200).end();
+        });
     }
 
     public static async beginGoogleAuth(request: Request, response: Response, next: Function): Promise<void> {

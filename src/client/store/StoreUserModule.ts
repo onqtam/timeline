@@ -138,9 +138,9 @@ export default {
             context.commit("internalSetActiveUser", User.guestUser);
 
             // Don't fetch the current user if there's no cookie
-            if (context.state.info.isGuest) {
-                return Promise.resolve();
-            }
+            // if (context.state.info.isGuest) {
+            //     return Promise.resolve();
+            // }
 
             console.log("Fetching user data");
             const restURL: string = `${CommonParams.APIServerRootURL}/user/`;
@@ -186,6 +186,16 @@ export default {
             const restURL: string = `${CommonParams.APIServerRootURL}/auth/google/?returnTo=${fullReturnURL}`;
             window.location.href = restURL;
             return Promise.resolve();
+        },
+        logout: (_context: ActionContext<StoreUserViewModel, StoreUserViewModel>): Promise<void> => {
+            console.log("Sending logout request");
+            const URL: string = `${CommonParams.APIServerRootURL}/logout`;
+            return axios.get(URL, { withCredentials: true }).then(() => {
+                // window.location.href = router.currentRoute.fullPath;
+                window.location.reload();
+            })
+            // window.location.href = restURL;
+            // return Promise.resolve();
         },
         saveSettings: (context: ActionContext<StoreUserViewModel, StoreUserViewModel>): Promise<void> => {
             context.state.localStoreSettings();
