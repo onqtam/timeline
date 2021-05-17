@@ -39,9 +39,9 @@ import { Component, Vue } from "vue-property-decorator";
 @Component
 export default class Footer extends Vue {
     icons = [
-        'mdi-facebook',
-        'mdi-twitter',
-        'mdi-linkedin'
+        "mdi-facebook",
+        "mdi-twitter",
+        "mdi-linkedin"
     ];
 }
 </script>

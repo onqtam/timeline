@@ -3,7 +3,7 @@
         <v-row align="center" style="height: 100%" justify="center">
             <v-col cols="8" class="d-flex">
                 <v-tooltip v-model="parseAlert" top color="red">
-                    <template v-slot:activator="{ on }">
+                    <template v-slot:activator="">
                         <v-text-field
                             id="youtubeTextField"
                             @focus=checkAndShowLoginDialog
