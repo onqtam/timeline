@@ -8,10 +8,7 @@
                 <router-view :key=$route.path class="grey darken-4" />
             </v-container>
         </v-main>
-
-        <v-footer app absolute="true">
-            @@@copyright
-        </v-footer>
+        <Footer/>
     </v-app>
 </template>
 
@@ -20,10 +17,12 @@ import { Component, Vue } from "vue-property-decorator";
 import store from "./store";
 import User from "@/logic/entities/User";
 import Navbar from "./components/Navbar.vue";
+import Footer from "./components/Footer.vue";
 
 @Component({
     components: {
-        Navbar
+        Navbar,
+        Footer
     }
 })
 export default class App extends Vue {
