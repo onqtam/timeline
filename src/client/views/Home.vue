@@ -8,13 +8,13 @@
                     color="red"
                     transition="none"
                 >
-                    <template v-slot:activator="">
+                    <template v-slot:activator="{}">
                         <v-text-field
                             id="youtubeTextField"
                             @focus=checkAndShowLoginDialog
                             @input="parseAlert=false"
                             v-model=youtubeUrl
-                            label="Paste a URL to a YouTube video you'd like to play"
+                            label="Paste a YouTube video URL you'd like to play through this website"
                             placeholder="Example: https://www.youtube.com/watch?v=-k-ztNsBM54"
                             filled
                             autocomplete="off"

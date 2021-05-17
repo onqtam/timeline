@@ -7,11 +7,11 @@
             <v-tab v-if="!isUserGuest" @click=logout>logout</v-tab>
             <v-dialog v-else v-model="showLoginDialog" width="500">
                 <template v-slot:activator="{ on }">
-                    <v-tab v-on="on">Login</v-tab>
+                    <v-tab v-on="on" @click="explicitLogin">Login</v-tab>
                 </template>
                 <v-card>
                     <v-card-title class="headline justify-center">
-                        Login with an external service
+                        {{loginMessage}}
                     </v-card-title>
                     <v-card-actions class="justify-center">
                         <!-- icons are from here: https://materialdesignicons.com/ -->
@@ -37,10 +37,20 @@ import store from "@/client/store";
 
 @Component
 export default class Navbar extends Vue {
-    get showLoginDialog() {
+    loginMessageForAction = "You need to be logged in for this action";
+    loginMessage = this.loginMessageForAction;
+
+    explicitLogin() {
+        this.loginMessage = "Login with an external service";
+    }
+    get showLoginDialog(): boolean {
         return store.state.user.showLoginDialog;
     }
     set showLoginDialog(newVal: boolean) {
+        if (newVal === false) {
+            // if we are closing the dialog - reset the message for non-explicit logins
+            this.loginMessage = this.loginMessageForAction;
+        }
         store.commit.user.setShowLoginDialog(newVal);
     }
 
