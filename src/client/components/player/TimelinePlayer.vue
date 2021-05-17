@@ -1,5 +1,5 @@
 <template>
-    <div class="timeline-player">
+    <div>
         <!-- in src: &controls=0 -->
         <!-- in allow: autoplay; -->
         <!-- the controls for youtube are useful to see the progress bar and the buffering -->

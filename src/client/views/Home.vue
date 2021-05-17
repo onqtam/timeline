@@ -1,30 +1,24 @@
 <template>
-    <div>
-        <v-container>
-            <v-row class="justify-center">
-                <v-col
-                    cols="12"
-                    sm="6"
-                    md="6"
-                >
-                    <v-text-field
-                        id="youtubeTextField"
-                        @focus=checkAndShowLoginDialog
-                        v-model=youtubeUrl
-                        label="Paste a URL to a YouTube video you'd like to play"
-                        placeholder="https://www.youtube.com/watch?v=-k-ztNsBM54"
-                        filled
-                        autocomplete="off"
-                        @keyup.enter=submit
-                    />
-                    <v-btn @click="submit">Submit</v-btn>
-                    <v-alert v-model=parseAlert color="red" dismissible type="error">
-                        {{alertText}}
-                    </v-alert>
-                </v-col>
-            </v-row>
-      </v-container>
-    </div>
+    <v-container style="height: 100%;">
+        <v-row align="center" style="height: 100%" justify="center">
+            <v-col cols="6">
+                <v-text-field
+                    id="youtubeTextField"
+                    @focus=checkAndShowLoginDialog
+                    v-model=youtubeUrl
+                    label="Paste a URL to a YouTube video you'd like to play"
+                    placeholder="https://www.youtube.com/watch?v=-k-ztNsBM54"
+                    filled
+                    autocomplete="off"
+                    @keyup.enter=submit
+                />
+                <v-btn @click="submit">Submit</v-btn>
+                <v-alert v-model=parseAlert color="red" dismissible type="error">
+                    {{alertText}}
+                </v-alert>
+            </v-col>
+        </v-row>
+    </v-container>
 </template>
 
 <script lang="ts">

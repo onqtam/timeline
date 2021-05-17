@@ -18,12 +18,12 @@
                         <v-btn @click="login('google')">
                             <v-icon>mdi-google</v-icon>
                         </v-btn>
-                        <v-btn @click="login('facebook')">
+                        <!-- <v-btn @click="login('facebook')">
                             <v-icon>mdi-facebook</v-icon>
                         </v-btn>
                         <v-btn @click="login('twitter')">
                             <v-icon>mdi-twitter</v-icon>
-                        </v-btn>
+                        </v-btn> -->
                     </v-card-actions>
                 </v-card>
             </v-dialog>

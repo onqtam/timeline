@@ -1,18 +1,15 @@
 <template>
-    <v-app id="app" style="display: grid; justify-content: center;">
+<!-- style="display: grid; justify-content: center;" -->
+    <v-app>
         <Navbar/>
         <v-main app>
-            <!-- <v-container fluid>
-                <v-row>
-                    <v-col> -->
-                        <!-- the key here is important so pages are re-rendered when path params change -->
-                        <router-view :key=$route.path class="brown darken-4" style="width: 1200px;"/>
-                    <!-- </v-col>
-                </v-row>
-            </v-container> -->
+            <v-container style="padding: 0; height: 100%;">
+                <!-- key is used so pages are re-rendered when path params change -->
+                <router-view :key=$route.path class="grey darken-4" />
+            </v-container>
         </v-main>
 
-        <v-footer app>
+        <v-footer app absolute="true">
             @@@copyright
         </v-footer>
     </v-app>

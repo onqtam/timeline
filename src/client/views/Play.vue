@@ -1,8 +1,8 @@
 <template>
-    <div>
-        <TimelinePlayer v-if=isDataLoaded ref="timeline-player" class="timeline-player"/>
+    <v-container>
+        <TimelinePlayer v-if=isDataLoaded ref="timeline-player"/>
         <CommentSection v-if=isDataLoaded ref="comment-section"/>
-    </div>
+    </v-container>
 </template>
 
 <script lang="ts">
@@ -117,10 +117,6 @@ export default class PlayView extends Vue {
 
 <style scoped lang="less">
 @import "../cssresources/theme.less";
-
-.timeline-player, .comment-section-root {
-    margin: 0 1em;
-}
 
 .comment-section-root {
     // This limits the size of all threads; TODO: revisit and pick a better number at a later stage
