@@ -1,13 +1,13 @@
 <template>
-    <v-container>
-        <v-row class="mt-0">
+    <v-container class="pa-0">
+        <v-row no-gutters class="mb-n4 mt-3">
             <v-textarea
                 filled
                 auto-grow
                 v-model=postContent
                 id=newCommentTextField
                 rows="1"
-                class="mr-1"
+                class="mr-2"
                 autocomplete="off"
                 @focus=checkAndShowLoginDialog
                 label="Submit a new comment at current time"
@@ -24,10 +24,17 @@
                 item-value="1"
             />
         </v-row>
-        <v-divider/>
+        <!-- taken from here: https://codepen.io/Mert75/pen/YzqwdPo
+        alternatives: https://stackoverflow.com/questions/2812770/ -->
+        <v-row align="center">
+            <v-divider/>
+            <span class="d-block pl-2 pr-2">Showing X comments in the current window</span>
+            <v-divider/>
+        </v-row>
+        <!-- <v-divider/> -->
         <!-- relative position because of the v-overlay - see this:
         https://stackoverflow.com/questions/62089501/how-to-have-an-absolute-v-overlay-boxed-inside-a-v-col -->
-        <div class="commentThreads" style="position: relative;">
+        <div class="mt-5 commentThreads" style="position: relative;">
             <template v-if="visibleThreads.length !== 0">
                 <CommentThreadComponent
                     v-for="thread in visibleThreads" :key="thread.id"
