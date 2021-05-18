@@ -6,7 +6,7 @@
             </template>
             <v-card>
                 <v-card-title class="justify-center">All topics in episode</v-card-title>
-                <v-divider></v-divider>
+                <v-divider/>
                 <v-card-text>
                     <v-list>
                         <v-list-item-group v-model=activeIndex active-class="blue--text">
@@ -18,13 +18,13 @@
                                     <!-- TODO: CLAMP LENGTH OF TEXT -->
                                     <v-list-item-title>{{ item.text }}</v-list-item-title>
                                 </v-list-item>
-                                <v-progress-linear v-if="activeIndex == index" :value="agenda.computeProgressPercentage(index, audioPos, audioDuration)" :key="'progress_' + index"></v-progress-linear>
-                                <v-divider v-if="index + 1 < agenda.items.length" :key="'divider_' + index"></v-divider>
+                                <v-progress-linear v-if="activeIndex == index" :value="agenda.computeProgressPercentage(index, audioPos, audioDuration)" :key="'progress_' + index"/>
+                                <v-divider v-if="index + 1 < agenda.items.length" :key="'divider_' + index"/>
                             </template>
                         </v-list-item-group>
                     </v-list>
                 </v-card-text>
-                <v-divider></v-divider>
+                <v-divider/>
                 <v-card-actions class="justify-center">
                     <v-btn color="blue darken-1" text @click="showDialog = false">Close</v-btn>
                 </v-card-actions>

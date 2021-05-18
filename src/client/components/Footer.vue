@@ -24,7 +24,7 @@
                 All ToS of YouTube is obeyed.
             </v-card-text>
 
-            <v-divider></v-divider>
+            <v-divider/>
 
             <v-card-text class="white--text">
                 {{ new Date().getFullYear() }} — <strong>Unpinch</strong>

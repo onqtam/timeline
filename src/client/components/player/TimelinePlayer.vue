@@ -69,13 +69,13 @@
                     autocomplete="off"
                     v-model=windowStartAsString
                     @change=windowStartChange
-                ></v-text-field>
+                />
                 <v-text-field label="Window End" class="d-inline-block" style="width: 80px;"
                     v-mask="'##:##:##'"
                     autocomplete="off"
                     v-model=windowEndAsString
                     @change=windowEndChange
-                ></v-text-field>
+                />
 
                 <!-- TODO: use tooltips instead of title attribute - https://vuetifyjs.com/en/components/tooltips/ -->
                 <v-btn :title="isZoomline ? 'Pinch' : 'Unpinch'" @click=toggleZoomline width="50px">

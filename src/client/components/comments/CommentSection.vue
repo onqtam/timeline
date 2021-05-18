@@ -1,8 +1,6 @@
 <template>
-    <!-- relative position because of the v-overlay - see this:
-    https://stackoverflow.com/questions/62089501/how-to-have-an-absolute-v-overlay-boxed-inside-a-v-col -->
-    <v-container style="position: relative;">
-        <v-row>
+    <v-container>
+        <v-row class="mt-0">
             <v-textarea
                 filled
                 auto-grow
@@ -26,7 +24,10 @@
                 item-value="1"
             />
         </v-row>
-        <div class="commentThreads">
+        <v-divider/>
+        <!-- relative position because of the v-overlay - see this:
+        https://stackoverflow.com/questions/62089501/how-to-have-an-absolute-v-overlay-boxed-inside-a-v-col -->
+        <div class="commentThreads" style="position: relative;">
             <template v-if="visibleThreads.length !== 0">
                 <CommentThreadComponent
                     v-for="thread in visibleThreads" :key="thread.id"
@@ -37,6 +38,12 @@
             <template v-else>
                 <p>Be the first to contribute in this range!</p>
             </template>
+
+            <!-- this is the "loading comments for range" overlay for when the window moves on the timeline -->
+            <v-overlay opacity="0.7" :absolute="true" :value="showLoadingCommentsOverlay" class="text-center">
+                <h1>Loading comments for this range</h1>
+                <v-progress-circular :size="70" :width="7" color="grey" indeterminate/>
+            </v-overlay>
         </div>
 
         <!-- this is the dialog for deleting comments - here because it should be shared with all comments -->
@@ -57,12 +64,6 @@
             </v-card>
             </v-dialog>
         </template>
-
-        <!-- this is the "loading comments for range" overlay for when the window moves on the timeline -->
-        <v-overlay opacity="0.7" :absolute="true" :value="showLoadingCommentsOverlay" class="text-center">
-            <h1>Loading comments for this range</h1>
-            <v-progress-circular :size="70" :width="7" color="grey" indeterminate/>
-        </v-overlay>
     </v-container>
 </template>
 
@@ -221,6 +222,7 @@ export default class CommentSection extends Vue {
 
 .commentThreads {
     max-height: 80vh;
+    min-height: 40vh;
     overflow-y: auto;
     padding-right: 0.25em;
     // Scrollbar

@@ -5,13 +5,13 @@
         <div>
             <label>Displayed name: </label>
             <label>{{ user.shortName}}</label>
-            <br />
+            <br/>
             <label>Email: </label>
             <label>{{ user.email}}</label>
         </div>
         <div class="slider-controls">
             <!-- <label>Number Of Timeslots</label>
-            <v-slider class="timeslot-count-slider" min=1 max=5 step=1 thumb-label="always" v-model=audioWindowTimeslotCount></v-slider> -->
+            <v-slider class="timeslot-count-slider" min=1 max=5 step=1 thumb-label="always" v-model=audioWindowTimeslotCount/> -->
         </div>
         <router-link v-for="(comment, index) in comments" :key=index
             :to="`/play/${comment.episodeId}?t=${comment.start.formatAsUrlParam()}&thread=${comment.id}`">

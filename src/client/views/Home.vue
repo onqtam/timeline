@@ -1,5 +1,5 @@
 <template>
-    <v-container style="height: 100%;">
+    <v-container>
         <v-row align="center" style="height: 100%" justify="center">
             <v-col cols="8" class="d-flex">
                 <v-tooltip

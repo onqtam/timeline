@@ -32,7 +32,7 @@
         <!-- Displays the small vertical lines that break down the timeline into small sections -->
         <div class="mark-container">
             <div class="mark" v-for="(timepoint, index) in computedMarks" :key=index>
-                <div class="vertical-line"></div>
+                <div class="vertical-line"/>
                 <div class="vertical-line-label">
                     {{ timepoint.format() }}
                 </div>
