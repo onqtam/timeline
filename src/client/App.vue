@@ -1,11 +1,10 @@
 <template>
-<!-- style="display: grid; justify-content: center;" -->
     <v-app>
         <Navbar/>
         <v-main app>
             <v-container style="padding: 0; height: 100%;">
                 <!-- key is used so pages are re-rendered when path params change -->
-                <router-view :key=$route.path class="grey darken-4" />
+                <router-view :key=$route.path class="grey darken-4" style="height: 100%;"/>
             </v-container>
         </v-main>
         <Footer/>

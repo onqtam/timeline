@@ -10,16 +10,16 @@
                 >
                     <template v-slot:activator="{}">
                         <v-text-field
+                            filled
+                            v-model=youtubeUrl
                             id="youtubeTextField"
+                            class="mr-1"
+                            autocomplete="off"
                             @focus=checkAndShowLoginDialog
                             @input="parseAlert=false"
-                            v-model=youtubeUrl
+                            @keyup.enter=submit
                             label="Paste a YouTube video URL you'd like to play through this website"
                             placeholder="Example: https://www.youtube.com/watch?v=-k-ztNsBM54"
-                            filled
-                            autocomplete="off"
-                            class="mr-3"
-                            @keyup.enter=submit
                         />
                     </template>
                     <h2 :class="{'shake' : animatedAlert}">{{alertText}}</h2>

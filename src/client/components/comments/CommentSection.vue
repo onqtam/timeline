@@ -1,32 +1,31 @@
 <template>
     <!-- relative position because of the v-overlay - see this:
     https://stackoverflow.com/questions/62089501/how-to-have-an-absolute-v-overlay-boxed-inside-a-v-col -->
-    <div class="comment-section-root" style="position: relative;">
-        <div class="flex-container">
-            <div class="new-thread-container">
-                <template>
-                    <v-text-field @focus=checkAndShowLoginDialog v-model=postContent id=newCommentTextField
-                        autocomplete="off" label="Start a new thread at current time"/>
-                    <v-btn @click=startNewCommentThread>Submit</v-btn>
-                </template>
-            </div>
-            <v-btn-toggle
-                mandatory
-                v-model="sortingPredicate"
-                class="comment-management-panel"
-            >
-                <v-btn :value=SortingPredicate.Top>
-                    Top
-                </v-btn>
-                <v-btn :value=SortingPredicate.New>
-                    New
-                </v-btn>
-                <!-- TODO: why can't I make this alert work ?!?!?!     https://codesandbox.io/s/rough-resonance-z19kd?file=/src/App.vue -->
-                <v-btn :value=SortingPredicate.Hot @click="console.alert('not implemented!')">
-                    Hot
-                </v-btn>
-            </v-btn-toggle>
-        </div>
+    <v-container style="position: relative;">
+        <v-row>
+            <v-textarea
+                filled
+                auto-grow
+                v-model=postContent
+                id=newCommentTextField
+                rows="1"
+                class="mr-1"
+                autocomplete="off"
+                @focus=checkAndShowLoginDialog
+                label="Submit a new comment at current time"
+            />
+            <v-btn x-large class="mr-5" @click=startNewCommentThread>Submit</v-btn>
+            <v-select
+                :items="['Top','New']"
+                filled
+                class="flex-grow-0"
+                style="width: 6em"
+                outlined
+                v-model="sortBy"
+                label="Sort by"
+                item-value="1"
+            />
+        </v-row>
         <div class="commentThreads">
             <template v-if="visibleThreads.length !== 0">
                 <CommentThreadComponent
@@ -64,7 +63,7 @@
             <h1>Loading comments for this range</h1>
             <v-progress-circular :size="70" :width="7" color="grey" indeterminate/>
         </v-overlay>
-    </div>
+    </v-container>
 </template>
 
 <script lang="ts">
@@ -78,12 +77,6 @@ import { AudioWindow } from "@/logic/AudioFile";
 import Timepoint from "@/logic/entities/Timepoint";
 
 import CommentThreadComponent from "./CommentThread.vue";
-
-enum SortingPredicate {
-    Top,
-    New,
-    Hot
-}
 
 @Component({
     components: {
@@ -101,6 +94,8 @@ export default class CommentSection extends Vue {
     public get audioPos(): Timepoint {
         return store.state.play.audioPos;
     }
+
+    sortBy = "Top";
 
     // ================================================================
     // == deleting comments
@@ -191,9 +186,6 @@ export default class CommentSection extends Vue {
 
     public focusedThreadId: number = -1;
 
-    private SortingPredicate = SortingPredicate;
-    private sortingPredicate: SortingPredicate = SortingPredicate.New;
-
     public focusThread(threadId: number): void {
         const thread: Comment|undefined = this.commentThreads.find(thread => thread.id === threadId);
         // TODO: Report error in a meaningful way
@@ -208,24 +200,11 @@ export default class CommentSection extends Vue {
         }
     }
 
-    private setSortingPredicate(predicate: SortingPredicate): void {
-        if (predicate === SortingPredicate.Hot) {
-            alert("Not implemented yet!");
-        } else {
-            this.sortingPredicate = predicate;
-        }
-    }
-
-    private isSortingPredicateActive(predicate: SortingPredicate): boolean {
-        return this.sortingPredicate === predicate;
-    }
-
     private compareCommentThreads(lhs: Comment, rhs: Comment) {
-        switch (this.sortingPredicate) {
-        case SortingPredicate.New:
+        switch (this.sortBy) {
+        case "New":
             return rhs.date_added.valueOf() - lhs.date_added.valueOf();
-        case SortingPredicate.Hot: // fall through, no hot yet
-        case SortingPredicate.Top:
+        case "Top":
         default:
             return rhs.totalVotes - lhs.totalVotes;
             // return lhs.start.seconds - rhs.start.seconds; // this is chronological sorting
@@ -238,35 +217,10 @@ export default class CommentSection extends Vue {
 <style scoped lang="less">
 @import "../../cssresources/theme.less";
 
-// .comment-section-root {
-//     width: 1500px;
-// }
-
-.flex-container {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: space-evenly;
-}
-input, button {
-    background: @theme-text-color;
-    color: @theme-background;
-}
-.new-thread-container, .comment-management-panel {
-    width: 48%;
-    margin-bottom: 1em;
-}
-
 @top-row-shared-border: 2px solid @theme-focus-color-3;
 
-.new-thread-container {
-    border-right: @top-row-shared-border;
-}
-.comment-management-panel {
-    border-left: @top-row-shared-border;
-}
 .commentThreads {
-    max-height: 100%;
+    max-height: 80vh;
     overflow-y: auto;
     padding-right: 0.25em;
     // Scrollbar

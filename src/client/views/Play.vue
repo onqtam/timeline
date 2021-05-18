@@ -114,13 +114,3 @@ export default class PlayView extends Vue {
     }
 }
 </script>
-
-<style scoped lang="less">
-@import "../cssresources/theme.less";
-
-.comment-section-root {
-    // This limits the size of all threads; TODO: revisit and pick a better number at a later stage
-    height: 60vh;
-    padding-bottom: 5vh;
-}
-</style>
