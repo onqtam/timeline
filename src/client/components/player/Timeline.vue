@@ -11,15 +11,26 @@
         v-ripple
         @contextmenu="showContextMenu"
     >
+
+        <!-- font-size: 3vw; -->
+        
         <div style="
             position: absolute;
-            width: 100%;
             text-align: center;
-            font-size: 3em;
+            vertical-align: middle;
+            height: 100px;
+            white-space: nowrap;
+            width: 100%;
+            
+            font-size: 2em;
             color: rgba(255, 255, 255, 0.3);
         ">
             {{histrogramText}}
         </div>
+       
+        <!-- <svg viewBox="0 0 350 30" style="position: absolute;">
+            <text x="20" y="17" style="fill: rgba(255, 255, 255, 0.25);">{{histrogramText}}</text>
+        </svg> -->
 
         <!-- Highlights the part of the audio that should be zoomed -->
         <div class="zoom-window" :style=computeWindowStyle
@@ -127,7 +138,8 @@ export default class Timeline extends Vue {
     }
 
     get histrogramText() {
-        return store.state.play.numberOfCommentsTotal ? "comment density histogram" : "0 comments - no histogram";
+        return "comment density histogram (" + store.state.play.numberOfCommentsTotal + " comments)";
+        // return store.state.play.numberOfCommentsTotal ? "comment density histogram" : "0 comments - no histogram";
     }
 
     // ================================================================

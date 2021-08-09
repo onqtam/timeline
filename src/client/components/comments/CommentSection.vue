@@ -24,30 +24,32 @@
                 item-value="1"
             />
         </v-row>
-        <!-- taken from here: https://codepen.io/Mert75/pen/YzqwdPo
-        alternatives: https://stackoverflow.com/questions/2812770/ -->
-        <v-row align="center" class="mt-n5 grey--text">
-            <v-divider/>
-            <span class="d-block pl-2 pr-2">Showing {{showLoadingCommentsOverlay ? "..." : visibleThreads.length}} comments in the current window</span>
-            <v-divider/>
-        </v-row>
-        <!-- <v-divider/> -->
+
         <!-- relative position because of the v-overlay - see this:
         https://stackoverflow.com/questions/62089501/how-to-have-an-absolute-v-overlay-boxed-inside-a-v-col -->
-        <div class="mt-5 commentThreads" style="position: relative;">
-            <template v-if="visibleThreads.length !== 0">
-                <CommentThreadComponent
-                    v-for="thread in visibleThreads" :key="thread.id"
-                    :thread=thread
-                    :class="{ 'focused-thread': focusedThreadId === thread.id }"
-                />
-            </template>
-            <template v-else>
-                <p>Be the first to contribute in this range!</p>
-            </template>
-
+        <div style="position: relative; padding: 5; margin: 0;">
+            <!-- taken from here: https://codepen.io/Mert75/pen/YzqwdPo
+            alternatives: https://stackoverflow.com/questions/2812770/ -->
+            <v-row align="center" class="mt-n5 grey--text">
+                <v-divider/>
+                <!-- <span class="d-block pl-2 pr-2">Showing {{showLoadingCommentsOverlay ? "..." : visibleThreads.length}} comments in the current window</span> -->
+                <span class="d-block pl-2 pr-2">Showing {{visibleThreads.length}} {{visibleThreads.length === 1 ? "comment" : "comments"}} in the current window</span>
+                <v-divider/>
+            </v-row>
+            <div class="mt-5 commentThreads">
+                <template v-if="visibleThreads.length !== 0">
+                    <CommentThreadComponent
+                        v-for="thread in visibleThreads" :key="thread.id"
+                        :thread=thread
+                        :class="{ 'focused-thread': focusedThreadId === thread.id }"
+                    />
+                </template>
+                <template v-else>
+                    <p>Be the first to contribute in this range!</p>
+                </template>
+            </div>
             <!-- this is the "loading comments for range" overlay for when the window moves on the timeline -->
-            <v-overlay opacity="0.8" absolute :value="showLoadingCommentsOverlay" class="text-center">
+            <v-overlay opacity="1" absolute :value="showLoadingCommentsOverlay" class="text-center">
                 <h1>Loading comments for this range</h1>
                 <v-progress-circular :size="70" :width="7" color="grey" indeterminate/>
             </v-overlay>
