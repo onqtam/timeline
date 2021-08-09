@@ -13,7 +13,7 @@
     >
 
         <!-- font-size: 3vw; -->
-        
+
         <div style="
             position: absolute;
             text-align: center;
@@ -21,13 +21,13 @@
             height: 100px;
             white-space: nowrap;
             width: 100%;
-            
+
             font-size: 2em;
             color: rgba(255, 255, 255, 0.3);
         ">
             {{histrogramText}}
         </div>
-       
+
         <!-- <svg viewBox="0 0 350 30" style="position: absolute;">
             <text x="20" y="17" style="fill: rgba(255, 255, 255, 0.25);">{{histrogramText}}</text>
         </svg> -->
