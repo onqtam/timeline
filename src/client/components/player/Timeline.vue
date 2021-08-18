@@ -12,13 +12,13 @@
         @contextmenu="showContextMenu"
     >
 
-        <!-- NO CLUE WHY THIS WORKS BUT IT WORKS!
-        I tried with fittext from here but couldn't get it to work:
-        https://css-tricks.com/fitting-text-to-a-container/
-        adapted from here: https://stackoverflow.com/a/30921225 -->
+        <!-- BEAUTIFUL MAGIC NUMBERS - NO CLUE HOW/WHY IT WORKS!!!
+        Adapted from here: https://stackoverflow.com/a/30921225
+        I also tried with fittext from here but couldn't get it to work:
+        https://css-tricks.com/fitting-text-to-a-container/ -->
         <div style="position: absolute; height: 80px; width: 100%;">
-            <svg width="100%" height="100%" viewBox="0 0 600 70">
-                <text x="10" y="45" font-size="31" fill="rgba(255, 255, 255, 0.3)">
+            <svg width="100%" height="100%" viewBox="0 0 1000 70">
+                <text x="80" y="49" font-size="45" fill="rgba(255, 255, 255, 0.3)">
                     {{histrogramText}}
                 </text>
             </svg>
