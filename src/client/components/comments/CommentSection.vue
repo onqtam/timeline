@@ -49,7 +49,7 @@
                 </template>
             </div>
             <!-- this is the "loading comments for range" overlay for when the window moves on the timeline -->
-            <v-overlay opacity="1" absolute :value="showLoadingCommentsOverlay" class="text-center">
+            <v-overlay opacity="0.8" absolute :value="showLoadingCommentsOverlay" class="text-center">
                 <h1>Loading comments for this range</h1>
                 <v-progress-circular :size="70" :width="7" color="grey" indeterminate/>
             </v-overlay>

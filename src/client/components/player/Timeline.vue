@@ -131,7 +131,6 @@ export default class Timeline extends Vue {
 
     get histrogramText() {
         return "comment density histogram (" + store.state.play.numberOfCommentsTotal + " comments)";
-        // return store.state.play.numberOfCommentsTotal ? "comment density histogram" : "0 comments - no histogram";
     }
 
     // ================================================================

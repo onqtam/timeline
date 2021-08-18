@@ -43,6 +43,7 @@ class StorePlayViewModel {
 
     // we should use a dedicated getter because in the future we might not have
     // all comments loaded by default as is currently being done with allThreads
+    // TODO: return the number of all comments and not just top-level threads
     public get numberOfCommentsTotal(): number {
         return this.allThreads.length;
     }

@@ -39,9 +39,7 @@
                     <v-icon>mdi-reply</v-icon> Submit reply
                 </v-btn>
             </div>
-            <p class="comment-section" v-if="isExpanded && !isEditing" >
-                {{ contentToDisplay }}
-            </p>
+            <pre v-if="isExpanded && !isEditing">{{ contentToDisplay }}</pre>
             <div v-if=isEditing>
                 <v-text-field label="Edit your comment here" autocomplete="off" v-model="editContent"/>
                 <v-btn class="submit-edit-button" @click=submitEdit>
