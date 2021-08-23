@@ -83,8 +83,8 @@
                 </v-btn>
 
                 <!-- TODO: use button-groups - mutually-exclusive toggles -->
-                <v-btn title="comment histogram - where have others commented"><v-icon>mdi-comment-text-multiple-outline</v-icon></v-btn>
-                <v-btn title="bookmark histogram - your bookmarks"><v-icon>mdi-bookmark-multiple-outline</v-icon></v-btn>
+                <!-- <v-btn title="comment histogram - where have others commented"><v-icon>mdi-comment-text-multiple-outline</v-icon></v-btn>
+                <v-btn title="bookmark histogram - your bookmarks"><v-icon>mdi-bookmark-multiple-outline</v-icon></v-btn> -->
 
                 <AgendaComponent
                     class="agenda"

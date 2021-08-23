@@ -1,7 +1,6 @@
 <template>
     <div>
-        <!-- TODO: add v-if -->
-        <h2>Your profile</h2>
+        <h2>{{ isCurrentUser ? "Your profile" : "User profile" }}</h2>
         <div>
             <label>Displayed name: </label>
             <label>{{ user.shortName}}</label>
@@ -45,6 +44,10 @@ import CommentComponent from "../components/comments/Comment.vue";
 export default class UserView extends Vue {
     @Prop({ type: Number })
     public userId!: number;
+
+    public get isCurrentUser(): boolean {
+        return this.userId === store.state.user.info.id;
+    }
 
     public get user(): User {
         return store.state.user.info;

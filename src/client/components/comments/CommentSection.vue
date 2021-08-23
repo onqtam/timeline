@@ -30,10 +30,11 @@
         <div style="position: relative; padding: 5; margin: 0;">
             <!-- taken from here: https://codepen.io/Mert75/pen/YzqwdPo
             alternatives: https://stackoverflow.com/questions/2812770/ -->
-            <v-row align="center" class="mt-n5 grey--text">
+            <v-row align="center" class="mt-n5 mx-0 grey--text">
                 <v-divider/>
-                <!-- <span class="d-block pl-2 pr-2">Showing {{showLoadingCommentsOverlay ? "..." : visibleThreads.length}} comments in the current window</span> -->
-                <span class="d-block pl-2 pr-2">Showing {{visibleThreads.length}} {{visibleThreads.length === 1 ? "comment" : "comments"}} in the current window</span>
+                    <span class="d-block pl-2 pr-2">
+                        Showing {{visibleThreads.length}} top-level {{visibleThreads.length === 1 ? "comment" : "comments"}} in the current window
+                    </span>
                 <v-divider/>
             </v-row>
             <div class="mt-5 commentThreads">
@@ -44,13 +45,21 @@
                         :class="{ 'focused-thread': focusedThreadId === thread.id }"
                     />
                 </template>
-                <template v-else>
-                    <p>Be the first to contribute in this range!</p>
+                <template v-if="visibleThreads.length === 0 && !showLoadingCommentsOverlay">
+                    <h1 align="center" class="mt-7">
+                        Be the first to comment in the
+                        &#60;{{audioWindow.start.format()}} - {{audioWindow.end.format()}}&#62;
+                        range!
+                    </h1>
                 </template>
             </div>
-            <!-- this is the "loading comments for range" overlay for when the window moves on the timeline -->
-            <v-overlay opacity="0.8" absolute :value="showLoadingCommentsOverlay" class="text-center">
-                <h1>Loading comments for this range</h1>
+            <!-- this is the "loading comments for the <X-Y> range" overlay for when the window moves on the timeline -->
+            <v-overlay absolute class="text-center align-start" opacity="0.8" :value="showLoadingCommentsOverlay">
+                <h1 class="mt-15">
+                    Loading comments for the
+                    &#60;{{audioWindow.start.format()}} - {{audioWindow.end.format()}}&#62;
+                    range...
+                </h1>
                 <v-progress-circular :size="70" :width="7" color="grey" indeterminate/>
             </v-overlay>
         </div>
@@ -60,15 +69,11 @@
             <v-dialog v-model="showDeleteCommentDialog" max-width="400">
             <v-card>
                 <v-card-title class="headline">
-                Are you sure you want to delete this comment?
+                    Are you sure you want to delete this comment?
                 </v-card-title>
                 <v-card-actions>
-                <v-btn text color="grey darken-1" @click="deleteComment(true)">
-                    Yes
-                </v-btn>
-                <v-btn text color="grey darken-1" @click="deleteComment(false)">
-                    No
-                </v-btn>
+                    <v-btn text color="grey" @click="deleteComment(true)">Yes</v-btn>
+                    <v-btn text color="grey" @click="deleteComment(false)">No</v-btn>
                 </v-card-actions>
             </v-card>
             </v-dialog>
@@ -131,7 +136,7 @@ export default class CommentSection extends Vue {
     static deepCopyAudioWindow(aw: AudioWindow): AudioWindow {
         // TODO: fix this code-smell - there should be a better way!
         // this needs to be a deep full copy because otherwise the reactivity of Vue would kick in and updates to the start
-        // of the window will trigger updaring of the comment section and that would defeat the purpose of the debouncing
+        // of the window will trigger updating of the comment section and that would defeat the purpose of the debouncing
         return new AudioWindow(aw.audioFile, new Timepoint(aw.start.seconds), aw.duration);
     }
 
