@@ -59,7 +59,7 @@ class StorePlayViewModel {
     }
 
     public moveAudioWindow(newStart: number): void {
-        console.assert(this.audioWindow.start.seconds === newStart);
+        console.assert(this.audioWindow.start.seconds !== newStart);
         this.audioWindow.start.seconds = newStart;
         this.debouncedUpdateDebouncedWindow();
         this.showLoadingCommentsOverlay = true;
