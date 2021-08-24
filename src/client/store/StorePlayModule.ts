@@ -214,8 +214,7 @@ export default {
         seekTo: (state: StorePlayViewModel, secondToSeekTo: number): void => {
             state.moveAudioPos(secondToSeekTo);
             if (!state.audioWindow.containsTimepoint(state.audioPos.seconds)) {
-                const windowStart: number = state.audioWindow.findWindowStartForTime(state.audioPos.seconds);
-                state.moveAudioWindow(windowStart);
+                state.moveAudioWindow(state.audioWindow.findWindowStartForTime(state.audioPos.seconds));
             }
         },
         // setAudioWindowSlots: (state: StorePlayViewModel, newSlots: number): void => {

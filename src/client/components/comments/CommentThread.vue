@@ -4,12 +4,9 @@
         <router-link
             class="timepoint"
             :style=routerLinkPositionStyle
-            :to="'?t=' + thread.start.formatAsUrlParam() + '&thread=' + thread.id"
+            :to="'?t=' + thread.start.formatAsUrlParam()"
         >
-            <!-- Switch the order if we are close to the end -->
-            <v-icon v-if=routerLinkPlacePointerOnLeft>mdi-caret-up</v-icon>
             {{ thread.start.format() }}
-            <v-icon v-if=!routerLinkPlacePointerOnLeft>mdi-caret-up</v-icon>
         </router-link>
         <CommentControlsComponent
             :key=thread.id
@@ -45,7 +42,6 @@
 import { Component, Prop, Vue } from "vue-property-decorator";
 import store from "@/client/store";
 import Comment from "@/logic/entities/Comments";
-import MathHelpers from "@/logic/MathHelpers";
 
 import CommentComponent from "./Comment.vue";
 import CommentControlsComponent from "./CommentControls.vue";
@@ -64,30 +60,12 @@ export default class CommentThreadComponent extends Vue {
     // Should equal the value of isExpanded on the component for the head at all times
     private isExpanded: boolean = true;
 
-    // Returns a Vue-like object with position data to place the routerlink for the thread at the correct position
-    private get routerLinkPositionStyle(): Record<string, string> {
-        const offset: number = this.timepointOffset;
-        if (offset > 0.5) {
-            return { right: 100 * (1-offset) + "%" };
-        } else {
-            return { left: 100 * offset + "%" };
-        }
-    }
-    private get routerLinkPlacePointerOnLeft(): boolean {
-        return this.timepointOffset <= 0.5;
-    }
-
-    // Returns the offset of the timepoint in the current window
-    private get timepointOffset(): number {
-        const percentage = this.thread.start.seconds / store.state.play.audioWindow.duration;
-        // TODO: This is to prevent the position to go beyond the border of the thread
-        // The proper computation should be 1 - width of timepoint element
-        return MathHelpers.clamp(percentage, 0, 0.75);
-    }
-
-    // Public API
-    public setIsExpanded(isExpanded: boolean): void {
-        this.isExpanded = isExpanded;
+    // Returns a string with position data to place the routerlink for the thread at the correct position
+    private get routerLinkPositionStyle(): string {
+        // TODO: reimplement this in a better way - currently this is an ugly magic number-y hack
+        // the offset of the timepoint in the current window
+        const offset = 0.99 * (this.thread.start.seconds - store.state.play.audioWindow.start.seconds) / store.state.play.audioWindow.duration;
+        return "left: calc(" + 100 * offset + "% - " + 4 * offset + "em)";
     }
 }
 

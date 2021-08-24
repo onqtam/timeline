@@ -60,7 +60,7 @@
                     &#60;{{audioWindow.start.format()}} - {{audioWindow.end.format()}}&#62;
                     range...
                 </h1>
-                <v-progress-circular :size="70" :width="7" color="grey" indeterminate/>
+                <v-progress-circular :size="70" :width="9" color="grey" indeterminate/>
             </v-overlay>
         </div>
 
