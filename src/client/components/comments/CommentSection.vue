@@ -83,10 +83,9 @@
 
 <script lang="ts">
 
-import { Component, Watch, Vue } from "vue-property-decorator";
+import { Component, Vue } from "vue-property-decorator";
 import store from "@/client/store";
 import { default as Comment } from "@/logic/entities/Comments";
-import { debounce } from "lodash";
 
 import { AudioWindow } from "@/logic/AudioFile";
 import Timepoint from "@/logic/entities/Timepoint";
@@ -105,6 +104,9 @@ export default class CommentSection extends Vue {
     }
     public get audioWindow(): AudioWindow {
         return store.state.play.audioWindow;
+    }
+    public get showLoadingCommentsOverlay(): boolean {
+        return store.state.play.showLoadingCommentsOverlay;
     }
     public get audioPos(): Timepoint {
         return store.state.play.audioPos;
@@ -127,36 +129,6 @@ export default class CommentSection extends Vue {
             store.dispatch.play.deleteComment(store.state.play.commentToDelete!);
         }
         store.commit.play.setCommentToDelete(undefined);
-    }
-
-    // ================================================================
-    // == debounced loading of comments
-    // ================================================================
-
-    static deepCopyAudioWindow(aw: AudioWindow): AudioWindow {
-        // TODO: fix this code-smell - there should be a better way!
-        // this needs to be a deep full copy because otherwise the reactivity of Vue would kick in and updates to the start
-        // of the window will trigger updating of the comment section and that would defeat the purpose of the debouncing
-        return new AudioWindow(aw.audioFile, new Timepoint(aw.start.seconds), aw.duration);
-    }
-
-    debouncedAudioWindow = CommentSection.deepCopyAudioWindow(this.audioWindow);
-    showLoadingCommentsOverlay = false;
-
-    stopLoadingComments(): void {
-        if (this.showLoadingCommentsOverlay) {
-            this.debouncedAudioWindow = CommentSection.deepCopyAudioWindow(this.audioWindow);
-        }
-        this.showLoadingCommentsOverlay = false;
-    }
-
-    debouncedStopLoadingComments = debounce(this.stopLoadingComments, 700) // we don't want to call this very often
-
-    // TODO: deep watching is slow!!! can we use mapState to avoid the x.y.z nesting when accessing the state?
-    @Watch("audioWindow", { deep: true })
-    private watchSomething() {
-        this.showLoadingCommentsOverlay = true;
-        this.debouncedStopLoadingComments();
     }
 
     // ================================================================
@@ -194,7 +166,7 @@ export default class CommentSection extends Vue {
     // ================================================================
 
     public get visibleThreads(): Comment[] {
-        const visibleThreads = this.commentThreads.filter(thread => this.debouncedAudioWindow.containsTimepoint(thread.start));
+        const visibleThreads = this.commentThreads.filter(thread => store.state.play.audioWindowDebounced.containsTimepoint(thread.start));
         visibleThreads.sort(this.compareCommentThreads.bind(this));
         return visibleThreads;
     }

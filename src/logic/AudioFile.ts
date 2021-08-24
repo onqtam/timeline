@@ -34,4 +34,9 @@ export class AudioWindow {
         // we want to position the window so that the cursor is always at 10%, except in the corner cases
         return MathHelpers.clamp(seconds - this.duration * 0.1, 0, this.audioFile.duration - this.duration);
     }
+
+    static deepCopy(aw: AudioWindow): AudioWindow {
+        // necessary in order to avoid the reactivity of Vue where we want debounced changes for the window
+        return new AudioWindow(aw.audioFile, new Timepoint(aw.start.seconds), aw.duration);
+    }
 }

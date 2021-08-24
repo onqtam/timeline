@@ -10,6 +10,7 @@ import CommonParams from "@/logic/CommonParams";
 import { HTTPVerb } from "@/logic/HTTPVerb";
 import User from "@/logic/entities/User";
 import axios, { AxiosResponse } from "axios";
+import { debounce } from "lodash";
 
 type FullCommentData = {
     allComments: Comment[];
@@ -21,6 +22,8 @@ class StorePlayViewModel {
     public audioFile!: AudioFile;
     public audioPos!: Timepoint;
     public audioWindow!: AudioWindow;
+    public audioWindowDebounced!: AudioWindow;
+    public showLoadingCommentsOverlay = false;
     public volume!: number;
     public allThreads!: Comment[];
     public commentDensityHistogram: number[];
@@ -33,6 +36,7 @@ class StorePlayViewModel {
         this.audioFile = new AudioFile();
         this.audioPos = new Timepoint();
         this.audioWindow = new AudioWindow(this.audioFile, new Timepoint(0), 0);
+        this.audioWindowDebounced = AudioWindow.deepCopy(this.audioWindow);
         this.volume = 95;
         this.allThreads = [];
 
@@ -40,6 +44,12 @@ class StorePlayViewModel {
         this.upvotes = new Set<number>();
         this.downvotes = new Set<number>();
     }
+
+    updateDebouncedWindow(): void {
+        store.commit.play.internalUpdateDebouncedWindow();
+    }
+
+    debouncedUpdateDebouncedWindow = debounce(this.updateDebouncedWindow, 700) // we don't want to call this very often
 
     // we should use a dedicated getter because in the future we might not have
     // all comments loaded by default as is currently being done with allThreads
@@ -50,6 +60,8 @@ class StorePlayViewModel {
 
     public moveAudioWindow(newStart: number): void {
         this.audioWindow.start.seconds = newStart;
+        this.debouncedUpdateDebouncedWindow();
+        this.showLoadingCommentsOverlay = true;
     }
     public moveAudioPos(newPos: number): void {
         if (newPos > this.audioFile.duration) {
@@ -69,6 +81,8 @@ class StorePlayViewModel {
         }
         this.audioWindow.start.seconds = start;
         this.audioWindow.duration = end - start;
+        this.debouncedUpdateDebouncedWindow();
+        this.showLoadingCommentsOverlay = true;
     }
 
     public generateNewLocalComment(startSeconds: number, content: string): Comment {
@@ -126,6 +140,12 @@ export default {
             //         break;
             //     }
             // });
+        },
+        internalUpdateDebouncedWindow: (state: StorePlayViewModel): void => {
+            if (state.showLoadingCommentsOverlay) {
+                state.audioWindowDebounced = AudioWindow.deepCopy(state.audioWindow);
+            }
+            state.showLoadingCommentsOverlay = false;
         },
         // Should only be called by the loadEpisode action
         internalSetActiveEpisode: (state: StorePlayViewModel, episode: Episode): void => {

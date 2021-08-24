@@ -64,7 +64,7 @@ export default class CommentThreadComponent extends Vue {
     private get routerLinkPositionStyle(): string {
         // TODO: reimplement this in a better way - currently this is an ugly magic number-y hack
         // the offset of the timepoint in the current window
-        const offset = 0.99 * (this.thread.start.seconds - store.state.play.audioWindow.start.seconds) / store.state.play.audioWindow.duration;
+        const offset = 0.99 * (this.thread.start.seconds - store.state.play.audioWindowDebounced.start.seconds) / store.state.play.audioWindowDebounced.duration;
         return "left: calc(" + 100 * offset + "% - " + 4 * offset + "em)";
     }
 }
