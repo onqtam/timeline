@@ -244,7 +244,9 @@ export default class Timeline extends Vue {
     private setPlayElementPositionFromMouse(mouseX: number): void {
         const newCursorPos = this.calculateCursorPositionFromMouse(mouseX);
         const newWindowStart = this.calculateWindowStartFromMouse(mouseX);
-        this.$emit("update:audioWindowStart", newWindowStart);
+        if (this.windowStart !== newWindowStart) {
+            this.$emit("update:audioWindowStart", newWindowStart);
+        }
         this.$emit("update:currentAudioPosition", newCursorPos);
     }
 
