@@ -288,6 +288,7 @@ export default class Timeline extends Vue {
 
 .animated-transition {
     transition: @player-transition-time;
+    transition-timing-function: @player-transition-timing-function;
 }
 
 .current-play-position {

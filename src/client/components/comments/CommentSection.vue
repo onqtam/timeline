@@ -48,7 +48,7 @@
                 <template v-if="visibleThreads.length === 0 && !showLoadingCommentsOverlay">
                     <h1 align="center" class="mt-7">
                         Be the first to comment in the
-                        &#60;{{audioWindow.start.format()}} - {{audioWindow.end.format()}}&#62;
+                        &#60; {{audioWindow.start.format()}} - {{audioWindow.end.format()}} &#62;
                         range!
                     </h1>
                 </template>
@@ -57,7 +57,7 @@
             <v-overlay absolute class="text-center align-start" opacity="0.8" :value="showLoadingCommentsOverlay">
                 <h1 class="mt-15">
                     Loading comments for the
-                    &#60;{{audioWindow.start.format()}} - {{audioWindow.end.format()}}&#62;
+                    &#60; {{audioWindow.start.format()}} - {{audioWindow.end.format()}} &#62;
                     range...
                 </h1>
                 <v-progress-circular :size="70" :width="9" color="grey" indeterminate/>

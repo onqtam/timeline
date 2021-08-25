@@ -127,6 +127,16 @@
             @update:currentAudioPosition=onCursorPositionMoved
         >
         </Timeline>
+        <div class="mt-2 mx-n2">
+            <v-range-slider
+                v-model="windowRange"
+                :min=0
+                :max=audio.duration
+                hide-details
+                class="animated-transition"
+                :class="shouldAnimate ? 'animated-transition' : 'no-transition'"
+            />
+        </div>
     </div>
 </template>
 
@@ -197,6 +207,13 @@ export default class TimelinePlayer extends Vue {
     }
     set windowEnd(value: number) {
         store.commit.play.setAudioWindow({ start: this.windowStart, end: value });
+    }
+    get windowRange(): number[] {
+        return [this.windowStart, this.windowEnd];
+    }
+    set windowRange(value: number[]) {
+        this.windowStart = value[0];
+        this.windowEnd = value[1];
     }
     get windowDuration(): number {
         return this.audioWindow.duration;
@@ -530,6 +547,15 @@ export default class TimelinePlayer extends Vue {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="less">
 @import "../../cssresources/theme.less";
+
+::v-deep .animated-transition .v-input__slot * {
+    transition: @player-transition-time;
+    transition-timing-function: @player-transition-timing-function;
+}
+
+::v-deep .no-transition .v-input__slot * {
+    transition: none;
+}
 
 .controls {
     background: rgb(37, 37, 37);
