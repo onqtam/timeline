@@ -35,48 +35,26 @@
                     :min=0 :max=100 :step=1 v-model=volume
                     label="Volume" thumb-label="always">
                 </v-slider>
-                <v-slider class="d-inline-block" style="width: 250px;"
-                    :max=audio.duration
-                    :min=10
-                    label="Window Size"
-                    thumb-label="always"
-                    thumb-size="40"
-                    v-model=windowDuration>
-                    <template v-slot:thumb-label=item>
-                        {{formatWindowDuration(item.value)}}
-                    </template>
-                </v-slider>
-                <!-- ALTERNATIVE POSITIONING OF THE LABEL: -->
-                <!--
-                <v-card flat color="transparent" class="d-inline-block">
-                    <v-subheader>Window Size</v-subheader>
-                    <v-card-text class="pt-0">
-                        <v-slider class="d-inline-block" style="width: 150px;"
-                            :max=audio.duration
-                            min=1
-                            thumb-label="always"
-                            thumb-size="40"
-                            v-model=windowDuration>
-                            <template v-slot:thumb-label="item">
-                                {{formatWindowDuration(item.value)}}
-                            </template>
-                        </v-slider>
-                    </v-card-text>
-                </v-card>
-                -->
                 <v-text-field label="Window Start" class="d-inline-block" style="width: 80px;"
                     v-mask="'##:##:##'"
                     autocomplete="off"
                     v-model=windowStartAsString
                     @change=windowStartChange
                 />
+                &nbsp;
+                <v-text-field label="Size" class="d-inline-block" style="width: 80px;"
+                    v-mask="'##:##:##'"
+                    autocomplete="off"
+                    v-model=windowDurationAsString
+                    @change=windowDurationChange
+                />
+                &nbsp;
                 <v-text-field label="Window End" class="d-inline-block" style="width: 80px;"
                     v-mask="'##:##:##'"
                     autocomplete="off"
                     v-model=windowEndAsString
                     @change=windowEndChange
                 />
-
                 <!-- TODO: use tooltips instead of title attribute - https://vuetifyjs.com/en/components/tooltips/ -->
                 <v-btn :title="isZoomline ? 'Pinch' : 'Unpinch'" @click=toggleZoomline width="50px">
                     {{ isZoomline ? '►◄' : '◄►' }}
@@ -217,28 +195,35 @@ export default class TimelinePlayer extends Vue {
     get windowDuration(): number {
         return this.audioWindow.duration;
     }
-    set windowDuration(value: number) {
-        if (this.isTimelineWindowSynced) {
-            // we want the cursor to remain in the same relative position in the window
-            const ratio = (this.audioPos.seconds - this.windowStart) / this.windowDuration;
-            const start = this.audioPos.seconds - value * ratio;
-            const end = start + value;
-            // offset the window forward or backward so that the duration fits if need be
-            let offset = start < 0 ? start : 0;
-            offset += end > this.audio.duration ? end - this.audio.duration : 0;
-            store.commit.play.setAudioWindow({ start: start - offset, end: end - offset });
+
+    windowDurationAsString = Timepoint.FullFormat(this.windowDuration);
+    windowDurationChange(): void {
+        const fromStr = Timepoint.tryParseFromFormattedText(this.windowDurationAsString, 3);
+        if (!fromStr || fromStr.seconds > this.audio.duration) {
+            // if it cannot be parsed or is longer than the entire episode - reset it
+            this.windowDurationAsString = Timepoint.FullFormat(this.windowDuration);
         } else {
-            // if the cursor is not in the window - just expand the window from the end
-            let backward_offset = 0;
-            // offset the window backward so that the duration fits if need be
-            if (this.windowStart + value > this.audio.duration) {
-                backward_offset = this.windowStart + value - this.audio.duration;
+            const value = fromStr.seconds;
+            if (this.isTimelineWindowSynced) {
+                // we want the cursor to remain in the same relative position in the window
+                const ratio = (this.audioPos.seconds - this.windowStart) / this.windowDuration;
+                const start = this.audioPos.seconds - value * ratio;
+                const end = start + value;
+                // offset the window forward or backward so that the duration fits if need be
+                let offset = start < 0 ? start : 0;
+                offset += end > this.audio.duration ? end - this.audio.duration : 0;
+                store.commit.play.setAudioWindow({ start: start - offset, end: end - offset });
+            } else {
+                // if the cursor is not in the window - just expand the window from the end
+                let backward_offset = 0;
+                // offset the window backward so that the duration fits if need be
+                if (this.windowStart + value > this.audio.duration) {
+                    backward_offset = this.windowStart + value - this.audio.duration;
+                }
+                store.commit.play.setAudioWindow({ start: this.windowStart - backward_offset, end: this.windowStart + value - backward_offset });
             }
-            store.commit.play.setAudioWindow({ start: this.windowStart - backward_offset, end: this.windowStart + value - backward_offset });
+            // TODO: update the router path as well?
         }
-    }
-    formatWindowDuration(input: number): string {
-        return (new Timepoint(input)).format();
     }
 
     windowStartAsString = Timepoint.FullFormat(this.windowStart);
@@ -270,6 +255,7 @@ export default class TimelinePlayer extends Vue {
     // TODO: perhaps use the callback we've given to setInterval?
     @Watch("audioWindow", { deep: true })
     private watchAudioWindow(): void {
+        this.windowDurationAsString = Timepoint.FullFormat(this.windowDuration);
         this.windowStartAsString = Timepoint.FullFormat(this.windowStart);
         this.windowEndAsString = Timepoint.FullFormat(this.windowEnd);
     }
