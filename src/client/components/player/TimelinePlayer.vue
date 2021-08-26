@@ -133,7 +133,6 @@
                 :min=0
                 :max=audio.duration
                 hide-details
-                class="animated-transition"
                 :class="shouldAnimate ? 'animated-transition' : 'no-transition'"
             />
         </div>
