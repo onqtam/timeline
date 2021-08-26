@@ -384,9 +384,9 @@ export default class TimelinePlayer extends Vue {
         const wasInSync = this.isTimelineWindowSynced;
         // advance vuex based on youtube - ONLY if we are not animating! otherwise the cursor
         // would be playing catch-up with the position it should be at during normal playback
-        if (!this.shouldAnimate) {
-            store.commit.play.moveAudioPos(newCursorPos);
-        }
+        // if (!this.shouldAnimate) { // KEEPING CODE IN CASE WE WANT TO REVERT
+        store.commit.play.moveAudioPos(newCursorPos);
+        // } // KEEPING CODE IN CASE WE WANT TO REVERT
         // move the window forward if the cursor was within it but is no longer
         if (wasInSync && !this.isTimelineWindowSynced) {
             const newWindowPos = this.audioWindow.start.seconds + this.audioWindow.duration;
@@ -395,10 +395,11 @@ export default class TimelinePlayer extends Vue {
         }
     }
 
-    shouldAnimate = false;
+    shouldAnimate = true;
+    // shouldAnimate = false; // KEEPING CODE IN CASE WE WANT TO REVERT
     stopAnimating(): void {
         // console.log("== stop animating")
-        this.shouldAnimate = false;
+        // this.shouldAnimate = false; // KEEPING CODE IN CASE WE WANT TO REVERT
     }
     debouncedStopAnimating = debounce(this.stopAnimating, 400); // == css transition duration
     animateCursorAndWindow(): void {
