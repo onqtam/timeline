@@ -31,6 +31,7 @@ class StorePlayViewModel {
     public downvotes: Set<number>; // this being in user instead of play is arbitrary
     public activeEpisode!: Episode;
     public commentToDelete?: Comment = undefined;
+    public noSeek: boolean = false; // used to tell the router not to seek over the timeline when the route params change
 
     constructor() {
         this.audioFile = new AudioFile();
@@ -243,6 +244,9 @@ export default {
         // },
         setCommentToDelete: (state: StorePlayViewModel, payload?: Comment): void => {
             state.commentToDelete = payload;
+        },
+        setNoSeek: (state: StorePlayViewModel, payload: boolean): void => {
+            state.noSeek = payload;
         }
     },
     actions: {

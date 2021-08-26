@@ -222,7 +222,7 @@ export default class TimelinePlayer extends Vue {
                 }
                 store.commit.play.setAudioWindow({ start: this.windowStart - backward_offset, end: this.windowStart + value - backward_offset });
             }
-            // TODO: update the router path as well?
+            this.updateRoute();
         }
     }
 
@@ -235,7 +235,7 @@ export default class TimelinePlayer extends Vue {
             // TODO: perhaps we should not reset if it's after the window end but simply move the end by the duration?
         } else {
             this.windowStart = fromStr.seconds;
-            // TODO: update the router path as well?
+            this.updateRoute();
         }
     }
 
@@ -247,7 +247,7 @@ export default class TimelinePlayer extends Vue {
             this.windowEndAsString = Timepoint.FullFormat(this.windowEnd);
         } else {
             this.windowEnd = fromStr.seconds;
-            // TODO: update the router path as well?
+            this.updateRoute();
         }
     }
 
@@ -258,6 +258,12 @@ export default class TimelinePlayer extends Vue {
         this.windowDurationAsString = Timepoint.FullFormat(this.windowDuration);
         this.windowStartAsString = Timepoint.FullFormat(this.windowStart);
         this.windowEndAsString = Timepoint.FullFormat(this.windowEnd);
+        // this.updateRoute(); // changes the url when following a link for a specific time point - not ideal
+    }
+
+    updateRoute() {
+        store.commit.play.setNoSeek(true); // because we don't want to mess with the cursor when the route updates
+        this.$router.push("?start=" + this.audioWindow.start.formatAsUrlParam() + "&end=" + this.audioWindow.end.formatAsUrlParam());
     }
 
     isZoomline = false;

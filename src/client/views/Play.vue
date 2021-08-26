@@ -22,8 +22,12 @@ import CommentSection from "@/client/components/comments/CommentSection.vue";
         CommentSection
     },
     beforeRouteUpdate(to: Route, from: Route, next: NavigationGuardNext<PlayView>): void {
-        // eslint-disable-next-line @typescript-eslint/no-use-before-define
-        PlayView.updateBasedOnRoute(to);
+        if (store.state.play.noSeek === true) {
+            store.commit.play.setNoSeek(false);
+        } else {
+            // eslint-disable-next-line @typescript-eslint/no-use-before-define
+            PlayView.updateBasedOnRoute(to);
+        }
 
         if (to.query.thread) {
             const threadIdToFocus: number = ~~to.query.thread;
