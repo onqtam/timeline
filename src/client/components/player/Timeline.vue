@@ -30,7 +30,9 @@
         >
             <div class="mark-container pt-6">
                 <div class="mark" v-for="(timepoint, index) in windowTimepoints" :key=index>
-                    <div class="window-label">
+                    <div class="window-label"
+                        :class="isZoomline ? 'window-label-zoomline-offset' : ''"
+                    >
                         {{ timepoint.format() }}
                     </div>
                 </div>
@@ -358,8 +360,15 @@ export default class Timeline extends Vue {
 }
 .mark:first-child {
     & .window-label {
-        transform: translate(-115%, 0%);
-        left: 0.1em;
+        transform: translateX(-100%);
+    }
+}
+.window-label-zoomline-offset {
+    transform: translateX(-100%);
+}
+.mark:first-child {
+    & .window-label-zoomline-offset {
+        transform: translateX(0%);
     }
 }
 
