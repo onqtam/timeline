@@ -47,7 +47,7 @@
             class="current-play-position"
             :class="shouldAnimate ? 'animated-transition' : ''"
             v-if="currentAudioPosition.seconds >= rangeStart && currentAudioPosition.seconds <= rangeEnd"
-            :style="{ left: normalize(currentAudioPosition.seconds) + '%' }"
+            :style="{ left: 'calc(' + normalize(currentAudioPosition.seconds) + '% - 1px)' }"
         >
             <div class="current-play-position-label">
                 {{ currentAudioPosition.format() }}
@@ -121,12 +121,13 @@ export default class Timeline extends Vue {
         return this.audioWindow.end.seconds;
     }
     get computeWindowStyle(): string {
-        if (this.isZoomline) {
-            return "left: 0%; width: 100%;";
-        } else {
-            return "left: " + this.normalize(this.audioWindow.start.seconds) + "%; width: " +
-            this.normalize(this.audioWindow.duration) + "%;";
+        let left = 0;
+        let width = 100;
+        if (!this.isZoomline) {
+            left = this.normalize(this.audioWindow.start.seconds);
+            width = this.normalize(this.audioWindow.duration);
         }
+        return "left: calc(" + left + "% - 0.02em); width: calc(" + width + "% - 0.1em);";
     }
 
     get histrogramText() {
@@ -297,8 +298,7 @@ export default class Timeline extends Vue {
     position: relative;
     top: -100%;
     height: 100%;
-    width: 0.5%;
-    min-width: 3px;
+    width: 0.2em;
     background: @theme-focus-color-4;
 }
 
@@ -352,7 +352,7 @@ export default class Timeline extends Vue {
     top: 0;
     height: 100%;
     background: @theme-focus-color-2;
-    @border: 0.1em double white;
+    @border: 0.1em solid rgba(255, 255, 255, 0.7);
     border-left: @border;
     border-right: @border;
     // cursor: ew-resize;
