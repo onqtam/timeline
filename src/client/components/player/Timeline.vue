@@ -3,7 +3,7 @@
         ref="timeline-container"
         class="timeline-container"
         @click=onJumpToPosition
-        @mouseenter="showTooltip = true"
+        @mouseenter="mouseHover = true"
         @mousemove=onMove
         @mouseleave=onMouseLeave
         @mousedown.left=onStartDragging
@@ -27,16 +27,23 @@
         <!-- Highlights the part of the audio that should be zoomed -->
         <div class="zoom-window" :style=computeWindowStyle
             :class="shouldAnimate ? 'animated-transition' : ''"
-        />
+        >
+            <div class="mark-container pt-6">
+                <div class="mark" v-for="(timepoint, index) in windowTimepoints" :key=index>
+                    <div class="window-label">
+                        {{ timepoint.format() }}
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Displays a chart of the audio file, only in Standard. -->
         <Chart v-if=!isZoomline ref="chart"/>
 
         <!-- Displays the small vertical lines that break down the timeline into small sections -->
         <div class="mark-container">
-            <div class="mark" v-for="(timepoint, index) in computedMarks" :key=index>
-                <div class="vertical-line"/>
-                <div class="vertical-line-label">
+            <div class="mark" v-for="(timepoint, index) in episodeTimepoints" :key=index>
+                <div v-if="!isZoomline" class="vertical-line-label">
                     {{ timepoint.format() }}
                 </div>
             </div>
@@ -96,14 +103,14 @@ import store from "../../store";
     }
 })
 export default class Timeline extends Vue {
-    @Prop({ type: Number })
-    public numberOfMarks!: number;
     @Prop({ type: Timepoint })
     public currentAudioPosition!: Timepoint;
     @Prop()
     public audioWindow!: AudioWindow;
     @Prop({ type: Boolean })
     public isZoomline!: boolean;
+    @Prop({ type: Boolean })
+    public showCursorTooltip!: boolean;
     @Prop({ type: Boolean })
     public shouldAnimate!: boolean;
 
@@ -138,7 +145,13 @@ export default class Timeline extends Vue {
     // == tooltip when hovering over the timeline
     // ================================================================
 
-    showTooltip = false;
+    get showTooltip(): boolean {
+        return this.mouseHover && this.showCursorTooltip;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    set showTooltip(_value: boolean) {} // sometimes gets assigned to probably because of the v-model - ignore it.
+
+    mouseHover = false;
     tooltip_x = 0;
     tooltip_y = 0;
     tooltipValue = "";
@@ -208,19 +221,16 @@ export default class Timeline extends Vue {
     // == other stuff
     // ================================================================
 
-    // TODO: remove/rework this at some point - we don't have many marks anymore - just 2
-    public get computedMarks(): Timepoint[] {
-        if (this.isZoomline) {
-            return [new Timepoint(this.windowStart), new Timepoint(this.windowEnd)];
-        } else {
-            return [new Timepoint(0), new Timepoint(this.audioWindow?.audioFile.duration)];
-        }
+    get windowTimepoints(): Timepoint[] {
+        return [new Timepoint(this.windowStart), new Timepoint(this.windowEnd)];
+    }
+    get episodeTimepoints(): Timepoint[] {
+        return [new Timepoint(0), new Timepoint(this.audioWindow?.audioFile.duration)];
     }
 
     // Internal data members
     // Whether the user is currently dragging the corresponding element
     private isDraggingPlayElement: boolean = false;
-    private timepointMarks: Timepoint[] = [];
 
     private normalize(value: number): number { return MathHelpers.normalize(value, this.rangeStart, this.rangeEnd); }
 
@@ -279,7 +289,7 @@ export default class Timeline extends Vue {
     }
 
     private onMouseLeave(): void {
-        this.showTooltip = false;
+        this.mouseHover = false;
         this.onStopDragging();
     }
 };
@@ -300,6 +310,11 @@ export default class Timeline extends Vue {
     height: 100%;
     width: 0.2em;
     background: @theme-focus-color-4;
+    z-index: 2;
+}
+
+.current-play-position-label {
+    padding-left: 0.5em;
 }
 
 .timeline-container {
@@ -325,27 +340,32 @@ export default class Timeline extends Vue {
 /* Design intention: position the line and the label next to each other with some spacing.
  * Have them have the same height
  */
-.vertical-line {
-    position: absolute;
-    bottom: 0px;
-    height: 1em;
-    width: 2%;
-    min-width: 3px;
-    background: @theme-background;
-}
 .vertical-line-label {
     position: absolute;
     bottom: 0px;
     left: 0.25em;
 }
 .mark:last-child {
-    & .vertical-line {
-        right: 0;
-    }
     & .vertical-line-label {
         transform: translate(-115%, 0%);
     }
 }
+
+
+.window-label {
+    position: absolute;
+    bottom: 0px;
+    left: -0.1em;
+    font-size: 0.9em;
+}
+.mark:first-child {
+    & .window-label {
+        transform: translate(-115%, 0%);
+        left: 0.1em;
+    }
+}
+
+
 .zoom-window {
     z-index: 1;
     position: absolute;
@@ -355,11 +375,7 @@ export default class Timeline extends Vue {
     @border: 0.1em solid rgba(255, 255, 255, 0.7);
     border-left: @border;
     border-right: @border;
-    // cursor: ew-resize;
     box-sizing: content-box;
 }
 
-.current-play-position-label {
-    padding-left: 0.5em;
-}
 </style>

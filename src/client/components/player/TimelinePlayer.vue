@@ -100,16 +100,19 @@
             :audioWindow=audioWindow
             :currentAudioPosition=audioPos
             :isZoomline=isZoomline
+            :showCursorTooltip=showCursorTooltip
             :shouldAnimate=shouldAnimate
             @update:audioWindowStart=onTimelineWindowMoved
             @update:currentAudioPosition=onCursorPositionMoved
         >
         </Timeline>
-        <div class="mt-2 mx-n2">
+        <div class="mt-3 mx-n2">
             <v-range-slider
                 v-model="windowRange"
                 :min=0
                 :max=audio.duration
+                @mousedown=rangeSliderClickStart
+                @mouseup=rangeSliderClickEnd
                 hide-details
                 :class="shouldAnimate ? 'animated-transition' : 'no-transition'"
             />
@@ -270,6 +273,14 @@ export default class TimelinePlayer extends Vue {
     toggleZoomline(): void {
         this.isZoomline = !this.isZoomline;
         this.animateCursorAndWindow();
+    }
+
+    showCursorTooltip = true;
+    rangeSliderClickStart(_e: MouseEvent) {
+        this.showCursorTooltip = false;
+    }
+    rangeSliderClickEnd(_e: MouseEvent) {
+        this.showCursorTooltip = true;
     }
 
     // ================================================================
