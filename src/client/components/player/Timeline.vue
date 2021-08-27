@@ -42,21 +42,22 @@
 
         <!-- Displays the small vertical lines that break down the timeline into small sections -->
         <div class="mark-container">
-            <div class="mark" v-for="(timepoint, index) in episodeTimepoints" :key=index>
-                <div v-if="!isZoomline" class="vertical-line-label">
+            <div class="mark" v-for="(timepoint, index) in runtimeTimepoints" :key=index>
+                <div v-if="!isZoomline" class="runtime-label">
                     {{ timepoint.format() }}
                 </div>
             </div>
         </div>
 
         <!-- Displays a vertical line denoting the current audio position; -->
-        <div
-            class="current-play-position"
+        <div class="current-play-position"
             :class="shouldAnimate ? 'animated-transition' : ''"
             v-if="currentAudioPosition.seconds >= rangeStart && currentAudioPosition.seconds <= rangeEnd"
             :style="{ left: 'calc(' + normalize(currentAudioPosition.seconds) + '% - 1px)' }"
         >
-            <div class="current-play-position-label">
+            <div class="current-play-position-label"
+                :style="{ transform: 'translateX(-' + normalize(currentAudioPosition.seconds) + '%)' }"
+            >
                 {{ currentAudioPosition.format() }}
             </div>
         </div>
@@ -224,7 +225,7 @@ export default class Timeline extends Vue {
     get windowTimepoints(): Timepoint[] {
         return [new Timepoint(this.windowStart), new Timepoint(this.windowEnd)];
     }
-    get episodeTimepoints(): Timepoint[] {
+    get runtimeTimepoints(): Timepoint[] {
         return [new Timepoint(0), new Timepoint(this.audioWindow?.audioFile.duration)];
     }
 
@@ -314,7 +315,8 @@ export default class Timeline extends Vue {
 }
 
 .current-play-position-label {
-    padding-left: 0.5em;
+    padding-top: 1.7em;
+    display: inline-block;
 }
 
 .timeline-container {
@@ -337,20 +339,16 @@ export default class Timeline extends Vue {
     position: relative;
 }
 
-/* Design intention: position the line and the label next to each other with some spacing.
- * Have them have the same height
- */
-.vertical-line-label {
+.runtime-label {
     position: absolute;
-    bottom: 0px;
+    top: 0.25em;
     left: 0.25em;
 }
 .mark:last-child {
-    & .vertical-line-label {
+    & .runtime-label {
         transform: translate(-115%, 0%);
     }
 }
-
 
 .window-label {
     position: absolute;
@@ -364,7 +362,6 @@ export default class Timeline extends Vue {
         left: 0.1em;
     }
 }
-
 
 .zoom-window {
     z-index: 1;
