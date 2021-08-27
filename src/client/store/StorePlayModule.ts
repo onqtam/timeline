@@ -19,32 +19,20 @@ type FullCommentData = {
 }
 
 class StorePlayViewModel {
-    public audioFile!: AudioFile;
-    public audioPos!: Timepoint;
-    public audioWindow!: AudioWindow;
-    public audioWindowDebounced!: AudioWindow;
+    public audioFile = new AudioFile();
+    public audioPos = new Timepoint();
+    public audioWindow = new AudioWindow(this.audioFile, new Timepoint(0), 0);
+    public audioWindowDebounced = AudioWindow.deepCopy(this.audioWindow);
     public showLoadingCommentsOverlay = false;
-    public volume!: number;
-    public allThreads!: Comment[];
-    public commentDensityHistogram: number[];
-    public upvotes: Set<number>; // this being in user instead of play is arbitrary
-    public downvotes: Set<number>; // this being in user instead of play is arbitrary
+    public volume: number = 100;
+    public allThreads: Comment[] = [];
+    public commentDensityHistogram: number[] = [];
+    public commentDensityHistogramNormalized: number[] = [];
+    public upvotes = new Set<number>(); // this being in user instead of play is arbitrary
+    public downvotes = new Set<number>(); // this being in user instead of play is arbitrary
     public activeEpisode!: Episode;
     public commentToDelete?: Comment = undefined;
     public noSeek: boolean = false; // used to tell the router not to seek over the timeline when the route params change
-
-    constructor() {
-        this.audioFile = new AudioFile();
-        this.audioPos = new Timepoint();
-        this.audioWindow = new AudioWindow(this.audioFile, new Timepoint(0), 0);
-        this.audioWindowDebounced = AudioWindow.deepCopy(this.audioWindow);
-        this.volume = 95;
-        this.allThreads = [];
-
-        this.commentDensityHistogram = [];
-        this.upvotes = new Set<number>();
-        this.downvotes = new Set<number>();
-    }
 
     updateDebouncedWindow(): void {
         store.commit.play.internalUpdateDebouncedWindow();
@@ -103,6 +91,14 @@ class StorePlayViewModel {
         return comment;
     }
 
+    public normalizeHistogram(): void {
+        // normalize all values to be between 0 and 1 based on how they compare to the max elem
+        const maxElem = Math.max(...(this.commentDensityHistogram));
+        if (maxElem) { // avoid division by zero
+            this.commentDensityHistogramNormalized = this.commentDensityHistogram.map(elem => elem / maxElem);
+        }
+    }
+
     public async loadCommentData(episode: Episode): Promise<FullCommentData> {
         console.log(`Fetching ALL comments for episode ${episode.id}`);
         const loadCommentsURL: string = `${CommonParams.APIServerRootURL}/comments/${episode.id}/${0}-${episode.durationInSeconds}`;
@@ -159,6 +155,7 @@ export default {
         internalSetActiveEpisodeComments: (state: StorePlayViewModel, commentData: FullCommentData): void => {
             state.allThreads = commentData.allComments;
             state.commentDensityHistogram = commentData.commentDensityHistogram;
+            state.normalizeHistogram();
 
             commentData.votesByUser.map(curr => {
                 if (curr.wasVotePositive) {
@@ -175,6 +172,14 @@ export default {
                 payload.commentToReplyTo.replies.push(payload.newLocalComment);
             } else {
                 state.allThreads.push(payload.newLocalComment);
+                // update the histogram for the new comment locally
+                if (!payload.commentToReplyTo) {
+                    const NUM_BUCKETS = 100;
+                    const BUCKET_SIZE = state.audioFile.duration / NUM_BUCKETS;
+                    const bucketIdx = payload.newLocalComment.start.seconds / BUCKET_SIZE | 0; // cast to int ala JS style
+                    state.commentDensityHistogram[bucketIdx]++;
+                    state.normalizeHistogram();
+                }
             }
         },
         internalLocalEditComment: (state: StorePlayViewModel, payload: { comment: Comment; content: string }): void => {

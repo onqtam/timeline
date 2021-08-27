@@ -16,7 +16,7 @@ import store from "@/client/store";
 @Component
 export default class Chart extends Vue {
     get barData(): number[] {
-        return store.state.play.commentDensityHistogram;
+        return store.state.play.commentDensityHistogramNormalized;
     }
 }
 </script>

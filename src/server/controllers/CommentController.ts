@@ -130,7 +130,7 @@ export default class CommentController {
             .orderBy(`"bucketIndex"`)
             .execute();
         const xAxis: number[] = commentBucketHistogram.map(record => record.bucketIndex);
-        let yAxis: number[] = commentBucketHistogram.map(record => ~~record.commentCount); // node-pg returns COUNT as a string so convert to number
+        const yAxis: number[] = commentBucketHistogram.map(record => ~~record.commentCount); // node-pg returns COUNT as a string so convert to number
 
         // Fill in values for missing buckets
         for (let i = 0; i < xAxis.length; i++) {
@@ -143,12 +143,6 @@ export default class CommentController {
         // Fill in values for the remaining empty buckets
         for (let i = xAxis.length; i < NUM_BUCKETS; i++) {
             yAxis.splice(i, 0, 0);
-        }
-
-        // calibrate all values to be between 0 and 1 based on how they compare to the max
-        const maxElem = Math.max(...yAxis);
-        if (maxElem) { // avoid division by zero
-            yAxis = yAxis.map(elem => elem / maxElem);
         }
 
         response.end(EncodingUtils.jsonify(yAxis));
