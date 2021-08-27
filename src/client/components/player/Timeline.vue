@@ -198,8 +198,8 @@ export default class Timeline extends Vue {
     copy_range(): void {
         let url = window.location.origin;
         url += "/play/" + store.state.play.activeEpisode.id;
-        url += "?start=" + (new Timepoint(this.windowStart)).formatAsUrlParam();
-        url += "&end=" + (new Timepoint(this.windowEnd)).formatAsUrlParam();
+        url += "?start=" + this.audioWindow.start.formatAsUrlParam();
+        url += "&end=" + this.audioWindow.end.formatAsUrlParam();
         Clipboard.copyToClipboard(url);
     }
 

@@ -12,29 +12,24 @@ export default class Timepoint {
         this.normalize();
     }
 
-    public static tryParseFromFormattedText(text: string, minSections = 2): Timepoint|null {
-        const elements = text?.split(":");
+    private static tryParse(text: string, minSections: number, delimiter: string): Timepoint | undefined {
+        const elements = text?.split(delimiter);
         if (!elements || elements.length < minSections || elements.length > 3) {
-            return null;
+            return undefined;
         }
         const timeComponents: number[] = elements.map(e => ~~e);
         const seconds: number = timeComponents.pop()!;
-        const minutes: number = timeComponents.pop()!;
+        const minutes: number = timeComponents.pop() || 0;
         const hours: number = timeComponents.pop() || 0;
+        return new Timepoint(hours * 3600 + minutes * 60 + seconds);
+    }
 
-        const totalSeconds = hours * 3600 + minutes * 60 + seconds;
-        return new Timepoint(totalSeconds);
+    public static tryParseFromFormattedText(text: string, minSections = 2): Timepoint | undefined {
+        return Timepoint.tryParse(text, minSections, ":");
     }
 
     public static tryParseFromURL(text: string): Timepoint | undefined {
-        const elements = text?.split("-");
-        if (!elements || elements.length !== 3) {
-            return undefined;
-        }
-        const [hours, minutes, seconds]: number[] = elements.map(e => ~~e);
-
-        const totalSeconds = hours * 3600 + minutes * 60 + seconds;
-        return new Timepoint(totalSeconds);
+        return Timepoint.tryParse(text, 1, "-");
     }
 
     // Rounds the seconds to the nearest second to avoid any sub-second instability
@@ -44,7 +39,7 @@ export default class Timepoint {
     }
 
     public formatAsUrlParam(): string {
-        return this.formatExtended("-", false);
+        return this.formatExtended("-", true);
     }
 
     public static FullFormat(value: number): string {
@@ -55,7 +50,11 @@ export default class Timepoint {
         return this.formatExtended(":", true);
     }
 
-    private formatExtended(delimiter: string, dropHoursIfPossible: boolean): string {
+    public fullFormat(): string {
+        return this.formatExtended(":", false);
+    }
+
+    private formatExtended(delimiter: string, dropNumbersIfPossible: boolean): string {
         let mutableSeconds = this.seconds;
         const hours = Math.floor(mutableSeconds / 3600);
         mutableSeconds -= hours * 3600;
@@ -65,7 +64,10 @@ export default class Timepoint {
         // tc for time component; short name to make the usage easier
         const tc = (val: number) => this._formatTimeComponent(val);
 
-        if (dropHoursIfPossible && hours === 0) {
+        if (dropNumbersIfPossible && minutes === 0 && hours === 0) {
+            return `${tc(leftOverSeconds)}`;
+        }
+        if (dropNumbersIfPossible && hours === 0) {
             return `${tc(minutes)}${delimiter}${tc(leftOverSeconds)}`;
         }
         return `${tc(hours)}${delimiter}${tc(minutes)}${delimiter}${tc(leftOverSeconds)}`;

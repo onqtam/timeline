@@ -90,7 +90,7 @@ async function parseChannelFromRSS(rssFeed: string, rssContent: string): Promise
             continue;
         }
         const durationText: string = episodeItem.firstChild("duration").getText(); // usually itunes:duration
-        let asTimepoint: Timepoint|null = Timepoint.tryParseFromFormattedText(durationText);
+        let asTimepoint: Timepoint|undefined = Timepoint.tryParseFromFormattedText(durationText);
         if (!asTimepoint) {
             // if there aren't timepoints with ":" delimiters then it's just total seconds
             asTimepoint = new Timepoint(~~durationText);

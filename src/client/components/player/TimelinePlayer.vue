@@ -258,7 +258,7 @@ export default class TimelinePlayer extends Vue {
         this.windowDurationAsString = Timepoint.FullFormat(this.windowDuration);
         this.windowStartAsString = Timepoint.FullFormat(this.windowStart);
         this.windowEndAsString = Timepoint.FullFormat(this.windowEnd);
-        // this.updateRoute(); // changes the url when following a link for a specific time point - not ideal
+        // this.updateRoute(); // changes the url even after following a link for a specific time point - not ideal - should preserve t=
     }
 
     updateRoute() {

@@ -13,7 +13,7 @@
                             <template v-for="(item, index) in agenda.items">
                                 <v-list-item :key=item.timestamp.seconds :active="agenda.isAgendaItemActive(index, audioPos)">
                                     <v-list-item-action>
-                                        <v-list-item-action-text v-text=item.timestamp.format() />
+                                        <v-list-item-action-text v-text=item.timestamp.fullFormat() />
                                     </v-list-item-action>
                                     <!-- TODO: CLAMP LENGTH OF TEXT -->
                                     <v-list-item-title>{{ item.text }}</v-list-item-title>
