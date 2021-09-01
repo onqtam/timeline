@@ -6,7 +6,9 @@
             :style=routerLinkPositionStyle
             :to="'?t=' + thread.start.formatAsUrlParam()"
         >
-            {{ thread.start.format() }}
+            <div @click=moveAudioPos>
+                {{ thread.start.format() }}
+            </div>
         </router-link>
         <CommentControlsComponent
             :key=thread.id
@@ -66,6 +68,10 @@ export default class CommentThreadComponent extends Vue {
         // the offset of the timepoint in the current window
         const offset = 0.99 * (this.thread.start.seconds - store.state.play.audioWindowDebounced.start.seconds) / store.state.play.audioWindowDebounced.duration;
         return "left: calc(" + 100 * offset + "% - " + 4 * offset + "em)";
+    }
+
+    moveAudioPos(): void {
+        store.commit.play.seekTo(this.thread.start.seconds);
     }
 }
 
