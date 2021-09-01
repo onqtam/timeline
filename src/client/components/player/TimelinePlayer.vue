@@ -316,7 +316,7 @@ export default class TimelinePlayer extends Vue {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onPlayerReady(_event: any): void {
-        // console.log("== onPlayerReady");
+        console.log("== onPlayerReady");
         this.isYouTubeReady = true;
         this.youtubePlayer.setVolume(this.volume);
     }

@@ -34,7 +34,8 @@ export default class Chart extends Vue {
 .bar {
     flex-grow: 1;
     background-color: red;
-    margin: 0 1px;
+    margin-left: 1px;
+    transition: 0.3s;
 }
 
 </style>

@@ -156,6 +156,7 @@ export default {
         internalSetActiveEpisodeComments: (state: StorePlayViewModel, commentData: FullCommentData): void => {
             state.allThreads = commentData.allComments;
             state.commentDensityHistogram = commentData.commentDensityHistogram;
+            state.commentDensityHistogramNormalized = [];
             state.normalizeHistogram();
 
             commentData.votesByUser.map(curr => {
