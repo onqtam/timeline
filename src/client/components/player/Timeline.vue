@@ -2,15 +2,42 @@
     <div
         ref="timeline-container"
         class="timeline-container"
-        @click=onJumpToPosition
-        @mouseenter="mouseHover = true"
-        @mousemove=onMove
-        @mouseleave=onMouseLeave
-        @mousedown.left=onStartDragging
-        @mouseup.left=onStopDragging
-        v-ripple
-        @contextmenu="showContextMenu"
     >
+        <!-- this is necessary because otherwise the labels for the zoom-window would extend the clickable area and then clicks below the zoom window would still move the cursor and show a tooltip & the cursos as a pointer -->
+        <div class="timeline-container-for-interaction"
+            @click=onJumpToPosition
+            @mouseenter="mouseHover = true"
+            @mousemove=onMove
+            @mouseleave=onMouseLeave
+            @mousedown.left=onStartDragging
+            @mouseup.left=onStopDragging
+            @contextmenu="showContextMenu"
+        >
+            <!-- this is the tooltip that follows the cursor and showing the position in the audio beneath -->
+            <v-tooltip top :position-x=tooltip_x :position-y=tooltip_y v-model=showTooltip>{{ tooltipValue }}</v-tooltip>
+
+            <!-- this is the right-click menu -->
+            <v-menu v-model=shouldShowContextMenu :position-x=right_click_menu_x :position-y=right_click_menu_y absolute offset-y>
+                <v-list>
+                    <v-list-item-group> <!-- necessary for the hovering effects of the separate elements to be present -->
+                        <v-list-item>
+                            <v-list-item-title @click=copy_position>
+                                <v-icon>mdi-link-variant</v-icon>
+                                copy link to current position
+                            </v-list-item-title>
+                        </v-list-item>
+                        <v-divider/>
+                        <v-list-item>
+                            <v-list-item-title @click=copy_range>
+                                <v-icon>mdi-link-variant</v-icon>
+                                copy link to range
+                            </v-list-item-title>
+                        </v-list-item>
+                    </v-list-item-group>
+                </v-list>
+            </v-menu>
+        </div>
+
         <!-- BEAUTIFUL MAGIC NUMBERS - NO CLUE HOW/WHY IT WORKS!!!
         Adapted from here: https://stackoverflow.com/a/30921225
         I also tried with fittext from here but couldn't get it to work:
@@ -62,30 +89,6 @@
                 {{ currentAudioPosition.format() }}
             </div>
         </div>
-
-        <!-- this is the tooltip that follows the cursor and showing the position in the audio beneath -->
-        <v-tooltip top :position-x=tooltip_x :position-y=tooltip_y v-model=showTooltip>{{ tooltipValue }}</v-tooltip>
-
-        <!-- this is the right-click menu -->
-        <v-menu v-model=shouldShowContextMenu :position-x=right_click_menu_x :position-y=right_click_menu_y absolute offset-y>
-            <v-list>
-                <v-list-item-group> <!-- necessary for the hovering effects of the separate elements to be present -->
-                    <v-list-item>
-                        <v-list-item-title @click=copy_position>
-                            <v-icon>mdi-link-variant</v-icon>
-                            copy link to current position
-                        </v-list-item-title>
-                    </v-list-item>
-                    <v-divider/>
-                    <v-list-item>
-                        <v-list-item-title @click=copy_range>
-                            <v-icon>mdi-link-variant</v-icon>
-                            copy link to range
-                        </v-list-item-title>
-                    </v-list-item>
-                </v-list-item-group>
-            </v-list>
-        </v-menu>
   </div>
 </template>
 
@@ -327,6 +330,14 @@ export default class Timeline extends Vue {
     // border: 2px solid @theme-focus-color-3;
     position: relative;
     user-select: none;
+    // cursor: pointer;
+}
+
+.timeline-container-for-interaction {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    z-index: 5;
     cursor: pointer;
 }
 
