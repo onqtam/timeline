@@ -3,7 +3,7 @@
         <div v-for="(item, index) in barData"
             :key=index
             class="bar"
-            :style="{ height: item * 100 + '%' }"
+            :style="{ height: 'calc(' + item * 100 + '% - 2px)' }"
         />
     </div>
 </template>
@@ -34,8 +34,8 @@ export default class Chart extends Vue {
 .bar {
     flex-grow: 1;
     background-color: red;
-    margin-left: 1px;
-    transition: 0.3s;
+    margin-right: 1px;
+    transition: 0.5s;
 }
 
 </style>

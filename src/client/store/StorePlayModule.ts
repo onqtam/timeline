@@ -27,7 +27,7 @@ class StorePlayViewModel {
     public volume: number = 100;
     public allThreads: Comment[] = [];
     public commentDensityHistogram: number[] = [];
-    public commentDensityHistogramNormalized: number[] = [];
+    public commentDensityHistogramNormalized: number[] = new Array(100).fill(0);
     public upvotes = new Set<number>(); // this being in user instead of play is arbitrary
     public downvotes = new Set<number>(); // this being in user instead of play is arbitrary
     public activeEpisode!: Episode;
@@ -95,6 +95,7 @@ class StorePlayViewModel {
     public normalizeHistogram(): void {
         // normalize all values to be between 0 and 1 based on how they compare to the max elem
         const maxElem = Math.max(...(this.commentDensityHistogram));
+        this.commentDensityHistogramNormalized.fill(0);
         if (maxElem) { // avoid division by zero
             this.commentDensityHistogramNormalized = this.commentDensityHistogram.map(elem => elem / maxElem);
         }
@@ -156,7 +157,6 @@ export default {
         internalSetActiveEpisodeComments: (state: StorePlayViewModel, commentData: FullCommentData): void => {
             state.allThreads = commentData.allComments;
             state.commentDensityHistogram = commentData.commentDensityHistogram;
-            state.commentDensityHistogramNormalized = [];
             state.normalizeHistogram();
 
             commentData.votesByUser.map(curr => {
