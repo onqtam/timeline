@@ -54,7 +54,8 @@ class StorePlayViewModel {
         this.showLoadingCommentsOverlay = true;
     }
     public moveAudioPos(newPos: number): void {
-        if (newPos > this.audioFile.duration) {
+        // need the "+0.1" in order not to reset to the window start when an episode finishes
+        if (newPos > this.audioFile.duration + 0.1) {
             console.warn("position out of bounds for the episode!");
             newPos = this.audioWindow.start.seconds;
         }

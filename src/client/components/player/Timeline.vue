@@ -11,7 +11,6 @@
         v-ripple
         @contextmenu="showContextMenu"
     >
-
         <!-- BEAUTIFUL MAGIC NUMBERS - NO CLUE HOW/WHY IT WORKS!!!
         Adapted from here: https://stackoverflow.com/a/30921225
         I also tried with fittext from here but couldn't get it to work:

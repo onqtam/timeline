@@ -138,12 +138,12 @@ declare global {
     // eslint-disable-next-line @typescript-eslint/interface-name-prefix
     interface Window {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        onYouTubeIframeAPIReady: any;
+        isYouTubeIframeAPIReady: any;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         YT: any;
     }
 }
-window.onYouTubeIframeAPIReady = window.onYouTubeIframeAPIReady || {};
+window.isYouTubeIframeAPIReady = window.isYouTubeIframeAPIReady || {};
 window.YT = window.YT || {};
 
 const TIME_DIVERGENCE_BOUNDRY = 1;
@@ -289,50 +289,52 @@ export default class TimelinePlayer extends Vue {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     youtubePlayer: any;
-    youtubeState = -1;
+    youtubeState = -1; // window.YT.PlayerState.UNSTARTED (cannot use YT - not initialized yet)
+    isYouTubeReady = false;
 
-    get isYouTubeReady(): boolean { return this.youtubeState !== -1; }
-    get isYouTubePlaying(): boolean { return this.youtubeState === 1 || this.youtubeState === 3; }
+    get isYouTubePlaying(): boolean {
+        return this.isYouTubeReady && (this.youtubeState === window.YT.PlayerState.PLAYING
+            || this.youtubeState === window.YT.PlayerState.BUFFERING);
+    }
     get isYouTube(): boolean {
         return this.activeEpisode.external_source === CommonParams.EXTERNAL_SOURCE_YOUTUBE;
     }
 
-    initYouTubePlayer(): void {
-        console.log("== initYouTubePlayer");
-        // TODO: figure out how to add this script properly to the website
-        const tag = document.createElement("script");
-        tag.id = "iframe-demo";
-        tag.src = "https://www.youtube.com/iframe_api";
-        const firstScriptTag = document.getElementsByTagName("script")[0];
-        firstScriptTag.parentNode!.insertBefore(tag, firstScriptTag);
-
-        // the youtube script expects such a function to exist and calls it when ready
-        window.onYouTubeIframeAPIReady = () => {
-            console.log("== onYouTubeIframeAPIReady");
+    initYouTubePlayer() {
+        if (window.isYouTubeIframeAPIReady === true) {
             this.youtubePlayer = new window.YT.Player("player_iframe", {
                 events: {
                     onReady: this.onPlayerReady,
                     onStateChange: this.onPlayerStateChange
                 }
             });
-        };
+        } else {
+            // continue polling until the YouTube API is loaded
+            setTimeout(this.initYouTubePlayer, 100);
+        }
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onPlayerReady(_event: any): void {
-        console.log("== onPlayerReady");
-        this.youtubeState = 0;
+        // console.log("== onPlayerReady");
+        this.isYouTubeReady = true;
         this.youtubePlayer.setVolume(this.volume);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onPlayerStateChange(event: any): void {
-        console.log("== onPlayerStateChange " + event.data);
-        this.youtubeState = event.data;
-        if (this.youtubeState === 1) {
-            this.play();
-        }
+        let eventName = "";
         // https://developers.google.com/youtube/iframe_api_reference#Events
+        switch (event.data) {
+            case window.YT.PlayerState.UNSTARTED: eventName = "UNSTARTED"; break;
+            case window.YT.PlayerState.ENDED: eventName = "ENDED"; break;
+            case window.YT.PlayerState.PLAYING: eventName = "PLAYING"; break;
+            case window.YT.PlayerState.PAUSED: eventName = "PAUSED"; break;
+            case window.YT.PlayerState.BUFFERING: eventName = "BUFFERING"; break;
+            case window.YT.PlayerState.CUED: eventName = "CUED"; break;
+        }
+        this.youtubeState = event.data;
+        // console.log("== onPlayerStateChange: " + eventName);
     }
 
     // ================================================================
@@ -374,8 +376,9 @@ export default class TimelinePlayer extends Vue {
     }
 
     private get isTimelineWindowSynced(): boolean {
+        // need the "+0.1" in order not to move the window further when an episode finishes
         return this.audioPos.seconds >= this.windowStart &&
-            this.audioPos.seconds <= this.windowStart + this.audioWindow.duration;
+            this.audioPos.seconds <= this.windowStart + this.audioWindow.duration + 0.1;
     }
 
     youtubePlayerTimeLast = 0;
@@ -523,13 +526,10 @@ export default class TimelinePlayer extends Vue {
         }
     }
 
-    created(): void {
+    mounted(): void {
         if (this.isYouTube) {
             this.initYouTubePlayer();
         }
-    }
-
-    mounted(): void {
         // const playbackProgress: number = store.state.user.getPlaybackProgressForEpisode(this.activeEpisode.id).seconds;
         // store.commit.play.moveAudioPos(playbackProgress);
         if (!this.isYouTube) {
