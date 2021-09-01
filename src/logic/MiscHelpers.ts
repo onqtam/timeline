@@ -18,10 +18,10 @@ export function parseYouTubeVideoIdFromUrl(url: string): string|false {
     // should maybe use this?
     // https://stackoverflow.com/a/66359796/3162383
     // https://github.com/pytube/pytube/blob/fc9aec5c35829f2ebb4ef8dd599b14a666850d20/pytube/extract.py#L118
-    url = url.replace("app=desktop&","");
-    let idx = url.indexOf("time_continue");
+    url = url.replace("app=desktop&", "");
+    const idx = url.indexOf("time_continue");
     if (idx >= 0) {
-        let idx2 = url.indexOf("&", idx);
+        const idx2 = url.indexOf("&", idx);
         url = url.replace(url.substring(idx, idx2 + 1), "");
     }
 
