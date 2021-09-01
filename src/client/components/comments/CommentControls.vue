@@ -46,15 +46,13 @@ export default class CommentControlsComponent extends Vue {
     @Prop({ type: Boolean })
     public readonly isCollapsible!: boolean;
 
-    get hasVotedUp(): boolean {
-        return store.state.play.upvotes.has(this.comment.id);
-    }
-    get hasVotedDown(): boolean {
-        return store.state.play.downvotes.has(this.comment.id);
-    }
+    hasVotedUp = false;
+    hasVotedDown = false;
 
     public mounted(): void {
         this.$emit("update:isExpanded", this.isExpanded);
+        this.hasVotedUp = store.state.play.upvotes.has(this.comment.id);
+        this.hasVotedDown = store.state.play.downvotes.has(this.comment.id);
     }
 
     private isExpanded: boolean = true;
@@ -76,12 +74,14 @@ export default class CommentControlsComponent extends Vue {
     private voteUp(): void {
         if (this.checkAndShowLoginDialog()) {
             store.dispatch.play.vote({ comment: this.comment, isVotePositive: true });
+            this.hasVotedUp = !this.hasVotedUp;
         }
     }
 
     private voteDown(): void {
         if (this.checkAndShowLoginDialog()) {
             store.dispatch.play.vote({ comment: this.comment, isVotePositive: false });
+            this.hasVotedDown = !this.hasVotedDown;
         }
     }
 }
