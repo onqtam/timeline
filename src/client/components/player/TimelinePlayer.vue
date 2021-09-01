@@ -293,8 +293,8 @@ export default class TimelinePlayer extends Vue {
     isYouTubeReady = false;
 
     get isYouTubePlaying(): boolean {
-        return this.isYouTubeReady && (this.youtubeState === window.YT.PlayerState.PLAYING
-            || this.youtubeState === window.YT.PlayerState.BUFFERING);
+        return this.isYouTubeReady && (this.youtubeState === window.YT.PlayerState.PLAYING ||
+            this.youtubeState === window.YT.PlayerState.BUFFERING);
     }
     get isYouTube(): boolean {
         return this.activeEpisode.external_source === CommonParams.EXTERNAL_SOURCE_YOUTUBE;
@@ -323,18 +323,18 @@ export default class TimelinePlayer extends Vue {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onPlayerStateChange(event: any): void {
-        let eventName = "";
-        // https://developers.google.com/youtube/iframe_api_reference#Events
-        switch (event.data) {
-            case window.YT.PlayerState.UNSTARTED: eventName = "UNSTARTED"; break;
-            case window.YT.PlayerState.ENDED: eventName = "ENDED"; break;
-            case window.YT.PlayerState.PLAYING: eventName = "PLAYING"; break;
-            case window.YT.PlayerState.PAUSED: eventName = "PAUSED"; break;
-            case window.YT.PlayerState.BUFFERING: eventName = "BUFFERING"; break;
-            case window.YT.PlayerState.CUED: eventName = "CUED"; break;
-        }
-        this.youtubeState = event.data;
+        // let eventName = "";
+        // // https://developers.google.com/youtube/iframe_api_reference#Events
+        // switch (event.data) {
+        //     case window.YT.PlayerState.UNSTARTED: eventName = "UNSTARTED"; break;
+        //     case window.YT.PlayerState.ENDED: eventName = "ENDED"; break;
+        //     case window.YT.PlayerState.PLAYING: eventName = "PLAYING"; break;
+        //     case window.YT.PlayerState.PAUSED: eventName = "PAUSED"; break;
+        //     case window.YT.PlayerState.BUFFERING: eventName = "BUFFERING"; break;
+        //     case window.YT.PlayerState.CUED: eventName = "CUED"; break;
+        // }
         // console.log("== onPlayerStateChange: " + eventName);
+        this.youtubeState = event.data;
     }
 
     // ================================================================
