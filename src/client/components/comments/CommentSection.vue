@@ -168,7 +168,7 @@ export default class CommentSection extends Vue {
 
     public get visibleThreads(): Comment[] {
         // hide threads that aren't in the current window and that are deleted and don't have any replies to them
-        const visibleThreads = this.commentThreads.filter(thread => store.state.play.audioWindowDebounced.containsTimepoint(thread.start) && (thread.userId != User.deletedUserId || thread.hasReplies));
+        const visibleThreads = this.commentThreads.filter(thread => store.state.play.audioWindowDebounced.containsTimepoint(thread.start) && (thread.userId !== User.deletedUserId || thread.hasReplies));
         visibleThreads.sort(this.compareCommentThreads.bind(this));
         return visibleThreads;
     }
