@@ -18,8 +18,8 @@ interface IUnpinchSession extends Express.Session {
 export default class AuthenticationController {
     // Temporary testing credentials
     public static readonly sessionSecret: string = "unpinch";
-    public static readonly googleClientID: string = "820058663273-0rnloh0gt9b8hhtukbn21s8v9fn3aj3i.apps.googleusercontent.com";
-    public static readonly googleClientSecret: string = "QsG90MiqmRgYlQArpk3qFTE8";
+    public static readonly googleClientID: string = "638335662135-46f5f2ksq511uoej4i62buaos7e35bbb.apps.googleusercontent.com";
+    public static readonly googleClientSecret: string = "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";
 
     public static getRoutes(): AuthRouteInfo[] {
         // Here's the sequence for Google authentication
