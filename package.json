@@ -5,10 +5,11 @@
   "scripts": {
     "lint": "vue-cli-service lint --no-fix",
     "build-client": "vue-cli-service build",
-    "build-server": "tsc --build --clean --force src/server",
+    "build-server": "tsc --build --clean src/server",
     "db": "env TS_NODE_PROJECT=src/tools/tsconfig.json node -r ts-node/register/transpile-only --unhandled-rejections=strict src/tools/dbmanager.ts",
     "dev-client": "vue-cli-service serve",
     "dev-server": "nodemon",
+    "start": "ts-node --project src/server/tsconfig.json src/server/main.ts",
     "lint-autofix": "vue-cli-service lint",
     "test-server": "env TS_NODE_PROJECT=src/server/tsconfig.json mocha -r ts-node/register src/server/**/*.ts --exit"
   },

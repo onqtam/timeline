@@ -1,0 +1,491 @@
+
+
+
+
+
+
+
+A YOUTUBE CLIP
+https://www.youtube.com/clip/UgkxJ9rCRtsbr3DBgKTRvRWtEG6j-nmbRoOZ
+
+
+upcoming feature: up/down vote for content
+
+
+
+
+
+
+
+TODO: how to enter admin panel for database?
+TODO: did the DB clear itself ?!?!?!
+
+
+
+
+
+unpinch latest progress
+https://www.youtube.com/watch?v=xsJvFr9v7Nk
+
+
+
+NAVAL:
+http://lvh.me:8080/play/2
+https://www.youtube.com/watch?v=1-TZqOsVCNM
+
+
+lots of comments:
+http://lvh.me:8080/play/3
+
+
+
+https://www.googleapis.com/youtube/v3/videos?part=snippet,status,contentDetails&id=YJWPowbCK_I&key=AIzaSyDi1AK9ELda6EtNFYqFhDxzZFZH2mmzlRw
+
+
+
+video unavailable:
+http://youtu.be/afa-5HQHiAs
+
+video unembeddable:
+https://www.youtube.com/watch?v=uX5t8EivCaM
+
+Lex Fridman
+http://youtu.be/YJWPowbCK_I
+
+
+
+very short video:
+https://www.youtube.com/watch?v=ro97Ayyfywc
+http://lvh.me:8080/play/5
+
+
+
+cool shit:
+https://www.codeply.com/p/16POCG8AKf
+
+
+
+██████ DONE:
+
+
+
+██████ TODO:
+
+
+- histogram not showing up if not logged?
+    cannot reproduce...
+
+- check the UI for votes on comments... & counters... seems wrong?
+
+- don't allow voting on deleted comments?
+
+
+- deleted comments with no replies are still shown in the histogram... :|
+
+https://www.google.com/search?q=v-for+skip&oq=v-for+skip&aqs=chrome..69i57.2305j0j7&sourceid=chrome&ie=UTF-8
+
+
+
+
+
+- FIX COMMENTS UI
+    - "Read more" button for too long comments: https://prnt.sc/t3ozn3
+    - don't display all replies by default: https://prnt.sc/t2bcx7
+    - show a percentage of upvotes (up / (up + down)) for comments
+    - sorting (& also showing) of comments - transition!
+    - "..." button which opens a dropdown
+        - report button?
+        - share button
+        OR simply have all the buttons visible - plenty of space now that there's just 1 column
+
+
+
+
+
+
+
+- fix focusThread
+    also rename thread => comment, so that we can highlight even child comments
+
+
+
+
+
+
+
+
+- loading a non-existing episode: http://lvh.me:8080/play/9999
+
+
+
+
+
+
+
+
+
+
+- improve main navbar
+    - going back to Home doesn't underline it
+    - the Listen view should be displayed there
+        OR NOT?
+    - https://stackoverflow.com/questions/50392918/vuetify-how-to-preselect-active-tab
+
+
+
+
+
+
+
+
+
+
+
+- remove errors in console for guest users
+
+- make logged-in sessions persistent (don't log out users when server restarts - too annoying during dev)
+
+- look at the guest/deleted users and their ids and if that makes sense
+
+
+
+google oauth credentials
+    googleClientID
+    googleClientSecret
+
+
+
+
+TODO: use map state/mutations/actions
+
+
+
+.leftJoinAndSelect("user.settings", "settings")
+
+
+
+
+
+- move from seconds to milliseconds in the DB (but use seconds in the UI)
+    - also think about the Timepoint class and the seconds column
+
+
+
+
+
+- can't log in with a different user (could be that I tried with 3 emails all with the same first and last names attached to them)
+    - why is the email unknown - should have been vik.kirilov@gmail.com
+        email: 'unknown@unknown.tld',
+        externalProviderId: 'google_117826896500526191885',
+
+
+
+
+
+
+
+
+
+██████ high-level tasks:
+
+- page with upcoming features on which users can vote
+    - each month (or every 2 weeks) every user gets 1 more voting point for "what feature do I want"
+
+- episode listing page
+    - use v-card with a progress bar for the playback progress
+
+- main page - features:
+    - use v-carousel for showcasing the main selling points for the platform
+    - show the episodes & channels with the most activity
+        - update those with a cron job
+
+- theme, colors & styling
+    https://vuetifyjs.com/en/features/theme/#customizing
+    https://material.io/design/color/dark-theme.html
+    - global theme - remove as much custom css & shit as possible
+    - change color of < X - Y > range to highlight them separately as numbers/time        
+    - transitions for v-if/v-else things
+        https://stackoverflow.com/questions/51835701
+    - different screen sizes:
+        - on small screens - the topics dialog should have the text on multiple lines so that it's readable
+
+██████ routing functionality:
+
+█ bugs:
+
+- after login ==> there is a # at the end of the URL! (this is very minor - doesn't cause problems)
+    - perhaps we can simply trim it with a router callback
+
+██████ comment section:
+
+██████ player:
+
+- show how many minutes/seconds are left in the current item (or how long it is) in the agenda: https://prnt.sc/ubw8v3
+
+█ bugs:
+
+- check if it still autoplays (for specific time points & ranges) - it should not!
+
+- BUG: when loading an URL with a range - if the user plays with the range and only then plays the episode - the changes are reset to whatever the URL is
+
+█ experimental:
+
+- when a user clicks on the "Comments" button for the histogram (show/toggle comments) the bar chart should blink once with a bright color, with a slow fade after that
+    - OR it should simply re-grow from the bottom
+
+- Implement a draggable "thumb" attached below the window so that it can be moved independently of the cursor
+    - or not - now that we have a range slider right below the window
+
+- project a shadow window or cursor while moving somewhere with the pointer on the timelines
+    - maybe replace the tooltip with a projected cursor with label - grayed out?
+
+- hovering the timestamp of comments should display a mark on the timeline (+ highlighting the comment in the same color as the hover mark)
+
+- preset buttons for the window size - 5%, 10%, 1 min, 3 min, 5 min, etc?
+
+- feature: auto-track current topic with window size
+
+- feature: loop window
+    icon: mdi-restore
+
+- THINK ABOUT ZOOMLINE:
+    - think about the bar above - if it should show the progress of the entire episode or the window or something
+    - maybe show the relevant parts of the histogram?
+
+- immediately ask for the comments (stop showLoadingComments) when
+    - onStopDragging is called
+    - window advances forward from playback due to the cursor
+    - TODO think about what happens when we start fetching comments for ranges asynchronously from the server - perhaps leave it as it is for now...?
+    - TODO think about router links, threads, etc.
+
+█ minor:
+
+- "numberOfCommentsTotal" returns the number of top-level comments and not all comments
+    - same problem with "visibleThreads"
+    - HOW to maintain the right number of children for each comment? Worth it at all?
+
+- fix the comment time label positioning - "routerLinkPositionStyle" is hacky and contains magic numbers
+
+- cursor at end of each minute briefly shows <x>:60 as seconds instead of <x+1>:0
+    https://prnt.sc/wbgt41
+    https://prnt.sc/1qynmtk
+
+██████ user/account:
+
+- karma
+
+- volume preferences
+
+- fix playback progress
+    - also save user playback progress on window close - at least in local storage:
+        document.addEventListener('beforeunload', this.handler)
+            https://forum.vuejs.org/t/detect-browser-close/5001
+        localSavePlaybackProgress
+
+█ bugs:
+
+█ minor:
+
+██████ misc - maintenance tasks:
+
+- reduce bloat in the Timeline & TimelinePlayer - factor out code in separate components (tooltips, context menus, etc.)
+
+- move to lowercase database fields and test if the commas are necessary
+
+- move entirely to axios and ditch the AsyncLoader and the use of raw XMLHttpRequest
+    - actually think about EncodingUtils.reviveObjectAs ...
+
+- try to avoid the double quotes for postgres so that our query building is simpler - https://stackoverflow.com/a/6331658/3162383
+
+- add appropriate "andWhere" for episodeId in addition to commentId? sharding?
+
+- 1-to-1 mapping with column names and entity fields (case, underscores, etc.), + no need for quotations !!!
+
+- move from less to sass - uniformity with vuetify
+
+██████ pre-release - security & optimization
+
+- npm vulnerabilities: "found 10 vulnerabilities (2 low, 8 moderate)"
+
+- reduce back-and-forth queries - for example instead of returing an id & then fetching the episode - immediately return the episode itself!
+
+- use fine-grained selects instead of select *
+
+- look into synchronize in ormconfig.json and if it should be changed for production (docs say yes)
+
+- users can spam the front page and enter a ton of youtube videos & channels - think about that
+    - restrict YouTube API credentials so that the quota doesn't get exceeded because of spam
+
+- inspect joins & stuff for common operations and if they need to be there
+
+- add indexes to the right columns
+
+- be more precise with the column types - text vs varchar(number)
+
+- content restrictions - comment length?
+    - reject whitespace-only comments too
+
+- rate limiting - not more than 10 comments per hour from user
+
+- look into express.js performance & security features
+
+- add tests!!! for comment functions & whatever else
+    - `npm run unit`: Unit tests run in JSDOM with Jest
+    - https://vuejs.org/v2/cookbook/unit-testing-vue-components.html
+    - https://vue-community.org/guide/learning/faq.html#what-can-you-advise-to-use-for-unit-testing-jest-or-vue-test-utils
+
+- can things get messed up if some query from a sequence of queries fails? definitely...
+
+- vue tree-shaking? webpack? help? :/
+
+- make fewer calls to the server when loading an episode - currently there are many steps:
+    - store.dispatch.channel.loadEpisodeData
+    - store.dispatch.play.loadEpisode
+        - loadCommentData
+            - get comments
+            - get histogram
+            - get votes by current user (if logged in)
+
+- css extraction: https://github.com/webpack-contrib/sass-loader#extracts-css-into-separate-files
+    - vs combining them: https://browserdiet.com/#combine-css
+- script minification? for all dependencies!
+- script combining? https://browserdiet.com/#combine-js
+- image optimization? https://browserdiet.com/#optimize
+- https://browserdiet.com/
+- https://browserdiet.com/#tools
+
+AWS deployment with beanstalk:
+    https://medium.com/swlh/deploy-https-node-postgres-redis-react-to-aws-ef252567200d
+
+██████ future tasks/features:
+
+- generate histograms for all episodes with a cron job - or generate them for each episode on each new comment
+
+- add an "end" timepoint for comments & rework the queries
+    - select * from comments where (end >= requested_range_start AND start <= requested_range_end)
+    - look into redis
+        https://redis.io/topics/indexes
+        https://stackoverflow.com/questions/33015904/checking-if-ip-falls-within-a-range-with-redis/33020687#33020687
+        https://stackoverflow.com/questions/8622816/redis-or-mongo-for-determining-if-a-number-falls-within-ranges/8624231#8624231
+    - this would impact how we generate the histograms
+    - toggle button in the UI: Show/hide comments which span outside of the window
+
+- rework how we enter rss feeds
+    - node cron
+    - maybe only append new episodes - don't recreate everything - comments are tied to specific episodeIds
+
+- hierarchical agenda in a YouTube comment (neuralink august 2020): https://prnt.sc/u8awoc
+
+- bottom persistent/sticky player when moving between pages - so that the playback is not interrupted? pretty common...
+
+- tagging of content & episodes - use v-chip vuetify component
+
+- think abour error handling again - maybe always throw an error string and let the default catch-all route handler send a 400/500 response?
+
+- linting
+    https://eslint.vuejs.org/rules/html-self-closing.html
+    also look at this and why it fails
+        <div id="app"></div>
+            https://stackoverflow.com/questions/3558119/are-non-void-self-closing-tags-valid-in-html5
+
+██████ longer-term
+
+- rename repository to unpinch
+
+- rename "logic" to "common"
+
+- rename annotation to timestamp?
+
+- em/rem instead of px
+
+- remove the replies[] array of every comment so that a new comment is just 1 insert and no update - parent should be enough (and perhaps store the replies[] array only in redis?)
+
+- upgrade to vue 3 once vuetify works with it (Q1/Q2 2021)
+
+██████ questions:
+
+- should we target the same ES standard?
+
+- lowercase file names?
+
+- markRecomputable? VueRecompute.ts ...?
+
+
+
+██████ other notes
+
+- on lvh.me as a localhost domain
+    https://stackoverflow.com/questions/51583321/it-is-safe-to-use-lvh-me-instead-of-localhost-for-testing
+
+- Vuex - mapState/mapActions/mapMutations helpers
+    https://vuex.vuejs.org/guide/state.html#the-mapstate-helper
+
+
+
+
+
+
+
+
+██████ UPCOMING FEATUERS
+
+- MAP OF WHICH REGIONS YOU HAVE INDEED WATCHED AND NOT JUST FAST-FORWARDED/SKIPPED
+
+- search comments in window or whole episode
+    update histogram based on search filtering - some form of highlighting
+    google indexability & comment search
+    https://codepen.io/loiff89/pen/aKrQBo
+    https://www.codeply.com/p/cfsKLu5XqT
+    
+
+- personal (private) notes & bookmarks
+
+- comments & notes on ranges instead of just at specific points in time
+
+- mobile app
+
+- Channel-specific karma along with global karma
+
+- Markdown support for comments & notes
+
+- meming over media - "jeff who?" - meming in elon-related media
+
+- "include references" - comments can reference time points with hh:mm:ss and then they can end up in the histogram for the 2nd time for the referenced time and not just their input time (& also in the actual comment listing in the scrollable section)
+
+
+██████ OLD/IRRELEVANT:
+
+- the push linting hook should be only for the master branch
+
+- should Timepoint.ts be in the entities folder?
+
+- make the linter not change quotes from ` to " ==> less escaping hassle
+
+- add a UUID column in the Comment table & use that for permalinks instead of &thread=number
+    - not sure if necessary
+
+
+
+
+
+
+
+git reset --soft HEAD~2
+
+a51af991705f55ca18a68531e7b455f475ef0d77
+
+
+
+███ TODO:
+
+
+
+
+
+
+
+
+
+
+
+
