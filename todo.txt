@@ -39,7 +39,7 @@ http://lvh.me:8080/play/3
 
 
 
-https://www.googleapis.com/youtube/v3/videos?part=snippet,status,contentDetails&id=YJWPowbCK_I&key=AIzaSyDi1AK9ELda6EtNFYqFhDxzZFZH2mmzlRw
+
 
 
 
